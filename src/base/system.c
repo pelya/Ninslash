@@ -31,6 +31,9 @@
 		#include <Carbon/Carbon.h>
 	#endif
 
+	#if defined(__ANDROID__)
+		#include <android/log.h>
+	#endif
 #elif defined(CONF_FAMILY_WINDOWS)
 	#define WIN32_LEAN_AND_MEAN
 	#define _WIN32_WINNT 0x0501 /* required for mingw to get getaddrinfo to work */
@@ -47,6 +50,7 @@
 #if defined(CONF_PLATFORM_SOLARIS)
 	#include <sys/filio.h>
 #endif
+
 
 #if defined(__cplusplus)
 extern "C" {
@@ -110,6 +114,9 @@ static void logger_stdout(const char *line)
 {
 	printf("%s\n", line);
 	fflush(stdout);
+#if defined(__ANDROID__)
+	__android_log_print(ANDROID_LOG_INFO, "Ninslash", "%s", line);
+#endif
 }
 
 static void logger_debugger(const char *line)

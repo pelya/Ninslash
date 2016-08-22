@@ -317,6 +317,8 @@ void CGameClient::OnInit()
 		g_GameClient.m_pMenus->RenderLoading();
 	}
 
+	m_pMapimages->OnMapLoad(); // Reload map textures on Android
+
 	for(int i = 0; i < m_All.m_Num; i++)
 		m_All.m_paComponents[i]->OnReset();
 
@@ -666,6 +668,7 @@ void CGameClient::OnStartGame()
 void CGameClient::OnRconLine(const char *pLine)
 {
 	m_pGameConsole->PrintLine(CGameConsole::CONSOLETYPE_REMOTE, pLine);
+	m_pChat->AddLine(-1, 0, pLine);
 }
 
 void CGameClient::ProcessEvents()

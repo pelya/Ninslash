@@ -37,6 +37,8 @@ class CInput : public IEngineInput
 	int64 m_LastRelease;
 	int64 m_ReleaseDelta;
 
+	int m_VideoRestartNeeded;
+
 	void AddEvent(int Unicode, int Key, int Flags);
 
 	IEngineGraphics *Graphics() { return m_pGraphics; }
@@ -70,6 +72,8 @@ public:
 	int ButtonPressed(int Button) { return m_aInputState[m_InputCurrent][Button]; }
 
 	virtual int Update();
+
+	virtual int VideoRestartNeeded();
 };
 
 #endif

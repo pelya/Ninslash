@@ -67,6 +67,8 @@ CInput::CInput()
 	m_GamepadOldAimY = 0;
 	
 	m_NumEvents = 0;
+
+	m_VideoRestartNeeded = 0;
 }
 
 void CInput::Init()
@@ -446,6 +448,12 @@ int CInput::Update()
 				// other messages
 				case SDL_QUIT:
 					return 1;
+
+#if defined(__ANDROID__)
+				case SDL_VIDEORESIZE:
+					m_VideoRestartNeeded = 1;
+					break;
+#endif
 			}
 
 			//
@@ -546,5 +554,14 @@ int CInput::Update()
 	return 0;
 }
 
+int CInput::VideoRestartNeeded()
+{
+	if( m_VideoRestartNeeded )
+	{
+		m_VideoRestartNeeded = 0;
+		return 1;
+	}
+	return 0;
+}
 
 IEngineInput *CreateEngineInput() { return new CInput; }
