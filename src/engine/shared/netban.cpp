@@ -606,3 +606,6 @@ void CNetBan::ConBansSave(IConsole::IResult *pResult, void *pUser)
 	str_format(aBuf, sizeof(aBuf), "saved banlist to '%s'", pResult->GetString(0));
 	pThis->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "net_ban", aBuf);
 }
+
+template void CNetBan::MakeBanInfo<NETADDR>(CNetBan::CBan<NETADDR> const*, char*, unsigned int, int) const;
+template void CNetBan::MakeBanInfo<CNetRange>(CNetBan::CBan<CNetRange> const*, char*, unsigned int, int) const;
