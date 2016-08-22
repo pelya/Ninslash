@@ -12,6 +12,7 @@ other/icons/*.res
 /freetype.dll
 /autoexec.cfg
 
+/bin/*/ninslash_srv
 /crapnet*
 /dilate*
 /fake_server*

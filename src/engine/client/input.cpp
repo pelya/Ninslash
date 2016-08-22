@@ -1,6 +1,7 @@
 
 
 #include <SDL.h>
+#include <SDL_clipboard.h>
 
 #include <base/system.h>
 #include <engine/shared/config.h>

@@ -4,7 +4,7 @@
 
 #include "graphics_threaded.h"
 #include <SDL.h>
-#include <SDL_opengl.h>
+#include <GL/glew.h>
 
 
 // Use SDL semaphores on Mac OS X, because (unnamed) posix semaphores are not available
