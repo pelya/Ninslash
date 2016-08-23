@@ -75,13 +75,16 @@ void CInput::Init()
 {
 	m_pGraphics = Kernel()->RequestInterface<IEngineGraphics>();
 	m_pGamepad = Kernel()->RequestInterface<IEngineGamepad>();
+#if SDL_VERSION_ATLEAST(2,0,0)
 	SDL_StartTextInput();
+#endif
 	ShowCursor(true);
 	//m_pGraphics->GrabWindow(true);
 }
 
 void CInput::LoadHardwareCursor()
 {
+#if SDL_VERSION_ATLEAST(2,0,0)
 	if(m_pCursor != NULL)
 		return;
 
@@ -97,6 +100,7 @@ void CInput::LoadHardwareCursor()
 		return;
 
 	m_pCursor = SDL_CreateColorCursor(m_pCursorSurface, 0, 0);
+#endif
 }
 
 int CInput::ShowCursor(bool show)
@@ -280,7 +284,11 @@ int CInput::Update()
 
 	{
 		int i;
+#if SDL_VERSION_ATLEAST(2,0,0)
 		const Uint8 *pState = SDL_GetKeyboardState(&i);
+#else
+		const Uint8 *pState = SDL_GetKeyState(&i);
+#endif
 		if(i >= KEY_LAST)
 			i = KEY_LAST-1;
 		mem_copy(m_aInputState[m_InputCurrent], pState, i);

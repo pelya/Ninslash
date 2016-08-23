@@ -161,6 +161,9 @@ public:
 	CRegister m_Register;
 	CMapChecker m_MapChecker;
 
+	static const char *CServer::m_botnames[];
+	static int m_botnamesSize;
+
 	CServer();
 
 	int TrySetClientName(int ClientID, const char *pName);
