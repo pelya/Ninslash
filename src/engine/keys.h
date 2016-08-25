@@ -10,10 +10,10 @@
 
 enum
 {
-	KEY_FIRST = 0,
 
 #if SDL_VERSION_ATLEAST(2,0,0)
 
+	KEY_FIRST = 0,
 	KEY_UNKNOWN = 0,
 	KEY_A = 4,
 	KEY_B = 5,

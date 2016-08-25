@@ -323,6 +323,9 @@ int CInput::Update()
 			
 			switch (Event.type)
 			{
+
+#if SDL_VERSION_ATLEAST(2,0,0)
+
 				case SDL_TEXTINPUT:
 				{
 					int TextLength, i;
@@ -334,11 +337,11 @@ int CInput::Update()
 				}
 				// handle keys
 				case SDL_KEYDOWN:
-					Key = SDL_GetScancodeFromName(SDL_GetKeyName(Event.key.keysym.sym));
+					Key = Event.key.sym.scancode;
 					break;
 				case SDL_KEYUP:
 					Action = IInput::FLAG_RELEASE;
-					Key = SDL_GetScancodeFromName(SDL_GetKeyName(Event.key.keysym.sym));
+					Key = Event.key.sym.scancode;
 					break;
 
 					
@@ -417,8 +420,19 @@ int CInput::Update()
 					if (Event.jaxis.axis == SDL_CONTROLLER_AXIS_RIGHTY)
 						m_GamepadAimY = Event.jaxis.value;
 					break;
-					
-					
+
+#else // SDL_VERSION_ATLEAST(2,0,0)
+
+				case SDL_KEYDOWN:
+					Key = Event.key.keysym.sym;
+					break;
+				case SDL_KEYUP:
+					Action = IInput::FLAG_RELEASE;
+					Key = Event.key.keysym.sym;
+					break;
+
+#endif // SDL_VERSION_ATLEAST(2,0,0)
+
 				// handle mouse buttons
 				case SDL_MOUSEBUTTONUP:
 					Action = IInput::FLAG_RELEASE;
@@ -441,6 +455,8 @@ int CInput::Update()
 					if(Event.button.button == 8) Key = KEY_MOUSE_8; // ignore_convention
 					break;
 
+#if SDL_VERSION_ATLEAST(2,0,0)
+
 				case SDL_MOUSEWHEEL:
 					if(Event.wheel.y > 0) Key = KEY_MOUSE_WHEEL_UP; // ignore_convention
 					if(Event.wheel.y < 0) Key = KEY_MOUSE_WHEEL_DOWN; // ignore_convention
@@ -453,13 +469,15 @@ int CInput::Update()
 					if(Event.window.event == SDL_WINDOWEVENT_LEAVE) m_MouseLeft = true;
 					break;
 
+#endif // SDL_VERSION_ATLEAST(2,0,0)
+
 				// other messages
 				case SDL_QUIT:
 					return 1;
 
 #if defined(__ANDROID__)
 				case SDL_VIDEORESIZE:
-					m_VideoRestartNeeded = 1;
+					m_VideoRestartNeeded = 1; // Only on Android, and sometimes on old MacOs
 					break;
 #endif
 			}

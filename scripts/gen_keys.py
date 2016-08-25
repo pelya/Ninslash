@@ -26,11 +26,11 @@ print >>f, ""
 print >>f, "enum"
 print >>f, "{"
 
-print >>f, "\tKEY_FIRST = 0,"
-
 print >>f, ""
 print >>f, "#if SDL_VERSION_ATLEAST(2,0,0)"
 print >>f, ""
+
+print >>f, "\tKEY_FIRST = 0,"
 
 highestid = 0
 for line in open("scripts/SDL_scancode.h"):
@@ -72,10 +72,10 @@ print >>f, "\tKEY_GAMEPAD_BUTTON_DPAD_UP = %d,"%(highestid); keynames[highestid]
 print >>f, "\tKEY_GAMEPAD_BUTTON_DPAD_DOWN = %d,"%(highestid); keynames[highestid] = "gamepad_dpad_down" ; highestid += 1
 print >>f, "\tKEY_GAMEPAD_BUTTON_DPAD_LEFT = %d,"%(highestid); keynames[highestid] = "gamepad_dpad_left" ; highestid += 1
 print >>f, "\tKEY_GAMEPAD_BUTTON_DPAD_RIGHT = %d,"%(highestid); keynames[highestid] = "gamepad_dpad_right" ; highestid += 1
-print >>f, "\tKEY_GAMEPAD_SHOULDER_LEFT = %d,"%(highestid); keynames[highestid] = "gamepad_shoulder_left" ; highestid += 1
-print >>f, "\tKEY_GAMEPAD_SHOULDER_RIGHT = %d,"%(highestid); keynames[highestid] = "gamepad_shoulder_right" ; highestid += 1
-print >>f, "\tKEY_GAMEPAD_TRIGGER_LEFT = %d,"%(highestid); keynames[highestid] = "gamepad_trigger_left" ; highestid += 1
-print >>f, "\tKEY_GAMEPAD_TRIGGER_RIGHT = %d,"%(highestid); keynames[highestid] = "gamepad_trigger_right" ; highestid += 1
+print >>f, "\tKEY_GAMEPAD_SHOULDER_LEFT = %d,"%(highestid); keynames[highestid] = "gamepad_shldr_left" ; highestid += 1
+print >>f, "\tKEY_GAMEPAD_SHOULDER_RIGHT = %d,"%(highestid); keynames[highestid] = "gamepad_shldr_right" ; highestid += 1
+print >>f, "\tKEY_GAMEPAD_TRIGGER_LEFT = %d,"%(highestid); keynames[highestid] = "gamepad_trig_left" ; highestid += 1
+print >>f, "\tKEY_GAMEPAD_TRIGGER_RIGHT = %d,"%(highestid); keynames[highestid] = "gamepad_trig_right" ; highestid += 1
 print >>f, "\tKEY_GAMEPAD_BUTTON_LEFTSTICK = %d,"%(highestid); keynames[highestid] = "gamepad_stick_left" ; highestid += 1
 #print >>f, "\tKEY_GAMEPAD_BUTTON_RIGHTSTICK = %d,"%(highestid); keynames[highestid] = "gamepad_stick_right" ; highestid += 1
 print >>f, ""
@@ -124,10 +124,10 @@ print >>f, "\tKEY_GAMEPAD_BUTTON_DPAD_UP = %d,"%(highestid); keynames12[highesti
 print >>f, "\tKEY_GAMEPAD_BUTTON_DPAD_DOWN = %d,"%(highestid); keynames12[highestid] = "gamepad_dpad_down" ; highestid += 1
 print >>f, "\tKEY_GAMEPAD_BUTTON_DPAD_LEFT = %d,"%(highestid); keynames12[highestid] = "gamepad_dpad_left" ; highestid += 1
 print >>f, "\tKEY_GAMEPAD_BUTTON_DPAD_RIGHT = %d,"%(highestid); keynames12[highestid] = "gamepad_dpad_right" ; highestid += 1
-print >>f, "\tKEY_GAMEPAD_SHOULDER_LEFT = %d,"%(highestid); keynames12[highestid] = "gamepad_shoulder_left" ; highestid += 1
-print >>f, "\tKEY_GAMEPAD_SHOULDER_RIGHT = %d,"%(highestid); keynames12[highestid] = "gamepad_shoulder_right" ; highestid += 1
-print >>f, "\tKEY_GAMEPAD_TRIGGER_LEFT = %d,"%(highestid); keynames12[highestid] = "gamepad_trigger_left" ; highestid += 1
-print >>f, "\tKEY_GAMEPAD_TRIGGER_RIGHT = %d,"%(highestid); keynames12[highestid] = "gamepad_trigger_right" ; highestid += 1
+print >>f, "\tKEY_GAMEPAD_SHOULDER_LEFT = %d,"%(highestid); keynames[highestid] = "gamepad_shldr_left" ; highestid += 1
+print >>f, "\tKEY_GAMEPAD_SHOULDER_RIGHT = %d,"%(highestid); keynames[highestid] = "gamepad_shldr_right" ; highestid += 1
+print >>f, "\tKEY_GAMEPAD_TRIGGER_LEFT = %d,"%(highestid); keynames[highestid] = "gamepad_trig_left" ; highestid += 1
+print >>f, "\tKEY_GAMEPAD_TRIGGER_RIGHT = %d,"%(highestid); keynames[highestid] = "gamepad_trig_right" ; highestid += 1
 print >>f, "\tKEY_GAMEPAD_BUTTON_LEFTSTICK = %d,"%(highestid); keynames12[highestid] = "gamepad_stick_left" ; highestid += 1
 #print >>f, "\tKEY_GAMEPAD_BUTTON_RIGHTSTICK = %d,"%(highestid); keynames[highestid] = "gamepad_stick_right" ; highestid += 1
 
