@@ -88,7 +88,7 @@ highestid = 0
 for line in open("scripts/SDL_keysym.h"):
 	l = line.strip().split("=")
 	if len(l) == 2 and "SDLK_" in line:
-		key = l[0].strip().replace("SDLK_", "KEY_")
+		key = l[0].strip().replace("SDLK_", "KEY_").upper()
 		value = int(l[1].split(",")[0].strip())
 		if key[0:2] == "/*":
 			continue
