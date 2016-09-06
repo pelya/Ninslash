@@ -1,5 +1,7 @@
+#include "server.h"
 
-const char *CServer::m_botnames[] = {
+// C++11-style initializer
+std::vector<const char *> CServer::m_botnames = {
 	"bot Unknown",
 	"bot Return",
 	"bot Escape",
@@ -123,5 +125,3 @@ const char *CServer::m_botnames[] = {
 	"bot Eject",
 	"bot Sleep",
 };
-
-int CServer::m_botnamesSize = sizeof(CServer::botnames) / sizeof(CServer::botnames[0]);

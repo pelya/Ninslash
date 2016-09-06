@@ -337,11 +337,11 @@ int CInput::Update()
 				}
 				// handle keys
 				case SDL_KEYDOWN:
-					Key = Event.key.sym.scancode;
+					Key = Event.key.keysym.scancode;
 					break;
 				case SDL_KEYUP:
 					Action = IInput::FLAG_RELEASE;
-					Key = Event.key.sym.scancode;
+					Key = Event.key.keysym.scancode;
 					break;
 
 					

@@ -241,6 +241,7 @@ function build(settings)
 
 	-- apply sdl settings
 	config.sdl2:Apply(client_settings)
+	config.sdl2:Apply(settings)
 	-- apply freetype settings
 	config.freetype:Apply(client_settings)
 	-- apply glew settings

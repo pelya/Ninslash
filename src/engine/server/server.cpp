@@ -1859,14 +1859,8 @@ void CServer::AddZombie()
 	m_aClients[ClientID].m_State = CClient::STATE_INGAME;
 	m_aClients[ClientID].m_Bot = true;
 
-	
-	// generate a cool name for the bot
-	
-	char aName[128];
-	str_format(aName, sizeof(aName), "%s",  m_botnames[rand() % m_botnamesSize]);
-	
 	SetBotDefault(ClientID);
-	SetClientName(ClientID, aName);
+	SetClientName(ClientID, m_botnames[rand() % m_botnames.size()]);
 	SetClientClan(ClientID, "ai");
 }
 

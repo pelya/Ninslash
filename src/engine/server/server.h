@@ -3,7 +3,21 @@
 #ifndef ENGINE_SERVER_SERVER_H
 #define ENGINE_SERVER_SERVER_H
 
+#include <vector>
+
+#include <engine/map.h>
+#include <engine/masterserver.h>
 #include <engine/server.h>
+
+#include <engine/shared/demo.h>
+#include <engine/shared/econ.h>
+#include <engine/shared/mapchecker.h>
+#include <engine/shared/netban.h>
+#include <engine/shared/network.h>
+#include <engine/shared/protocol.h>
+#include <engine/shared/snapshot.h>
+
+#include "register.h"
 
 
 class CSnapIDPool
@@ -161,8 +175,7 @@ public:
 	CRegister m_Register;
 	CMapChecker m_MapChecker;
 
-	static const char *CServer::m_botnames[];
-	static int m_botnamesSize;
+	static std::vector<const char *> m_botnames;
 
 	CServer();
 
