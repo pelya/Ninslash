@@ -2,7 +2,7 @@
 #define ENGINE_CLIENT_SHADERS_H
 
 #include "SDL.h"
-#include "SDL_opengl.h"
+#include <GL/glew.h>
  
 
 typedef struct {

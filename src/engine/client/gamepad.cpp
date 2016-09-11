@@ -12,7 +12,7 @@
 
 #include <math.h>
 
-
+#if SDL_VERSION_ATLEAST(2,0,0)
 
 int CGamepad::Init()
 {
@@ -114,7 +114,39 @@ int CGamepad::Shutdown()
 	return 0;
 }
 
+#else
 
+// No gamepad interface on SDL 1.2
+int CGamepad::Init()
+{
+	m_GamepadEnabled = 0;
+	m_RumbleEnabled = 0;
+	m_Haptic = NULL;
+	return 0;
+}
+
+void CGamepad::Rumble(float Strength, unsigned int Length)
+{
+}
+
+void CGamepad::ConnectGamepad()
+{
+}
+
+void CGamepad::DisconnectGamepad(int DeviceID)
+{
+}
+
+void CGamepad::ScanGamepads()
+{
+}
+
+int CGamepad::Shutdown()
+{
+	return 0;
+}
+
+#endif
 
 IEngineGamepad *CreateEngineGamepad() { return new CGamepad; }
 

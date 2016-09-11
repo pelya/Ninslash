@@ -181,6 +181,7 @@ void CGameClient::OnConsoleInit()
 	m_All.Add(&m_pParticles->m_RenderColorTrail);
 	m_All.Add(&m_pParticles->m_RenderLazerload);
 	m_All.Add(m_pBuildings);
+	m_All.Add(&m_pParticles->m_RenderCrafting);
 	m_All.Add(m_pItems);
 	m_All.Add(&m_pParticles->m_RenderPlayerSpawn);
 	m_All.Add(&gs_Monsters);
@@ -316,6 +317,8 @@ void CGameClient::OnInit()
 		g_pData->m_aImages[i].m_Id = Graphics()->LoadTexture(g_pData->m_aImages[i].m_pFilename, IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
 		g_GameClient.m_pMenus->RenderLoading();
 	}
+
+	m_pMapimages->OnMapLoad(); // Reload map textures on Android
 
 	for(int i = 0; i < m_All.m_Num; i++)
 		m_All.m_paComponents[i]->OnReset();
@@ -659,6 +662,7 @@ void CGameClient::OnGameOver()
 
 void CGameClient::OnStartGame()
 {
+	CustomStuff()->Reset();
 	if(Client()->State() != IClient::STATE_DEMOPLAYBACK)
 		Client()->DemoRecorder_HandleAutoStart();
 }
@@ -666,6 +670,7 @@ void CGameClient::OnStartGame()
 void CGameClient::OnRconLine(const char *pLine)
 {
 	m_pGameConsole->PrintLine(CGameConsole::CONSOLETYPE_REMOTE, pLine);
+	m_pChat->AddLine(-1, 0, pLine);
 }
 
 void CGameClient::ProcessEvents()
@@ -762,6 +767,16 @@ void CGameClient::ProcessEvents()
 		{
 			CNetEvent_Explosion *ev = (CNetEvent_Explosion *)pData;
 			g_GameClient.m_pEffects->Explosion(vec2(ev->m_X, ev->m_Y));
+		}
+		else if(Item.m_Type == NETEVENTTYPE_REPAIR)
+		{
+			CNetEvent_Repair *ev = (CNetEvent_Repair *)pData;
+			g_GameClient.m_pEffects->Repair(vec2(ev->m_X, ev->m_Y));
+		}
+		else if(Item.m_Type == NETEVENTTYPE_AMMOFILL)
+		{
+			CNetEvent_AmmoFill *ev = (CNetEvent_AmmoFill *)pData;
+			g_GameClient.m_pEffects->AmmoFill(vec2(ev->m_X, ev->m_Y), ev->m_Weapon);
 		}
 		else if(Item.m_Type == NETEVENTTYPE_FLAMEEXPLOSION)
 		{

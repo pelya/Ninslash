@@ -1,6 +1,7 @@
 
 
 #include <SDL.h>
+#include <SDL_clipboard.h>
 
 #include <base/system.h>
 #include <engine/shared/config.h>
@@ -66,19 +67,24 @@ CInput::CInput()
 	m_GamepadOldAimY = 0;
 	
 	m_NumEvents = 0;
+
+	m_VideoRestartNeeded = 0;
 }
 
 void CInput::Init()
 {
 	m_pGraphics = Kernel()->RequestInterface<IEngineGraphics>();
 	m_pGamepad = Kernel()->RequestInterface<IEngineGamepad>();
+#if SDL_VERSION_ATLEAST(2,0,0)
 	SDL_StartTextInput();
+#endif
 	ShowCursor(true);
 	//m_pGraphics->GrabWindow(true);
 }
 
 void CInput::LoadHardwareCursor()
 {
+#if SDL_VERSION_ATLEAST(2,0,0)
 	if(m_pCursor != NULL)
 		return;
 
@@ -94,6 +100,7 @@ void CInput::LoadHardwareCursor()
 		return;
 
 	m_pCursor = SDL_CreateColorCursor(m_pCursorSurface, 0, 0);
+#endif
 }
 
 int CInput::ShowCursor(bool show)
@@ -277,7 +284,11 @@ int CInput::Update()
 
 	{
 		int i;
+#if SDL_VERSION_ATLEAST(2,0,0)
 		const Uint8 *pState = SDL_GetKeyboardState(&i);
+#else
+		const Uint8 *pState = SDL_GetKeyState(&i);
+#endif
 		if(i >= KEY_LAST)
 			i = KEY_LAST-1;
 		mem_copy(m_aInputState[m_InputCurrent], pState, i);
@@ -312,6 +323,9 @@ int CInput::Update()
 			
 			switch (Event.type)
 			{
+
+#if SDL_VERSION_ATLEAST(2,0,0)
+
 				case SDL_TEXTINPUT:
 				{
 					int TextLength, i;
@@ -323,11 +337,11 @@ int CInput::Update()
 				}
 				// handle keys
 				case SDL_KEYDOWN:
-					Key = SDL_GetScancodeFromName(SDL_GetKeyName(Event.key.keysym.sym));
+					Key = Event.key.keysym.scancode;
 					break;
 				case SDL_KEYUP:
 					Action = IInput::FLAG_RELEASE;
-					Key = SDL_GetScancodeFromName(SDL_GetKeyName(Event.key.keysym.sym));
+					Key = Event.key.keysym.scancode;
 					break;
 
 					
@@ -406,8 +420,19 @@ int CInput::Update()
 					if (Event.jaxis.axis == SDL_CONTROLLER_AXIS_RIGHTY)
 						m_GamepadAimY = Event.jaxis.value;
 					break;
-					
-					
+
+#else // SDL_VERSION_ATLEAST(2,0,0)
+
+				case SDL_KEYDOWN:
+					Key = Event.key.keysym.sym;
+					break;
+				case SDL_KEYUP:
+					Action = IInput::FLAG_RELEASE;
+					Key = Event.key.keysym.sym;
+					break;
+
+#endif // SDL_VERSION_ATLEAST(2,0,0)
+
 				// handle mouse buttons
 				case SDL_MOUSEBUTTONUP:
 					Action = IInput::FLAG_RELEASE;
@@ -430,6 +455,8 @@ int CInput::Update()
 					if(Event.button.button == 8) Key = KEY_MOUSE_8; // ignore_convention
 					break;
 
+#if SDL_VERSION_ATLEAST(2,0,0)
+
 				case SDL_MOUSEWHEEL:
 					if(Event.wheel.y > 0) Key = KEY_MOUSE_WHEEL_UP; // ignore_convention
 					if(Event.wheel.y < 0) Key = KEY_MOUSE_WHEEL_DOWN; // ignore_convention
@@ -442,9 +469,17 @@ int CInput::Update()
 					if(Event.window.event == SDL_WINDOWEVENT_LEAVE) m_MouseLeft = true;
 					break;
 
+#endif // SDL_VERSION_ATLEAST(2,0,0)
+
 				// other messages
 				case SDL_QUIT:
 					return 1;
+
+#if defined(__ANDROID__)
+				case SDL_VIDEORESIZE:
+					m_VideoRestartNeeded = 1; // Only on Android, and sometimes on old MacOs
+					break;
+#endif
 			}
 
 			//
@@ -545,5 +580,14 @@ int CInput::Update()
 	return 0;
 }
 
+int CInput::VideoRestartNeeded()
+{
+	if( m_VideoRestartNeeded )
+	{
+		m_VideoRestartNeeded = 0;
+		return 1;
+	}
+	return 0;
+}
 
 IEngineInput *CreateEngineInput() { return new CInput; }

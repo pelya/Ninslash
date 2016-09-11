@@ -1920,6 +1920,13 @@ void CClient::Run()
 					m_pGraphics->Swap();
 				}
 			}
+			if( Input()->VideoRestartNeeded() )
+			{
+				m_pGraphics->Init();
+				//Kernel()->RequestInterface<IEngineTextRender>()->Init();
+				LoadData();
+				GameClient()->OnInit();
+			}
 		}
 
 		AutoScreenshot_Cleanup();
@@ -2255,7 +2262,7 @@ static CClient *CreateClient()
 		Upstream latency
 */
 
-#if defined(CONF_PLATFORM_MACOSX)
+#if defined(CONF_PLATFORM_MACOSX) || defined(__ANDROID__)
 extern "C" int SDL_main(int argc, char **argv_) // ignore_convention
 {
 	const char **argv = const_cast<const char **>(argv_);

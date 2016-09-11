@@ -3,6 +3,10 @@
 
 #include <engine/gamepad.h>
 
+#if !SDL_VERSION_ATLEAST(2,0,0)
+typedef int SDL_Haptic;
+#endif
+
 class CGamepad : public IEngineGamepad
 {
 	int m_GamepadEnabled;

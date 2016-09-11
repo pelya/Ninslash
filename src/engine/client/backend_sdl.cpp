@@ -5,6 +5,10 @@
 
 #if defined(CONF_PLATFORM_MACOSX)
 #include <OpenGL/glu.h>
+#elif defined(__ANDROID__)
+extern "C" GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat,
+                             GLsizei width, GLsizei height, GLenum format,
+                             GLenum type, const void* data);
 #else
 #include <GL/glu.h>
 #endif
@@ -225,10 +229,12 @@ void CCommandProcessorFragment_OpenGL::SetState(const CCommandBuffer::SState &St
 		dbg_msg("render", "unknown wrapmode %d\n", State.m_WrapMode);
 	};
 
+#if !defined(GL_ES_VERSION_3_0)
 	// screen mapping
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(State.m_ScreenTL.x, State.m_ScreenBR.x, State.m_ScreenBR.y, State.m_ScreenTL.y, 1.0f, 10.f);
+#endif
 }
 
 void CCommandProcessorFragment_OpenGL::Cmd_Init(const SCommand_Init *pCommand)
@@ -288,6 +294,7 @@ void CCommandProcessorFragment_OpenGL::Cmd_Texture_Create(const CCommandBuffer::
 	int Oglformat = TexFormatToOpenGLFormat(pCommand->m_Format);
 	int StoreOglformat = TexFormatToOpenGLFormat(pCommand->m_StoreFormat);
 
+#if !defined(GL_ES_VERSION_3_0)
 	if(pCommand->m_Flags&CCommandBuffer::TEXFLAG_COMPRESSED)
 	{
 		switch(StoreOglformat)
@@ -298,6 +305,7 @@ void CCommandProcessorFragment_OpenGL::Cmd_Texture_Create(const CCommandBuffer::
 			default: StoreOglformat = GL_COMPRESSED_RGBA_ARB;
 		}
 	}
+#endif
 	glGenTextures(1, &m_aTextures[pCommand->m_Slot].m_Tex);
 	glBindTexture(GL_TEXTURE_2D, m_aTextures[pCommand->m_Slot].m_Tex);
 
@@ -562,16 +570,18 @@ void CCommandProcessorFragment_SDL::Cmd_Init(const SCommand_Init *pCommand)
 	glEnable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
+#if !defined(GL_ES_VERSION_3_0)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-
 	glAlphaFunc(GL_GREATER, 0);
 	glEnable(GL_ALPHA_TEST);
+#endif
 	glDepthMask(0);
 
 	glewInit();
 
 	// init shaders
+#if !defined(GL_ES_VERSION_3_0)
 	glAttachObjectARB = (PFNGLATTACHOBJECTARBPROC) SDL_GL_GetProcAddress("glAttachObjectARB");
 	glCompileShaderARB = (PFNGLCOMPILESHADERARBPROC) SDL_GL_GetProcAddress("glCompileShaderARB");
 	glCreateProgramObjectARB = (PFNGLCREATEPROGRAMOBJECTARBPROC) SDL_GL_GetProcAddress("glCreateProgramObjectARB");
@@ -610,6 +620,7 @@ void CCommandProcessorFragment_SDL::Cmd_Init(const SCommand_Init *pCommand)
 	{
 		dbg_msg("gfx", "unable to init shaders");
 	}
+#endif
 }
 
 void CCommandProcessorFragment_SDL::Cmd_Shutdown(const SCommand_Shutdown *pCommand)

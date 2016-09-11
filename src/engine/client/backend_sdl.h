@@ -4,8 +4,15 @@
 
 #include "graphics_threaded.h"
 #include <SDL.h>
-#include <SDL_opengl.h>
+#include <GL/glew.h>
 
+#if !SDL_VERSION_ATLEAST(2,0,0)
+typedef void * SDL_GLContext;
+typedef void * SDL_Window;
+static inline SDL_GLContext SDL_GL_CreateContext(SDL_Window *window) { return window; }
+static inline int SDL_GL_MakeCurrent(SDL_Window * window, SDL_GLContext context) { return 0; }
+static inline void SDL_GL_SwapWindow(SDL_Window * window) { SDL_GL_SwapBuffers(); };
+#endif
 
 // Use SDL semaphores on Mac OS X, because (unnamed) posix semaphores are not available
 #if defined(CONF_PLATFORM_MACOSX)

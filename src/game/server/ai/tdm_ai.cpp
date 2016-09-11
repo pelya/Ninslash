@@ -31,7 +31,8 @@ void CAItdm::OnCharacterSpawn(CCharacter *pChr)
 void CAItdm::DoBehavior()
 {
 	// power level
-	m_PowerLevel = 20 - GameServer()->m_pController->CountPlayers(Player()->GetTeam())*1.5f;
+	//m_PowerLevel = 20 - GameServer()->m_pController->CountPlayers(Player()->GetTeam())*1.5f;
+	m_PowerLevel = 6;
 	
 	// reset jump and attack
 	if (Player()->GetCharacter()->GetCore().m_JetpackPower < 10 || Player()->GetCharacter()->GetCore().m_Jetpack == 0)
@@ -47,12 +48,19 @@ void CAItdm::DoBehavior()
 	// if we see a player
 	if (m_EnemiesInSight > 0)
 	{
-		ShootAtClosestEnemy();
+		if (!ShootAtClosestEnemy())
+			if (!ShootAtClosestBuilding())
+				ShootAtClosestMonster();
 		ReactToPlayer();
 	}
 	else
-		m_AttackTimer = 0;
+	{
+		if (!ShootAtClosestBuilding())
+			ShootAtClosestMonster();
+	}
 
+	
+	
 	int f = 1000+m_EnemiesInSight*100;
 
 	bool SeekEnemy = false;
