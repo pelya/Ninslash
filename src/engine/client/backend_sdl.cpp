@@ -659,6 +659,7 @@ void CCommandProcessorFragment_SDL::Cmd_Swap(const CCommandBuffer::SCommand_Swap
 
 void CCommandProcessorFragment_SDL::Cmd_VideoModes(const CCommandBuffer::SCommand_VideoModes *pCommand)
 {
+#if SDL_VERSION_ATLEAST(2,0,0)
 	SDL_DisplayMode mode;
 	int maxModes = SDL_GetNumDisplayModes(pCommand->m_Screen),
 		numModes = 0;
@@ -689,6 +690,29 @@ void CCommandProcessorFragment_SDL::Cmd_VideoModes(const CCommandBuffer::SComman
 
 	}
 	*pCommand->m_pNumModes = numModes;
+#else
+	int numModes = 0;
+	for (SDL_Rect **mode = SDL_ListModes(NULL, SDL_FULLSCREEN); *mode != NULL && numModes < pCommand->m_MaxModes; mode++)
+	{
+		bool Skip = false;
+		for(int j = 0; j < numModes; j++)
+		{
+			if(pCommand->m_pModes[j].m_Width == (*mode)->w && pCommand->m_pModes[j].m_Height == (*mode)->h)
+			{
+				Skip = true; break;
+			}
+		}
+		if(Skip)
+			continue;
+		pCommand->m_pModes[numModes].m_Width = (*mode)->w;
+		pCommand->m_pModes[numModes].m_Height = (*mode)->h;
+		pCommand->m_pModes[numModes].m_Red = 8;
+		pCommand->m_pModes[numModes].m_Green = 8;
+		pCommand->m_pModes[numModes].m_Blue = 8;
+		numModes++;
+	}
+	*pCommand->m_pNumModes = numModes;
+#endif
 }
 
 CCommandProcessorFragment_SDL::CCommandProcessorFragment_SDL()

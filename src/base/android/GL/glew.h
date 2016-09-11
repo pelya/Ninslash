@@ -3,7 +3,6 @@
 #define __ANDROID_STUB_GLEW_H__
 
 #include <GLES3/gl3.h>
-#include <GLES3/gl3ext.h>
 #include <EGL/egl.h>
 
 #define GLEW_OK 0
