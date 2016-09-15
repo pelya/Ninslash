@@ -256,11 +256,7 @@ void CCommandProcessorFragment_OpenGL::Cmd_Init(const SCommand_Init *pCommand)
 	m_pTextureMemoryUsage = pCommand->m_pTextureMemoryUsage;
 	m_ScreenWidthDiv = 2.0 / pCommand->m_ScreenWidth;
 	m_ScreenHeightDiv = 2.0 / pCommand->m_ScreenHeight;
-
-	CCommandBuffer::SCommand_ShaderBegin defaultShader;
-	defaultShader.m_Shader = SHADER_DEFAULT;
-	defaultShader.m_Intensity = 1.0f;
-	Cmd_ShaderBegin(&defaultShader);
+	dbg_msg("render", "Screen %d x %d\n", pCommand->m_ScreenWidth, pCommand->m_ScreenHeight);
 }
 
 void CCommandProcessorFragment_OpenGL::Cmd_Texture_Update(const CCommandBuffer::SCommand_Texture_Update *pCommand)
@@ -424,6 +420,11 @@ void CCommandProcessorFragment_OpenGL::Cmd_LoadShaders(const CCommandBuffer::SCo
 	m_aShader[SHADER_RAGE] = LoadShader("data/shaders/basic.vert", "data/shaders/rage.frag");
 	m_aShader[SHADER_FUEL] = LoadShader("data/shaders/basic.vert", "data/shaders/fuel.frag");
 	m_aShader[SHADER_DEFAULT] = LoadShader("data/shaders/basic.vert", "data/shaders/default.frag");
+
+	CCommandBuffer::SCommand_ShaderBegin defaultShader;
+	defaultShader.m_Shader = SHADER_DEFAULT;
+	defaultShader.m_Intensity = 1.0f;
+	Cmd_ShaderBegin(&defaultShader);
 }
 
 
@@ -449,9 +450,9 @@ void CCommandProcessorFragment_OpenGL::Cmd_ShaderBegin(const CCommandBuffer::SCo
 	if (location >= 0)
 		glUniform1fARB(location, GLfloat(m_ScreenHeightDiv));
 
-	location = pShader->getUniformLocation("texture");
+	location = pShader->getUniformLocation("texunit");
 	if (location >= 0)
-		glUniform1fARB(location, 0); // First texture unit
+		glUniform1iARB(location, 0); // First texture unit
 }
 
 
@@ -929,8 +930,8 @@ int CGraphicsBackend_SDL_OpenGL::Init(const char *pName, int *Width, int *Height
 	CCommandBuffer CmdBuffer(1024, 512);
 	CCommandProcessorFragment_OpenGL::SCommand_Init CmdOpenGL;
 	CmdOpenGL.m_pTextureMemoryUsage = &m_TextureMemoryUsage;
-	CmdOpenGL.m_ScreenWidth = ScreenBounds.w;
-	CmdOpenGL.m_ScreenHeight = ScreenBounds.h;
+	CmdOpenGL.m_ScreenWidth = *Width;
+	CmdOpenGL.m_ScreenHeight = *Height;
 	CmdBuffer.AddCommand(CmdOpenGL);
 	CCommandProcessorFragment_SDL::SCommand_Init CmdSDL;
 	CmdSDL.m_GLContext = m_GLContext;

@@ -1,13 +1,13 @@
-uniform sampler2D texture;
-uniform float rnd;
-uniform float intensity;
+uniform sampler2D texunit;
+uniform mediump float rnd;
+uniform lowp float intensity;
 
-layout(location = 0) in highp vec2 in_texCoord;
-layout(location = 1) in lowp vec2 in_color;
+in highp vec2 frag_texCoord;
+in lowp vec4 frag_color;
 
 layout(location = 0) out lowp vec4 out_color;
 
 void main (void)
 {
-	out_color = texture(texture, in_texCoord) * in_color;
+	out_color = texture(texunit, frag_texCoord) * frag_color;
 }
