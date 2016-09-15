@@ -8,7 +8,7 @@
 #define GLEW_OK 0
 #define GLEW_ERROR 1
 
-GLenum glewInit (void)
+static inline GLenum glewInit (void)
 {
 	EGLDisplay Display;
 	EGLSurface SurfaceDraw;
