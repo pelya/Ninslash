@@ -99,6 +99,11 @@ for line in open("scripts/SDL_keysym.h"):
 		if value > highestid:
 			highestid =value
 
+print >>f, ""
+for kp in range(10):
+	print >>f, "\tKEY_KP_%d = KEY_KP%d,"%(kp, kp)
+print >>f, ""
+
 print >>f, "\tKEY_MOUSE_1 = %d,"%(highestid+1); keynames12[highestid+1] = "mouse1"
 print >>f, "\tKEY_MOUSE_2 = %d,"%(highestid+2); keynames12[highestid+2] = "mouse2"
 print >>f, "\tKEY_MOUSE_3 = %d,"%(highestid+3); keynames12[highestid+3] = "mouse3"
