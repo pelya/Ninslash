@@ -68,8 +68,8 @@ void dbg_break();
 		<dbg_assert>
 */
 void dbg_msg(const char *sys, const char *fmt, ...)
-#ifdef __GNUC__
-__attribute__ ((format (printf, 2, 3)))
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__ ((format (printf, 2, 3))) /* Warn if you specify wrong arguments in printf format string */
 #endif
 ;
 
@@ -779,8 +779,8 @@ int str_length(const char *str);
 		- Garantees that dst string will contain zero-termination.
 */
 void str_format(char *buffer, int buffer_size, const char *format, ...)
-#ifdef __GNUC__
-__attribute__ ((format (printf, 3, 4)))
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__ ((format (printf, 3, 4))) /* Warn if you specify wrong arguments in printf format string */
 #endif
 ;
 
