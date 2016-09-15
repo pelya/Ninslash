@@ -130,6 +130,8 @@ class CCommandProcessorFragment_OpenGL
 	};
 	CShader m_aShader[NUM_SHADERS];
 
+	float m_ScreenWidthDiv, m_ScreenHeightDiv; // = 2.0 / ScreenWidth
+
 public:
 	enum
 	{
@@ -140,6 +142,7 @@ public:
 	{
 		SCommand_Init() : SCommand(CMD_INIT) {}
 		volatile int *m_pTextureMemoryUsage;
+		int m_ScreenWidth, m_ScreenHeight;
 	};
 
 private:

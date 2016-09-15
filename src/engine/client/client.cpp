@@ -1718,12 +1718,14 @@ void CClient::Run()
 
 	// init SDL
 	{
-		if(SDL_Init(0) < 0)
+		if(SDL_Init(SDL_INIT_EVERYTHING) < 0)
 		{
 			dbg_msg("client", "unable to init SDL base: %s", SDL_GetError());
 			return;
 		}
-
+#if !SDL_VERSION_ATLEAST(2,0,0)
+		SDL_EnableUNICODE(1);
+#endif
 		atexit(SDL_Quit); // ignore_convention
 	}
 

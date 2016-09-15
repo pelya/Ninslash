@@ -254,6 +254,13 @@ void CCommandProcessorFragment_OpenGL::Cmd_Init(const SCommand_Init *pCommand)
 {
 	m_MultiBuffering = false;
 	m_pTextureMemoryUsage = pCommand->m_pTextureMemoryUsage;
+	m_ScreenWidthDiv = 2.0 / pCommand->m_ScreenWidth;
+	m_ScreenHeightDiv = 2.0 / pCommand->m_ScreenHeight;
+
+	CCommandBuffer::SCommand_ShaderBegin defaultShader;
+	defaultShader.m_Shader = SHADER_DEFAULT;
+	defaultShader.m_Intensity = 1.0f;
+	Cmd_ShaderBegin(&defaultShader);
 }
 
 void CCommandProcessorFragment_OpenGL::Cmd_Texture_Update(const CCommandBuffer::SCommand_Texture_Update *pCommand)
@@ -416,6 +423,7 @@ void CCommandProcessorFragment_OpenGL::Cmd_LoadShaders(const CCommandBuffer::SCo
 	m_aShader[SHADER_INVISIBILITY] = LoadShader("data/shaders/basic.vert", "data/shaders/invisibility.frag");
 	m_aShader[SHADER_RAGE] = LoadShader("data/shaders/basic.vert", "data/shaders/rage.frag");
 	m_aShader[SHADER_FUEL] = LoadShader("data/shaders/basic.vert", "data/shaders/fuel.frag");
+	m_aShader[SHADER_DEFAULT] = LoadShader("data/shaders/basic.vert", "data/shaders/default.frag");
 }
 
 
@@ -432,12 +440,28 @@ void CCommandProcessorFragment_OpenGL::Cmd_ShaderBegin(const CCommandBuffer::SCo
 	location = pShader->getUniformLocation("intensity");
 	if (location >= 0)
 		glUniform1fARB(location, GLfloat(pCommand->m_Intensity));
+
+	location = pShader->getUniformLocation("screenWidthDiv");
+	if (location >= 0)
+		glUniform1fARB(location, GLfloat(m_ScreenWidthDiv));
+
+	location = pShader->getUniformLocation("screenHeightDiv");
+	if (location >= 0)
+		glUniform1fARB(location, GLfloat(m_ScreenHeightDiv));
+
+	location = pShader->getUniformLocation("texture");
+	if (location >= 0)
+		glUniform1fARB(location, 0); // First texture unit
 }
 
 
 void CCommandProcessorFragment_OpenGL::Cmd_ShaderEnd(const CCommandBuffer::SCommand_ShaderEnd *pCommand)
 {
-	glUseProgramObjectARB(0);
+	//glUseProgramObjectARB(0);
+	CCommandBuffer::SCommand_ShaderBegin defaultShader;
+	defaultShader.m_Shader = SHADER_DEFAULT;
+	defaultShader.m_Intensity = 1.0f;
+	Cmd_ShaderBegin(&defaultShader);
 }
 
 
@@ -493,18 +517,31 @@ void CCommandProcessorFragment_OpenGL::Cmd_ClearBufferTexture(const CCommandBuff
 void CCommandProcessorFragment_OpenGL::Cmd_Render(const CCommandBuffer::SCommand_Render *pCommand)
 {
 	SetState(pCommand->m_State);
-	
+	/*
 	glVertexPointer(3, GL_FLOAT, sizeof(CCommandBuffer::SVertex), (char*)pCommand->m_pVertices);
 	glTexCoordPointer(2, GL_FLOAT, sizeof(CCommandBuffer::SVertex), (char*)pCommand->m_pVertices + sizeof(float)*3);
 	glColorPointer(4, GL_FLOAT, sizeof(CCommandBuffer::SVertex), (char*)pCommand->m_pVertices + sizeof(float)*5);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
+	*/
+
+	glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, sizeof(CCommandBuffer::SVertex), (const void *) & pCommand->m_pVertices->m_Pos );
+	glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, sizeof(CCommandBuffer::SVertex), (const void *) & pCommand->m_pVertices->m_Tex );
+	glVertexAttribPointer( 2, 4, GL_FLOAT, GL_FALSE, sizeof(CCommandBuffer::SVertex), (const void *) & pCommand->m_pVertices->m_Color );
+	glEnableVertexAttribArray( 0 );
+	glEnableVertexAttribArray( 1 );
+	glEnableVertexAttribArray( 2 );
 
 	switch(pCommand->m_PrimType)
 	{
 	case CCommandBuffer::PRIMTYPE_QUADS:
+#if !defined(GL_ES_VERSION_3_0)
 		glDrawArrays(GL_QUADS, 0, pCommand->m_PrimCount*4);
+#else
+		for (unsigned i = 0; i < pCommand->m_PrimCount; i++)
+			glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
+#endif
 		break;
 	case CCommandBuffer::PRIMTYPE_LINES:
 		glDrawArrays(GL_LINES, 0, pCommand->m_PrimCount*2);
@@ -778,12 +815,31 @@ int CGraphicsBackend_SDL_OpenGL::Init(const char *pName, int *Width, int *Height
 	}
 
 	SDL_Rect ScreenBounds;
+#if SDL_VERSION_ATLEAST(2,0,0)
 	if(SDL_GetDisplayBounds(Screen, &ScreenBounds) < 0)
 	{
 		dbg_msg("gfx", "unable to get current screen bounds: %s", SDL_GetError());
 		return -1;
 	}
-
+#else
+	ScreenBounds.x = ScreenBounds.y = 0;
+	ScreenBounds.w = 640;
+	ScreenBounds.h = 480;
+	if (SDL_GetVideoSurface() != NULL)
+	{
+		ScreenBounds.w = SDL_GetVideoSurface()->w;
+		ScreenBounds.h = SDL_GetVideoSurface()->h;
+	}
+	else if (SDL_ListModes(NULL, 0) != (SDL_Rect **) -1)
+	{
+		ScreenBounds = **SDL_ListModes(NULL, 0);
+	}
+	else
+	{
+		ScreenBounds.w = SDL_GetVideoInfo()->current_w;
+		ScreenBounds.h = SDL_GetVideoInfo()->current_h;
+	}
+#endif
 	if(*Width == 0 || *Height == 0)
 	{
 		*Width = ScreenBounds.w;
@@ -806,6 +862,7 @@ int CGraphicsBackend_SDL_OpenGL::Init(const char *pName, int *Width, int *Height
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
+#if SDL_VERSION_ATLEAST(2,0,0)
 	// set flags
 	int SdlFlags = SDL_WINDOW_OPENGL;
 	if(Flags&IGraphicsBackend::INITFLAG_RESIZABLE)
@@ -851,6 +908,18 @@ int CGraphicsBackend_SDL_OpenGL::Init(const char *pName, int *Width, int *Height
 	
 	// release the current GL context from this thread
 	SDL_GL_MakeCurrent(NULL, NULL);
+#else
+	// SDL 1.2
+	if ( ! SDL_SetVideoMode(*Width, *Height, 24, SDL_OPENGL | SDL_DOUBLEBUF |
+							(Flags&IGraphicsBackend::INITFLAG_FULLSCREEN ? SDL_FULLSCREEN : 0) |
+							(Flags&IGraphicsBackend::INITFLAG_BORDERLESS ? SDL_NOFRAME : 0) |
+							(Flags&IGraphicsBackend::INITFLAG_RESIZABLE ? SDL_RESIZABLE : 0) ) )
+	{
+		dbg_msg("gfx", "unable to create window: %s", SDL_GetError());
+		return -1;
+	}
+	SDL_WM_SetCaption(pName, NULL);
+#endif
 	
 	// start the command processor
 	m_pProcessor = new CCommandProcessor_SDL_OpenGL;
@@ -860,6 +929,8 @@ int CGraphicsBackend_SDL_OpenGL::Init(const char *pName, int *Width, int *Height
 	CCommandBuffer CmdBuffer(1024, 512);
 	CCommandProcessorFragment_OpenGL::SCommand_Init CmdOpenGL;
 	CmdOpenGL.m_pTextureMemoryUsage = &m_TextureMemoryUsage;
+	CmdOpenGL.m_ScreenWidth = ScreenBounds.w;
+	CmdOpenGL.m_ScreenHeight = ScreenBounds.h;
 	CmdBuffer.AddCommand(CmdOpenGL);
 	CCommandProcessorFragment_SDL::SCommand_Init CmdSDL;
 	CmdSDL.m_GLContext = m_GLContext;
@@ -885,8 +956,10 @@ int CGraphicsBackend_SDL_OpenGL::Shutdown()
 	delete m_pProcessor;
 	m_pProcessor = 0;
 
+#if SDL_VERSION_ATLEAST(2,0,0)
 	SDL_GL_DeleteContext(m_GLContext);
 	SDL_DestroyWindow(m_pWindow);
+#endif
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	return 0;
 }
@@ -898,40 +971,66 @@ int CGraphicsBackend_SDL_OpenGL::MemoryUsage() const
 
 void CGraphicsBackend_SDL_OpenGL::Minimize()
 {
+#if SDL_VERSION_ATLEAST(2,0,0)
 	SDL_MinimizeWindow(m_pWindow);
+#else
+	SDL_WM_IconifyWindow();
+#endif
 }
 
 void CGraphicsBackend_SDL_OpenGL::Maximize()
 {
+#if SDL_VERSION_ATLEAST(2,0,0)
 	SDL_MaximizeWindow(m_pWindow);
+#endif
 }
 
 void CGraphicsBackend_SDL_OpenGL::GrabWindow(bool grab)
 {
+#if SDL_VERSION_ATLEAST(2,0,0)
 	SDL_SetWindowGrab(m_pWindow, grab ? SDL_TRUE : SDL_FALSE);
+#else
+	SDL_WM_GrabInput(grab ? SDL_GRAB_ON : SDL_GRAB_OFF);
+#endif
 }
 
 void CGraphicsBackend_SDL_OpenGL::WarpMouse(int x, int y)
 {
+#if SDL_VERSION_ATLEAST(2,0,0)
 	SDL_WarpMouseInWindow(m_pWindow, x, y);
+#else
+	SDL_WarpMouse(x, y);
+#endif
 }
 
 int CGraphicsBackend_SDL_OpenGL::WindowActive()
 {
+#if SDL_VERSION_ATLEAST(2,0,0)
 	return SDL_GetWindowFlags(m_pWindow)&SDL_WINDOW_INPUT_FOCUS;
+#else
+	return SDL_GetAppState() & SDL_APPMOUSEFOCUS;
+#endif
 }
 
 int CGraphicsBackend_SDL_OpenGL::WindowOpen()
 {
+#if SDL_VERSION_ATLEAST(2,0,0)
 	return SDL_GetWindowFlags(m_pWindow)&SDL_WINDOW_SHOWN;
+#else
+	return SDL_GetAppState() & SDL_APPACTIVE;
+#endif
 }
 
 int CGraphicsBackend_SDL_OpenGL::GetNumScreens()
 {
+#if SDL_VERSION_ATLEAST(2,0,0)
 	int num = SDL_GetNumVideoDisplays();
 	if(num < 1)
 		num = 1;
 	return num;
+#else
+	return 1;
+#endif
 }
 
 
