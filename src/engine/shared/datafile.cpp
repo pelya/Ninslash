@@ -559,7 +559,7 @@ int CDataFileWriter::Finish()
 	for(int i = 0; i < m_NumItems; i++)
 	{
 		if(DEBUG)
-			dbg_msg("datafile", "item=%d size=%d (%d)", i, m_pItems[i].m_Size, m_pItems[i].m_Size+sizeof(CDatafileItem));
+			dbg_msg("datafile", "item=%d size=%d (%lu)", i, m_pItems[i].m_Size, m_pItems[i].m_Size+sizeof(CDatafileItem));
 		ItemSize += m_pItems[i].m_Size + sizeof(CDatafileItem);
 	}
 
@@ -596,7 +596,7 @@ int CDataFileWriter::Finish()
 
 		// write Header
 		if(DEBUG)
-			dbg_msg("datafile", "HeaderSize=%d", sizeof(Header));
+			dbg_msg("datafile", "HeaderSize=%d", (int)sizeof(Header));
 #if defined(CONF_ARCH_ENDIAN_BIG)
 		swap_endian(&Header, sizeof(int), sizeof(Header)/sizeof(int));
 #endif
