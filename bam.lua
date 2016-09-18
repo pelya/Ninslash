@@ -2,7 +2,7 @@
 Import("configure.lua")
 Import("other/sdl2/sdl2.lua")
 Import("other/freetype/freetype.lua")
-Import("other/glew/glew.lua")
+-- Import("other/glew/glew.lua")
 
 --- Setup Config -------
 config = NewConfig()
@@ -13,7 +13,7 @@ config:Add(OptTestCompileC("macosxppc", "int main(){return 0;}", "-arch ppc"))
 config:Add(OptLibrary("zlib", "zlib.h", false))
 config:Add(SDL2.OptFind("sdl2", true))
 config:Add(FreeType.OptFind("freetype", true))
-config:Add(GLEW.OptFind("glew", true))
+-- config:Add(GLEW.OptFind("glew", true))
 config:Finalize("config.lua")
 
 -- data compiler
@@ -229,7 +229,9 @@ function build(settings)
 			launcher_settings.link.frameworks:Add("Cocoa")
 		else
 			client_settings.link.libs:Add("X11")
-			client_settings.link.libs:Add("GL")
+			-- client_settings.link.libs:Add("GL")
+			client_settings.link.libs:Add("GLESv2")
+			client_settings.link.libs:Add("EGL")
 			client_settings.link.libs:Add("GLU")
 		end
 
@@ -245,7 +247,7 @@ function build(settings)
 	-- apply freetype settings
 	config.freetype:Apply(client_settings)
 	-- apply glew settings
-	config.glew:Apply(client_settings)
+	-- config.glew:Apply(client_settings)
 
 	engine = Compile(engine_settings, Collect("src/engine/shared/*.cpp", "src/base/*.c"))
 	client = Compile(client_settings, Collect("src/engine/client/*.cpp"))
@@ -313,6 +315,8 @@ debug_settings.config_ext = "_d"
 debug_settings.debug = 1
 debug_settings.optimize = 0
 debug_settings.cc.defines:Add("CONF_DEBUG")
+-- debug_settings.cc.defines:Add("GL_ES_VERSION_2_0")
+debug_settings.cc.flags:Add("-isystem src/base/android")
 
 release_settings = NewSettings()
 release_settings.config_name = "release"

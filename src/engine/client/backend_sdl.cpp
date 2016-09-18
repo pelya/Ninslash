@@ -242,7 +242,7 @@ void CCommandProcessorFragment_OpenGL::SetState(const CCommandBuffer::SState &St
 		dbg_msg("render", "unknown wrapmode %d\n", State.m_WrapMode);
 	};
 
-#if !defined(GL_ES_VERSION_3_0)
+#if !defined(GL_ES_VERSION_3_0) && !defined(GL_ES_VERSION_2_0)
 	// screen mapping
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -311,7 +311,7 @@ void CCommandProcessorFragment_OpenGL::Cmd_Texture_Create(const CCommandBuffer::
 	int Oglformat = TexFormatToOpenGLFormat(pCommand->m_Format);
 	int StoreOglformat = TexFormatToOpenGLFormat(pCommand->m_StoreFormat);
 
-#if !defined(GL_ES_VERSION_3_0)
+#if !defined(GL_ES_VERSION_3_0) && !defined(GL_ES_VERSION_2_0)
 	if(pCommand->m_Flags&CCommandBuffer::TEXFLAG_COMPRESSED)
 	{
 		switch(StoreOglformat)
@@ -392,8 +392,10 @@ void CCommandProcessorFragment_OpenGL::Cmd_CreateTextureBuffer(const CCommandBuf
 		// attach texture to buffer
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture[i], 0);
 		
+#if !defined(GL_ES_VERSION_2_0)
 		GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
 		glDrawBuffers(1, DrawBuffers);
+#endif
 		
 		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 			dbg_msg("render", "framebuffer incomplete");
@@ -451,9 +453,17 @@ void CCommandProcessorFragment_OpenGL::Cmd_ShaderBegin(const CCommandBuffer::SCo
 	if (location >= 0)
 		glUniform1fARB(location, GLfloat(m_ScreenHeightDiv));
 
+#if defined(GL_ES_VERSION_3_0)
 	location = pShader->getUniformLocation("texunit");
+#else
+	location = pShader->getUniformLocation("texture");
+#endif
 	if (location >= 0)
 		glUniform1iARB(location, 0); // First texture unit
+
+	m_VertexAttribLocation = pShader->getAttribLocation("in_position");
+	m_TexcoordAttribLocation = pShader->getAttribLocation("in_texCoord");
+	m_ColorAttribLocation = pShader->getAttribLocation("in_color");
 }
 
 
@@ -476,6 +486,14 @@ GLint CCommandProcessorFragment_OpenGL::CShader::getUniformLocation(const GLchar
 	return (rCachePos = glGetUniformLocationARB(m_Program, pName));
 }
 
+GLint CCommandProcessorFragment_OpenGL::CShader::getAttribLocation(const GLcharARB *pName)
+{
+	GLint& rCachePos = m_aUniformLocationCache[pName].value;
+	if(rCachePos > -2)
+		return rCachePos;
+
+	return (rCachePos = glGetAttribLocation(m_Program, pName));
+}
 
 void CCommandProcessorFragment_OpenGL::Cmd_Clear(const CCommandBuffer::SCommand_Clear *pCommand)
 {
@@ -518,6 +536,56 @@ void CCommandProcessorFragment_OpenGL::Cmd_ClearBufferTexture(const CCommandBuff
 
 void CCommandProcessorFragment_OpenGL::Cmd_Render(const CCommandBuffer::SCommand_Render *pCommand)
 {
+	enum {
+		quadsToTrianglesElementCount = 42,
+		//quadsToTrianglesElementCount = 1,
+		IndicesPerQuad = 6
+	};
+	static const GLubyte quadsToTriangles[] = {
+		0 * 4 + 0, 0 * 4 + 1, 0 * 4 + 2, 0 * 4 + 0, 0 * 4 + 2, 0 * 4 + 3,
+		1 * 4 + 0, 1 * 4 + 1, 1 * 4 + 2, 1 * 4 + 0, 1 * 4 + 2, 1 * 4 + 3,
+		2 * 4 + 0, 2 * 4 + 1, 2 * 4 + 2, 2 * 4 + 0, 2 * 4 + 2, 2 * 4 + 3,
+		3 * 4 + 0, 3 * 4 + 1, 3 * 4 + 2, 3 * 4 + 0, 3 * 4 + 2, 3 * 4 + 3,
+		4 * 4 + 0, 4 * 4 + 1, 4 * 4 + 2, 4 * 4 + 0, 4 * 4 + 2, 4 * 4 + 3,
+		5 * 4 + 0, 5 * 4 + 1, 5 * 4 + 2, 5 * 4 + 0, 5 * 4 + 2, 5 * 4 + 3,
+		6 * 4 + 0, 6 * 4 + 1, 6 * 4 + 2, 6 * 4 + 0, 6 * 4 + 2, 6 * 4 + 3,
+		7 * 4 + 0, 7 * 4 + 1, 7 * 4 + 2, 7 * 4 + 0, 7 * 4 + 2, 7 * 4 + 3,
+		8 * 4 + 0, 8 * 4 + 1, 8 * 4 + 2, 8 * 4 + 0, 8 * 4 + 2, 8 * 4 + 3,
+		9 * 4 + 0, 9 * 4 + 1, 9 * 4 + 2, 9 * 4 + 0, 9 * 4 + 2, 9 * 4 + 3,
+		10 * 4 + 0, 10 * 4 + 1, 10 * 4 + 2, 10 * 4 + 0, 10 * 4 + 2, 10 * 4 + 3,
+		11 * 4 + 0, 11 * 4 + 1, 11 * 4 + 2, 11 * 4 + 0, 11 * 4 + 2, 11 * 4 + 3,
+		12 * 4 + 0, 12 * 4 + 1, 12 * 4 + 2, 12 * 4 + 0, 12 * 4 + 2, 12 * 4 + 3,
+		13 * 4 + 0, 13 * 4 + 1, 13 * 4 + 2, 13 * 4 + 0, 13 * 4 + 2, 13 * 4 + 3,
+		14 * 4 + 0, 14 * 4 + 1, 14 * 4 + 2, 14 * 4 + 0, 14 * 4 + 2, 14 * 4 + 3,
+		15 * 4 + 0, 15 * 4 + 1, 15 * 4 + 2, 15 * 4 + 0, 15 * 4 + 2, 15 * 4 + 3,
+		16 * 4 + 0, 16 * 4 + 1, 16 * 4 + 2, 16 * 4 + 0, 16 * 4 + 2, 16 * 4 + 3,
+		17 * 4 + 0, 17 * 4 + 1, 17 * 4 + 2, 17 * 4 + 0, 17 * 4 + 2, 17 * 4 + 3,
+		18 * 4 + 0, 18 * 4 + 1, 18 * 4 + 2, 18 * 4 + 0, 18 * 4 + 2, 18 * 4 + 3,
+		19 * 4 + 0, 19 * 4 + 1, 19 * 4 + 2, 19 * 4 + 0, 19 * 4 + 2, 19 * 4 + 3,
+		20 * 4 + 0, 20 * 4 + 1, 20 * 4 + 2, 20 * 4 + 0, 20 * 4 + 2, 20 * 4 + 3,
+		21 * 4 + 0, 21 * 4 + 1, 21 * 4 + 2, 21 * 4 + 0, 21 * 4 + 2, 21 * 4 + 3,
+		22 * 4 + 0, 22 * 4 + 1, 22 * 4 + 2, 22 * 4 + 0, 22 * 4 + 2, 22 * 4 + 3,
+		23 * 4 + 0, 23 * 4 + 1, 23 * 4 + 2, 23 * 4 + 0, 23 * 4 + 2, 23 * 4 + 3,
+		24 * 4 + 0, 24 * 4 + 1, 24 * 4 + 2, 24 * 4 + 0, 24 * 4 + 2, 24 * 4 + 3,
+		25 * 4 + 0, 25 * 4 + 1, 25 * 4 + 2, 25 * 4 + 0, 25 * 4 + 2, 25 * 4 + 3,
+		26 * 4 + 0, 26 * 4 + 1, 26 * 4 + 2, 26 * 4 + 0, 26 * 4 + 2, 26 * 4 + 3,
+		27 * 4 + 0, 27 * 4 + 1, 27 * 4 + 2, 27 * 4 + 0, 27 * 4 + 2, 27 * 4 + 3,
+		28 * 4 + 0, 28 * 4 + 1, 28 * 4 + 2, 28 * 4 + 0, 28 * 4 + 2, 28 * 4 + 3,
+		29 * 4 + 0, 29 * 4 + 1, 29 * 4 + 2, 29 * 4 + 0, 29 * 4 + 2, 29 * 4 + 3,
+		30 * 4 + 0, 30 * 4 + 1, 30 * 4 + 2, 30 * 4 + 0, 30 * 4 + 2, 30 * 4 + 3,
+		31 * 4 + 0, 31 * 4 + 1, 31 * 4 + 2, 31 * 4 + 0, 31 * 4 + 2, 31 * 4 + 3,
+		32 * 4 + 0, 32 * 4 + 1, 32 * 4 + 2, 32 * 4 + 0, 32 * 4 + 2, 32 * 4 + 3,
+		33 * 4 + 0, 33 * 4 + 1, 33 * 4 + 2, 33 * 4 + 0, 33 * 4 + 2, 33 * 4 + 3,
+		34 * 4 + 0, 34 * 4 + 1, 34 * 4 + 2, 34 * 4 + 0, 34 * 4 + 2, 34 * 4 + 3,
+		35 * 4 + 0, 35 * 4 + 1, 35 * 4 + 2, 35 * 4 + 0, 35 * 4 + 2, 35 * 4 + 3,
+		36 * 4 + 0, 36 * 4 + 1, 36 * 4 + 2, 36 * 4 + 0, 36 * 4 + 2, 36 * 4 + 3,
+		37 * 4 + 0, 37 * 4 + 1, 37 * 4 + 2, 37 * 4 + 0, 37 * 4 + 2, 37 * 4 + 3,
+		38 * 4 + 0, 38 * 4 + 1, 38 * 4 + 2, 38 * 4 + 0, 38 * 4 + 2, 38 * 4 + 3,
+		39 * 4 + 0, 39 * 4 + 1, 39 * 4 + 2, 39 * 4 + 0, 39 * 4 + 2, 39 * 4 + 3,
+		40 * 4 + 0, 40 * 4 + 1, 40 * 4 + 2, 40 * 4 + 0, 40 * 4 + 2, 40 * 4 + 3,
+		41 * 4 + 0, 41 * 4 + 1, 41 * 4 + 2, 41 * 4 + 0, 41 * 4 + 2, 41 * 4 + 3,
+	};
+
 	SetState(pCommand->m_State);
 	/*
 	glVertexPointer(3, GL_FLOAT, sizeof(CCommandBuffer::SVertex), (char*)pCommand->m_pVertices);
@@ -528,21 +596,23 @@ void CCommandProcessorFragment_OpenGL::Cmd_Render(const CCommandBuffer::SCommand
 	glEnableClientState(GL_COLOR_ARRAY);
 	*/
 
-	glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, sizeof(CCommandBuffer::SVertex), (const void *) & pCommand->m_pVertices->m_Pos );
-	glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, sizeof(CCommandBuffer::SVertex), (const void *) & pCommand->m_pVertices->m_Tex );
-	glVertexAttribPointer( 2, 4, GL_FLOAT, GL_FALSE, sizeof(CCommandBuffer::SVertex), (const void *) & pCommand->m_pVertices->m_Color );
-	glEnableVertexAttribArray( 0 );
-	glEnableVertexAttribArray( 1 );
-	glEnableVertexAttribArray( 2 );
+	glEnableVertexAttribArray( m_VertexAttribLocation );
+	glEnableVertexAttribArray( m_TexcoordAttribLocation );
+	glEnableVertexAttribArray( m_ColorAttribLocation );
 
 	switch(pCommand->m_PrimType)
 	{
 	case CCommandBuffer::PRIMTYPE_QUADS:
-#if !defined(GL_ES_VERSION_3_0)
+#if !defined(GL_ES_VERSION_3_0) && !defined(GL_ES_VERSION_2_0)
 		glDrawArrays(GL_QUADS, 0, pCommand->m_PrimCount*4);
 #else
-		for (unsigned i = 0; i < pCommand->m_PrimCount; i++)
-			glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
+		for (unsigned i = 0, count = pCommand->m_PrimCount; i < count; i += quadsToTrianglesElementCount)
+		{
+			glVertexAttribPointer( m_VertexAttribLocation, 2, GL_FLOAT, GL_FALSE, sizeof(CCommandBuffer::SVertex), (const void *) & pCommand->m_pVertices[i * 4].m_Pos.x );
+			glVertexAttribPointer( m_TexcoordAttribLocation, 2, GL_FLOAT, GL_FALSE, sizeof(CCommandBuffer::SVertex), (const void *) & pCommand->m_pVertices[i * 4].m_Tex.u );
+			glVertexAttribPointer( m_ColorAttribLocation, 4, GL_FLOAT, GL_FALSE, sizeof(CCommandBuffer::SVertex), (const void *) & pCommand->m_pVertices[i * 4].m_Color.r );
+			glDrawElements(GL_TRIANGLES, min((count - i) * IndicesPerQuad, (unsigned)quadsToTrianglesElementCount * IndicesPerQuad), GL_UNSIGNED_BYTE, quadsToTriangles);
+		}
 #endif
 		break;
 	case CCommandBuffer::PRIMTYPE_LINES:
@@ -629,7 +699,7 @@ void CCommandProcessorFragment_SDL::Cmd_Init(const SCommand_Init *pCommand)
 	glEnable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
-#if !defined(GL_ES_VERSION_3_0)
+#if !defined(GL_ES_VERSION_3_0) && !defined(GL_ES_VERSION_2_0)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glAlphaFunc(GL_GREATER, 0);
@@ -640,7 +710,7 @@ void CCommandProcessorFragment_SDL::Cmd_Init(const SCommand_Init *pCommand)
 	glewInit();
 
 	// init shaders
-#if !defined(GL_ES_VERSION_3_0)
+#if !defined(GL_ES_VERSION_3_0) && !defined(GL_ES_VERSION_2_0)
 	glAttachObjectARB = (PFNGLATTACHOBJECTARBPROC) SDL_GL_GetProcAddress("glAttachObjectARB");
 	glCompileShaderARB = (PFNGLCOMPILESHADERARBPROC) SDL_GL_GetProcAddress("glCompileShaderARB");
 	glCreateProgramObjectARB = (PFNGLCREATEPROGRAMOBJECTARBPROC) SDL_GL_GetProcAddress("glCreateProgramObjectARB");
@@ -865,6 +935,21 @@ int CGraphicsBackend_SDL_OpenGL::Init(const char *pName, int *Width, int *Height
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 #if SDL_VERSION_ATLEAST(2,0,0)
+#if defined(GL_ES_VERSION_3_0)
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+#elif defined(GL_ES_VERSION_2_0)
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+#endif
+
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+
 	// set flags
 	int SdlFlags = SDL_WINDOW_OPENGL;
 	if(Flags&IGraphicsBackend::INITFLAG_RESIZABLE)

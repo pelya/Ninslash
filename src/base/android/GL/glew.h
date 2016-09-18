@@ -1,8 +1,8 @@
-#if defined(__ANDROID__)
+/* #if defined(__ANDROID__) */
 #ifndef __ANDROID_STUB_GLEW_H__
 #define __ANDROID_STUB_GLEW_H__
 
-#include <GLES3/gl3.h>
+#include <GLES2/gl2.h>
 #include <EGL/egl.h>
 
 #define GLEW_OK 0
@@ -34,4 +34,4 @@ typedef GLchar GLcharARB;
 #define	glUseProgramObjectARB		glUseProgram
 
 #endif /* __ANDROID_STUB_GLEW_H__*/
-#endif /* defined(__ANDROID__) */
+/* #endif */ /* defined(__ANDROID__) */

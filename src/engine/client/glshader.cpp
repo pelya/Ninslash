@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <algorithm>
 
@@ -16,8 +17,7 @@ std::string readFile(const char *filePath) {
 
     if(!fileStream.is_open()) {
         //std::cerr << "Could not read file " << filePath << ". File does not exist." << std::endl;
-		dbg_msg("gfx", "couldn't load the shader file");
-		
+        dbg_msg("gfx", "couldn't load the shader file %s", filePath);
         return "";
     }
 
@@ -32,7 +32,22 @@ std::string readFile(const char *filePath) {
 }
 
 
-GLuint LoadShader(const char *vertex_path, const char *fragment_path) {
+#if defined(GL_ES_VERSION_3_0)
+static const char *SHADER_VER_PREFIX = "/gles3";
+#elif defined(GL_ES_VERSION_2_0)
+static const char *SHADER_VER_PREFIX = "/gles2";
+#else
+static const char *SHADER_VER_PREFIX = "";
+#endif
+
+GLuint LoadShader(const char *vertex_path_in, const char *fragment_path_in) {
+
+    std::string vertex_path_s(vertex_path_in), fragment_path_s(fragment_path_in);
+    std::string vertex_path_out = vertex_path_s.substr(0, vertex_path_s.rfind("/")) + SHADER_VER_PREFIX + vertex_path_s.substr(vertex_path_s.rfind("/"));
+    std::string fragment_path_out = fragment_path_s.substr(0, fragment_path_s.rfind("/")) + SHADER_VER_PREFIX + fragment_path_s.substr(fragment_path_s.rfind("/"));
+    const char *vertex_path = vertex_path_out.c_str();
+    const char *fragment_path = fragment_path_out.c_str();
+
     GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
     GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
 

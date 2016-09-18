@@ -109,6 +109,10 @@ class CCommandProcessorFragment_OpenGL
 	GLuint textureBuffer[NUM_RENDERBUFFERS];
 	GLuint renderedTexture[NUM_RENDERBUFFERS];
 
+	GLint m_VertexAttribLocation;
+	GLint m_TexcoordAttribLocation;
+	GLint m_ColorAttribLocation;
+
 	bool m_MultiBuffering;
 	
 	class CShader
@@ -125,6 +129,7 @@ class CCommandProcessorFragment_OpenGL
 	public:
 		GLuint Handle() const { return m_Program; }
 		GLint getUniformLocation(const char *pName);
+		GLint getAttribLocation(const char *pName);
 
 		GLuint operator=(GLuint Program) { return (m_Program = Program); } // to easily assign a linked shader program
 	};

@@ -80,6 +80,8 @@ void CGraphics_Threaded::FlushVertices()
 		}
 	}
 
+	mem_copy(Cmd.m_pVertices, m_aVertices, sizeof(CCommandBuffer::SVertex)*NumVerts);
+
 	// check if we have enough free memory in the commandbuffer
 	if(!m_pCommandBuffer->AddCommand(Cmd))
 	{
@@ -99,8 +101,6 @@ void CGraphics_Threaded::FlushVertices()
 			return;
 		}
 	}
-
-	mem_copy(Cmd.m_pVertices, m_aVertices, sizeof(CCommandBuffer::SVertex)*NumVerts);
 }
 
 void CGraphics_Threaded::AddVertices(int Count)
