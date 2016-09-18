@@ -15,6 +15,7 @@ void main(void)
 		in_position.x * screenWidthDiv - 1.0f,
 		1.0f - in_position.y * screenHeightDiv,
 		0.0f, 1.0f);
+
 	frag_texCoord = in_texCoord;
 	frag_color = in_color;
 }
