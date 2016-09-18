@@ -1,3 +1,4 @@
+#version 300 es
 uniform highp float screenWidthDiv; // = 2.0 / screenWidth
 uniform highp float screenHeightDiv; //  = 2.0 / screenHeight
 

@@ -39,13 +39,6 @@ GLuint LoadShader(const char *vertex_path, const char *fragment_path) {
     // Read shaders
     std::string vertShaderStr = readFile(vertex_path);
     std::string fragShaderStr = readFile(fragment_path);
-//#if defined(GL_ES_VERSION_3_0)
-    vertShaderStr = "#version 300 es\n" + vertShaderStr;
-    fragShaderStr = "#version 300 es\n" + fragShaderStr;
-//#else
-//    vertShaderStr = "#version 130\n" + vertShaderStr;
-//    fragShaderStr = "#version 130\n" + fragShaderStr;
-//#endif
     const char *vertShaderSrc = vertShaderStr.c_str();
     const char *fragShaderSrc = fragShaderStr.c_str();
 

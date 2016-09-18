@@ -1,3 +1,4 @@
+#version 300 es
 uniform sampler2D texunit;
 uniform mediump float rnd;
 uniform lowp float intensity;
