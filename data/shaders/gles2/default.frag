@@ -1,6 +1,6 @@
 #version 100
 uniform lowp sampler2D texture;
-uniform mediump float rnd;
+uniform mediump float rnd; // TODO: merge this with intensity into a single vec2
 uniform lowp float intensity;
 
 varying highp vec2 frag_texCoord;
@@ -8,6 +8,5 @@ varying lowp vec4 frag_color;
 
 void main (void)
 {
-	gl_FragColor = texture2D(texture, frag_texCoord);
-	// * frag_color;
+	gl_FragColor = texture2D(texture, frag_texCoord) * frag_color;
 }

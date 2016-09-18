@@ -112,6 +112,7 @@ class CCommandProcessorFragment_OpenGL
 	GLint m_VertexAttribLocation;
 	GLint m_TexcoordAttribLocation;
 	GLint m_ColorAttribLocation;
+	GLint m_ScreenPosLocation;
 
 	bool m_MultiBuffering;
 	
@@ -134,8 +135,6 @@ class CCommandProcessorFragment_OpenGL
 		GLuint operator=(GLuint Program) { return (m_Program = Program); } // to easily assign a linked shader program
 	};
 	CShader m_aShader[NUM_SHADERS];
-
-	float m_ScreenWidthDiv, m_ScreenHeightDiv; // = 2.0 / ScreenWidth
 
 public:
 	enum

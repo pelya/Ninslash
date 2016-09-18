@@ -1,8 +1,7 @@
 #version 100
-uniform highp float screenWidthDiv; // = 2.0 / screenWidth
-uniform highp float screenHeightDiv; //  = 2.0 / screenHeight
+uniform highp vec4 screenPos;
 
-attribute highp vec2 in_position;
+attribute highp vec2 in_position; // TODO: merge this with in_texCoord into a single vec4
 attribute highp vec2 in_texCoord;
 attribute lowp vec4 in_color;
 
@@ -12,9 +11,9 @@ varying lowp vec4 frag_color;
 void main(void)
 {
 	gl_Position = vec4(
-		in_position.x * screenWidthDiv - 1.0f,
-		1.0f - in_position.y * screenHeightDiv,
-		0.0f, 1.0f);
+		(in_position.x - screenPos.x) * screenPos.z,
+		(screenPos.y - in_position.y) * screenPos.w,
+		0.0, 1.0);
 
 	frag_texCoord = in_texCoord;
 	frag_color = in_color;

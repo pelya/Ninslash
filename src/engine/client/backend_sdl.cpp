@@ -247,6 +247,14 @@ void CCommandProcessorFragment_OpenGL::SetState(const CCommandBuffer::SState &St
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(State.m_ScreenTL.x, State.m_ScreenBR.x, State.m_ScreenBR.y, State.m_ScreenTL.y, 1.0f, 10.f);
+#else
+	GLfloat screenPos[4];
+	screenPos[0] = (State.m_ScreenTL.x + State.m_ScreenBR.x) * 0.5f;
+	screenPos[1] = (State.m_ScreenTL.y + State.m_ScreenBR.y) * 0.5f;
+	screenPos[2] = 2.0f / (State.m_ScreenBR.x - State.m_ScreenTL.x);
+	screenPos[3] = 2.0f / (State.m_ScreenBR.y - State.m_ScreenTL.y);
+
+	glUniform4f(m_ScreenPosLocation, screenPos[0], screenPos[1], screenPos[2], screenPos[3]);
 #endif
 }
 
@@ -254,8 +262,6 @@ void CCommandProcessorFragment_OpenGL::Cmd_Init(const SCommand_Init *pCommand)
 {
 	m_MultiBuffering = false;
 	m_pTextureMemoryUsage = pCommand->m_pTextureMemoryUsage;
-	m_ScreenWidthDiv = 2.0 / pCommand->m_ScreenWidth;
-	m_ScreenHeightDiv = 2.0 / pCommand->m_ScreenHeight;
 	dbg_msg("render", "Screen %d x %d\n", pCommand->m_ScreenWidth, pCommand->m_ScreenHeight);
 }
 
@@ -445,14 +451,6 @@ void CCommandProcessorFragment_OpenGL::Cmd_ShaderBegin(const CCommandBuffer::SCo
 	if (location >= 0)
 		glUniform1fARB(location, GLfloat(pCommand->m_Intensity));
 
-	location = pShader->getUniformLocation("screenWidthDiv");
-	if (location >= 0)
-		glUniform1fARB(location, GLfloat(m_ScreenWidthDiv));
-
-	location = pShader->getUniformLocation("screenHeightDiv");
-	if (location >= 0)
-		glUniform1fARB(location, GLfloat(m_ScreenHeightDiv));
-
 #if defined(GL_ES_VERSION_3_0)
 	location = pShader->getUniformLocation("texunit");
 #else
@@ -461,6 +459,7 @@ void CCommandProcessorFragment_OpenGL::Cmd_ShaderBegin(const CCommandBuffer::SCo
 	if (location >= 0)
 		glUniform1iARB(location, 0); // First texture unit
 
+	m_ScreenPosLocation = pShader->getUniformLocation("screenPos");
 	m_VertexAttribLocation = pShader->getAttribLocation("in_position");
 	m_TexcoordAttribLocation = pShader->getAttribLocation("in_texCoord");
 	m_ColorAttribLocation = pShader->getAttribLocation("in_color");
