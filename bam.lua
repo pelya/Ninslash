@@ -324,6 +324,7 @@ release_settings.config_ext = ""
 release_settings.debug = 0
 release_settings.optimize = 1
 release_settings.cc.defines:Add("CONF_RELEASE")
+release_settings.cc.flags:Add("-isystem src/base/android")
 
 if platform == "macosx" then
 	debug_settings_ppc = debug_settings:Copy()

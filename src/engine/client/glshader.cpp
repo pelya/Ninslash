@@ -61,7 +61,7 @@ GLuint LoadShader(const char *vertex_path_in, const char *fragment_path_in) {
     int logLength;
 
     // Compile vertex shader
-    //std::cout << "Compiling vertex shader." << std::endl;
+    dbg_msg("gfx", "Loading vertex shader %s", vertex_path);
     glShaderSource(vertShader, 1, &vertShaderSrc, NULL);
     glCompileShader(vertShader);
 
@@ -80,7 +80,7 @@ GLuint LoadShader(const char *vertex_path_in, const char *fragment_path_in) {
     }
 
     // Compile fragment shader
-    //std::cout << "Compiling fragment shader." << std::endl;
+    dbg_msg("gfx", "Loading fragment shader %s", fragment_path);
     glShaderSource(fragShader, 1, &fragShaderSrc, NULL);
     glCompileShader(fragShader);
 
@@ -98,7 +98,7 @@ GLuint LoadShader(const char *vertex_path_in, const char *fragment_path_in) {
         return 0;
     }
 
-    //std::cout << "Linking program" << std::endl;
+    dbg_msg("gfx", "Linking program");
     GLuint program = glCreateProgram();
     glAttachShader(program, vertShader);
     glAttachShader(program, fragShader);
@@ -118,6 +118,7 @@ GLuint LoadShader(const char *vertex_path_in, const char *fragment_path_in) {
 
     glDeleteShader(vertShader);
     glDeleteShader(fragShader);
+    dbg_msg("gfx", "Loaded program %d", program);
 
     return program;
 }
