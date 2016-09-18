@@ -596,6 +596,8 @@ void CCommandProcessorFragment_OpenGL::Cmd_Render(const CCommandBuffer::SCommand
 	glEnableClientState(GL_COLOR_ARRAY);
 	*/
 
+	//glBindTexture(GL_TEXTURE_2D, m_aTextures[3].m_Tex);
+
 	glEnableVertexAttribArray( m_VertexAttribLocation );
 	glEnableVertexAttribArray( m_TexcoordAttribLocation );
 	glEnableVertexAttribArray( m_ColorAttribLocation );
