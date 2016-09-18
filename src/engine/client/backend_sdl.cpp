@@ -411,6 +411,7 @@ void CCommandProcessorFragment_OpenGL::Cmd_CreateTextureBuffer(const CCommandBuf
 
 void CCommandProcessorFragment_OpenGL::Cmd_LoadShaders(const CCommandBuffer::SCommand_LoadShaders *pCommand)
 {
+	m_aShader[SHADER_DEFAULT] = LoadShader("data/shaders/basic.vert", "data/shaders/default.frag");
 	m_aShader[SHADER_ELECTRIC] = LoadShader("data/shaders/basic.vert", "data/shaders/electric.frag");
 	m_aShader[SHADER_DEATHRAY] = LoadShader("data/shaders/basic.vert", "data/shaders/deathray.frag");
 	m_aShader[SHADER_SPAWN] = LoadShader("data/shaders/basic.vert", "data/shaders/spawn.frag");
@@ -419,7 +420,7 @@ void CCommandProcessorFragment_OpenGL::Cmd_LoadShaders(const CCommandBuffer::SCo
 	m_aShader[SHADER_INVISIBILITY] = LoadShader("data/shaders/basic.vert", "data/shaders/invisibility.frag");
 	m_aShader[SHADER_RAGE] = LoadShader("data/shaders/basic.vert", "data/shaders/rage.frag");
 	m_aShader[SHADER_FUEL] = LoadShader("data/shaders/basic.vert", "data/shaders/fuel.frag");
-	m_aShader[SHADER_DEFAULT] = LoadShader("data/shaders/basic.vert", "data/shaders/default.frag");
+	m_aShader[SHADER_BLOOD] = LoadShader("data/shaders/basic.vert", "data/shaders/blood.frag");
 
 	CCommandBuffer::SCommand_ShaderBegin defaultShader;
 	defaultShader.m_Shader = SHADER_DEFAULT;
