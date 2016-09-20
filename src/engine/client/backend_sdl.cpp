@@ -233,6 +233,7 @@ void CCommandProcessorFragment_OpenGL::SetState(const CCommandBuffer::SState &St
 		glDisable(GL_TEXTURE_2D);
 #endif
 		glBindTexture(GL_TEXTURE_2D, m_PixelTexture);
+		glBindTexture(GL_TEXTURE_2D, m_aTextures[2].m_Tex);
 		dbg_msg("render", "== Bind pixeltexture");
 	}
 
@@ -772,6 +773,8 @@ void CCommandProcessorFragment_SDL::Cmd_Shutdown(const SCommand_Shutdown *pComma
 void CCommandProcessorFragment_SDL::Cmd_Swap(const CCommandBuffer::SCommand_Swap *pCommand)
 {
 	SDL_GL_SwapWindow(m_pWindow);
+	dbg_msg("render", "== Swap buffers\n");
+	//SDL_Delay(1000);
 
 	if(pCommand->m_Finish)
 		glFinish();
