@@ -213,19 +213,27 @@ void CCommandProcessorFragment_OpenGL::SetState(const CCommandBuffer::SState &St
 	// screen texture buffer
 	if(State.m_Texture == -2 && m_MultiBuffering)
 	{
+#if !defined(GL_ES_VERSION_3_0) && !defined(GL_ES_VERSION_2_0)
 		glEnable(GL_TEXTURE_2D);
+#endif
 		glBindTexture(GL_TEXTURE_2D, renderedTexture[State.m_BufferTexture]);
 	}
 	// texture
 	else if(State.m_Texture >= 0 && State.m_Texture < CCommandBuffer::MAX_TEXTURES)
 	{
+#if !defined(GL_ES_VERSION_3_0) && !defined(GL_ES_VERSION_2_0)
 		glEnable(GL_TEXTURE_2D);
+#endif
 		glBindTexture(GL_TEXTURE_2D, m_aTextures[State.m_Texture].m_Tex);
+		dbg_msg("render", "== Bind texture %d", State.m_Texture);
 	}
 	else
 	{
+#if !defined(GL_ES_VERSION_3_0) && !defined(GL_ES_VERSION_2_0)
 		glDisable(GL_TEXTURE_2D);
+#endif
 		glBindTexture(GL_TEXTURE_2D, m_PixelTexture);
+		dbg_msg("render", "== Bind pixeltexture");
 	}
 
 	switch(State.m_WrapMode)
@@ -607,16 +615,18 @@ void CCommandProcessorFragment_OpenGL::Cmd_Render(const CCommandBuffer::SCommand
 #if !defined(GL_ES_VERSION_3_0) && !defined(GL_ES_VERSION_2_0)
 		glDrawArrays(GL_QUADS, 0, pCommand->m_PrimCount*4);
 #else
+		dbg_msg("render", "== Render %d quads", pCommand->m_PrimCount);
 		for (unsigned i = 0, count = pCommand->m_PrimCount; i < count; i += quadsToTrianglesElementCount)
 		{
-			glVertexAttribPointer( m_VertexAttribLocation, 2, GL_FLOAT, GL_FALSE, sizeof(CCommandBuffer::SVertex), (const void *) & pCommand->m_pVertices[i * 4].m_Pos.x );
-			glVertexAttribPointer( m_TexcoordAttribLocation, 2, GL_FLOAT, GL_FALSE, sizeof(CCommandBuffer::SVertex), (const void *) & pCommand->m_pVertices[i * 4].m_Tex.u );
-			glVertexAttribPointer( m_ColorAttribLocation, 4, GL_FLOAT, GL_FALSE, sizeof(CCommandBuffer::SVertex), (const void *) & pCommand->m_pVertices[i * 4].m_Color.r );
+			glVertexAttribPointer( m_VertexAttribLocation, 2, GL_FLOAT, GL_FALSE, sizeof(CCommandBuffer::SVertex), (const void *) & (pCommand->m_pVertices[i * 4].m_Pos.x) );
+			glVertexAttribPointer( m_TexcoordAttribLocation, 2, GL_FLOAT, GL_FALSE, sizeof(CCommandBuffer::SVertex), (const void *) & (pCommand->m_pVertices[i * 4].m_Tex.u) );
+			glVertexAttribPointer( m_ColorAttribLocation, 4, GL_FLOAT, GL_FALSE, sizeof(CCommandBuffer::SVertex), (const void *) & (pCommand->m_pVertices[i * 4].m_Color.r) );
 			glDrawElements(GL_TRIANGLES, min((count - i) * IndicesPerQuad, (unsigned)quadsToTrianglesElementCount * IndicesPerQuad), GL_UNSIGNED_BYTE, quadsToTriangles);
 		}
 #endif
 		break;
 	case CCommandBuffer::PRIMTYPE_LINES:
+		dbg_msg("render", "== Render %d lines", pCommand->m_PrimCount);
 		glDrawArrays(GL_LINES, 0, pCommand->m_PrimCount*2);
 		break;
 	default:

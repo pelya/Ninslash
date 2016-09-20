@@ -118,7 +118,6 @@ GLuint LoadShader(const char *vertex_path_in, const char *fragment_path_in) {
 
     glDeleteShader(vertShader);
     glDeleteShader(fragShader);
-    dbg_msg("gfx", "Loaded program %d", program);
 
     return program;
 }
