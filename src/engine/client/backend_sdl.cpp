@@ -53,7 +53,7 @@ void CGraphicsBackend_Threaded::StartProcessor(ICommandProcessor *pProcessor)
 {
 	m_Shutdown = false;
 	m_pProcessor = pProcessor;
-#if !defined(__ANDROID__)
+#if 0
 	m_pThread = thread_init(ThreadFunc, this);
 	m_BufferDone.signal();
 #endif
@@ -62,7 +62,7 @@ void CGraphicsBackend_Threaded::StartProcessor(ICommandProcessor *pProcessor)
 void CGraphicsBackend_Threaded::StopProcessor()
 {
 	m_Shutdown = true;
-#if !defined(__ANDROID__)
+#if 0
 	m_Activity.signal();
 	thread_wait(m_pThread);
 	thread_destroy(m_pThread);
@@ -71,7 +71,7 @@ void CGraphicsBackend_Threaded::StopProcessor()
 
 void CGraphicsBackend_Threaded::RunBuffer(CCommandBuffer *pBuffer)
 {
-#if defined(__ANDROID__)
+#if 1
 	m_pProcessor->RunBuffer(pBuffer);
 #else
 	WaitForIdle();
