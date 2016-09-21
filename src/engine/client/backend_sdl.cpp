@@ -53,23 +53,31 @@ void CGraphicsBackend_Threaded::StartProcessor(ICommandProcessor *pProcessor)
 {
 	m_Shutdown = false;
 	m_pProcessor = pProcessor;
+#if !defined(__ANDROID__)
 	m_pThread = thread_init(ThreadFunc, this);
 	m_BufferDone.signal();
+#endif
 }
 
 void CGraphicsBackend_Threaded::StopProcessor()
 {
 	m_Shutdown = true;
+#if !defined(__ANDROID__)
 	m_Activity.signal();
 	thread_wait(m_pThread);
 	thread_destroy(m_pThread);
+#endif
 }
 
 void CGraphicsBackend_Threaded::RunBuffer(CCommandBuffer *pBuffer)
 {
+#if defined(__ANDROID__)
+	m_pProcessor->RunBuffer(pBuffer);
+#else
 	WaitForIdle();
 	m_pBuffer = pBuffer;
 	m_Activity.signal();
+#endif
 }
 
 bool CGraphicsBackend_Threaded::IsIdle() const
@@ -756,9 +764,10 @@ void CCommandProcessorFragment_SDL::Cmd_Shutdown(const SCommand_Shutdown *pComma
 void CCommandProcessorFragment_SDL::Cmd_Swap(const CCommandBuffer::SCommand_Swap *pCommand)
 {
 	SDL_GL_SwapWindow(m_pWindow);
-
+#if !defined(__ANDROID__)
 	if(pCommand->m_Finish)
-		glFinish();
+		glFinish(); // You don't need to call glFinish() even on PC, swapping video buffers does this anyway, but whatever
+#endif
 }
 
 void CCommandProcessorFragment_SDL::Cmd_VideoModes(const CCommandBuffer::SCommand_VideoModes *pCommand)
