@@ -225,7 +225,6 @@ void CCommandProcessorFragment_OpenGL::SetState(const CCommandBuffer::SState &St
 		glEnable(GL_TEXTURE_2D);
 #endif
 		glBindTexture(GL_TEXTURE_2D, m_aTextures[State.m_Texture].m_Tex);
-		dbg_msg("render", "== Bind texture %d", State.m_Texture);
 	}
 	else
 	{
@@ -233,8 +232,6 @@ void CCommandProcessorFragment_OpenGL::SetState(const CCommandBuffer::SState &St
 		glDisable(GL_TEXTURE_2D);
 #endif
 		glBindTexture(GL_TEXTURE_2D, m_PixelTexture);
-		glBindTexture(GL_TEXTURE_2D, m_aTextures[2].m_Tex);
-		dbg_msg("render", "== Bind pixeltexture");
 	}
 
 	switch(State.m_WrapMode)
@@ -271,7 +268,6 @@ void CCommandProcessorFragment_OpenGL::Cmd_Init(const SCommand_Init *pCommand)
 {
 	m_MultiBuffering = false;
 	m_pTextureMemoryUsage = pCommand->m_pTextureMemoryUsage;
-	dbg_msg("render", "Screen %d x %d\n", pCommand->m_ScreenWidth, pCommand->m_ScreenHeight);
 }
 
 void CCommandProcessorFragment_OpenGL::Cmd_Texture_Update(const CCommandBuffer::SCommand_Texture_Update *pCommand)
@@ -377,17 +373,6 @@ void CCommandProcessorFragment_OpenGL::Cmd_CreateTextureBuffer(const CCommandBuf
 	int Width = pCommand->m_Width;
 	int Height = pCommand->m_Height;
 	
-	// create 1x1 white texture for shaders
-	glGenTextures(1, &m_PixelTexture);
-	glBindTexture(GL_TEXTURE_2D, m_PixelTexture);
-
-	GLubyte texData[] = { 255, 255, 255, 255 };
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, texData);
-		
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		
-		
 	// create texture buffers
 	for (int i = 0; i < NUM_RENDERBUFFERS; i++)
 	{
@@ -438,6 +423,16 @@ void CCommandProcessorFragment_OpenGL::Cmd_LoadShaders(const CCommandBuffer::SCo
 	m_aShader[SHADER_RAGE] = LoadShader("data/shaders/basic.vert", "data/shaders/rage.frag");
 	m_aShader[SHADER_FUEL] = LoadShader("data/shaders/basic.vert", "data/shaders/fuel.frag");
 	m_aShader[SHADER_BLOOD] = LoadShader("data/shaders/basic.vert", "data/shaders/blood.frag");
+
+	// create 1x1 white texture for shaders
+	glGenTextures(1, &m_PixelTexture);
+	glBindTexture(GL_TEXTURE_2D, m_PixelTexture);
+
+	GLubyte texData[] = { 255, 255, 255, 255 };
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, texData);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	CCommandBuffer::SCommand_ShaderBegin defaultShader;
 	defaultShader.m_Shader = SHADER_DEFAULT;
@@ -595,16 +590,6 @@ void CCommandProcessorFragment_OpenGL::Cmd_Render(const CCommandBuffer::SCommand
 	};
 
 	SetState(pCommand->m_State);
-	/*
-	glVertexPointer(3, GL_FLOAT, sizeof(CCommandBuffer::SVertex), (char*)pCommand->m_pVertices);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(CCommandBuffer::SVertex), (char*)pCommand->m_pVertices + sizeof(float)*3);
-	glColorPointer(4, GL_FLOAT, sizeof(CCommandBuffer::SVertex), (char*)pCommand->m_pVertices + sizeof(float)*5);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
-	*/
-
-	//glBindTexture(GL_TEXTURE_2D, m_aTextures[3].m_Tex);
 
 	glEnableVertexAttribArray( m_VertexAttribLocation );
 	glEnableVertexAttribArray( m_TexcoordAttribLocation );
@@ -616,7 +601,6 @@ void CCommandProcessorFragment_OpenGL::Cmd_Render(const CCommandBuffer::SCommand
 #if !defined(GL_ES_VERSION_3_0) && !defined(GL_ES_VERSION_2_0)
 		glDrawArrays(GL_QUADS, 0, pCommand->m_PrimCount*4);
 #else
-		dbg_msg("render", "== Render %d quads", pCommand->m_PrimCount);
 		for (unsigned i = 0, count = pCommand->m_PrimCount; i < count; i += quadsToTrianglesElementCount)
 		{
 			glVertexAttribPointer( m_VertexAttribLocation, 2, GL_FLOAT, GL_FALSE, sizeof(CCommandBuffer::SVertex), (const void *) & (pCommand->m_pVertices[i * 4].m_Pos.x) );
@@ -627,7 +611,6 @@ void CCommandProcessorFragment_OpenGL::Cmd_Render(const CCommandBuffer::SCommand
 #endif
 		break;
 	case CCommandBuffer::PRIMTYPE_LINES:
-		dbg_msg("render", "== Render %d lines", pCommand->m_PrimCount);
 		glDrawArrays(GL_LINES, 0, pCommand->m_PrimCount*2);
 		break;
 	default:
@@ -773,8 +756,6 @@ void CCommandProcessorFragment_SDL::Cmd_Shutdown(const SCommand_Shutdown *pComma
 void CCommandProcessorFragment_SDL::Cmd_Swap(const CCommandBuffer::SCommand_Swap *pCommand)
 {
 	SDL_GL_SwapWindow(m_pWindow);
-	dbg_msg("render", "== Swap buffers\n");
-	//SDL_Delay(1000);
 
 	if(pCommand->m_Finish)
 		glFinish();
