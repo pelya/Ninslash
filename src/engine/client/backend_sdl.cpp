@@ -549,7 +549,6 @@ void CCommandProcessorFragment_OpenGL::Cmd_Render(const CCommandBuffer::SCommand
 {
 	enum {
 		quadsToTrianglesElementCount = 42,
-		//quadsToTrianglesElementCount = 1,
 		IndicesPerQuad = 6
 	};
 	static const GLubyte quadsToTriangles[] = {

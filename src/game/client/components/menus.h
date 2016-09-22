@@ -67,7 +67,7 @@ class CMenus : public CComponent
 	int DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrSize, float FontSize, float *Offset, bool Hidden=false, int Corners=CUI::CORNER_ALL);
 	//static int ui_do_edit_box(void *id, const CUIRect *rect, char *str, unsigned str_size, float font_size, bool hidden=false);
 
-	float DoScrollbarV(const void *pID, const CUIRect *pRect, float Current);
+	float DoScrollbarV(const void *pID, const CUIRect *pRect, float Current, float PageScrollDistance = 0.001f);
 	float DoScrollbarH(const void *pID, const CUIRect *pRect, float Current);
 	void DoButton_KeySelect(const void *pID, const char *pText, int Checked, const CUIRect *pRect);
 	int DoKeyReader(void *pID, const CUIRect *pRect, int Key);
@@ -121,6 +121,7 @@ class CMenus : public CComponent
 		PAGE_LAN,
 		PAGE_FAVORITES,
 		PAGE_DEMOS,
+		PAGE_SERVER,
 		PAGE_SETTINGS,
 		PAGE_SYSTEM,
 	};
@@ -154,6 +155,7 @@ class CMenus : public CComponent
 	// some settings
 	static float ms_ButtonHeight;
 	static float ms_ListheaderHeight;
+	static float ms_ListitemAdditionalHeight;
 	static float ms_FontmodHeight;
 
 	// for settings
@@ -244,6 +246,10 @@ class CMenus : public CComponent
 	void RenderDemoPlayer(CUIRect MainView);
 	void RenderDemoList(CUIRect MainView);
 
+	// found in menus_server.cpp
+	void ServerCreatorInit();
+	void ServerCreatorProcess(CUIRect MainView);
+
 	// found in menus_ingame.cpp
 	void RenderGame(CUIRect MainView);
 	void RenderPlayers(CUIRect MainView);
@@ -254,6 +260,7 @@ class CMenus : public CComponent
 
 	// found in menus_browser.cpp
 	int m_SelectedIndex;
+	int m_DoubleClickIndex;
 	int m_ScrollOffset;
 	void RenderServerbrowserServerList(CUIRect View);
 	void RenderServerbrowserServerDetail(CUIRect View);

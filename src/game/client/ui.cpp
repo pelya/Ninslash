@@ -7,6 +7,11 @@
 #include <engine/textrender.h>
 #include "ui.h"
 
+#if defined(__ANDROID__)
+#include <SDL.h>
+#include "SDL_screenkeyboard.h"
+#endif
+
 /********************************************************
  UI
 *********************************************************/
@@ -55,10 +60,144 @@ int CUI::MouseInside(const CUIRect *r)
 
 void CUI::ConvertMouseMove(float *x, float *y)
 {
+#if !defined(__ANDROID__)
 	float Fac = (float)(g_Config.m_UiMousesens)/g_Config.m_InpMousesens;
 	*x = *x*Fac;
 	*y = *y*Fac;
+#endif
 }
+
+#if defined(__ANDROID__)
+static void AndroidScreenKeysTwoJoysticks(SDL_Rect Buttons[], int ScreenW, int ScreenH)
+{
+	// Second joystick to the right, and small
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].w *= 0.6;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].h *= 0.6;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x =
+		ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].w * 1.7;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y =
+		ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].h * 1.7;
+	// Hide third joystick
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].x = 0;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].y = 0;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].w = 0;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].h = 0;
+	/*
+	// Hook button above right joystick
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].x =
+		ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].w;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].y =
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y -
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].h;
+	// Fire button to the left of the right joystick
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].x =
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x -
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].w;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].y =
+		ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].h;
+	*/
+	// Hook button above right joystick
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].w =
+		ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x -
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].w;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].x =
+		ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].w;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].y =
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y -
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].h * 0.5;
+	// Fire button to the left of the right joystick
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].h =
+		ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y -
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].h;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].x =
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x -
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].w * 0.5;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].y =
+		ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].h;
+	// Weapnext button above left joystick
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].x = 0;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].y =
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].y -
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].h;
+	// Scores button above left joystick
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].x = 0;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].y =
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].y -
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].h * 2.0f;
+	// Text input button above scores
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].y =
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].y -
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].h;
+}
+#endif
+
+void CUI::AndroidShowScreenKeys(bool shown)
+{
+#if defined(__ANDROID__)
+	static bool ScreenKeyboardInitialized = false;
+	static bool ScreenKeyboardShown = true;
+	static SDL_Rect Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_NUM];
+	static SDL_Rect ButtonsInit[SDL_ANDROID_SCREENKEYBOARD_BUTTON_NUM];
+	static SDL_Rect ButtonHidden = { 0, 0, 0, 0 };
+
+	if( !ScreenKeyboardInitialized )
+	{
+		ScreenKeyboardInitialized = true;
+
+		for( int i = 0; i < SDL_ANDROID_SCREENKEYBOARD_BUTTON_NUM; i++ )
+			SDL_ANDROID_GetScreenKeyboardButtonPos( i, &ButtonsInit[i] );
+
+		for( int i = 0; i < SDL_ANDROID_SCREENKEYBOARD_BUTTON_NUM; i++ )
+			Buttons[i] = ButtonsInit[i];
+
+		int ScreenW = Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x +
+						Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].w;
+		int ScreenH = Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y +
+						Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].h;
+
+		AndroidScreenKeysTwoJoysticks(Buttons, ScreenW, ScreenH);
+	}
+
+	if( ScreenKeyboardShown == shown )
+		return;
+	ScreenKeyboardShown = shown;
+
+	for( int i = 0; i < SDL_ANDROID_SCREENKEYBOARD_BUTTON_NUM; i++ )
+		SDL_ANDROID_SetScreenKeyboardButtonPos( i, shown ? &Buttons[i] : &ButtonHidden );
+#endif
+}
+
+void CUI::AndroidShowTextInput(const char *text)
+{
+#if defined(__ANDROID__)
+	SDL_ANDROID_ToggleScreenKeyboardTextInput(text);
+#endif
+}
+
+void CUI::AndroidTextInputHintMessage(const char *hintText)
+{
+#if defined(__ANDROID__)
+	SDL_ANDROID_SetScreenKeyboardHintMesage(hintText);
+#endif
+}
+
+void CUI::AndroidBlockAndGetTextInput(char *text, int textLength, const char *hintText)
+{
+#if defined(__ANDROID__)
+	SDL_ANDROID_SetScreenKeyboardHintMesage(hintText);
+	SDL_ANDROID_GetScreenKeyboardTextInput(text, textLength);
+#endif
+}
+
+bool CUI::AndroidTextInputShown()
+{
+#if defined(__ANDROID__)
+	return SDL_IsScreenKeyboardShown(NULL);
+#else
+	return false;
+#endif
+}
+
 
 CUIRect *CUI::Screen()
 {

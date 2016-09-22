@@ -284,7 +284,7 @@ void CMenus::UiDoListboxStart(const void *pID, const CUIRect *pRect, float RowHe
 	RenderTools()->DrawUIRect(&View, vec4(0,0,0,0.15f), 0, 0);
 
 	// prepare the scroll
-	View.VSplitRight(15, &View, &Scroll);
+	View.VSplitRight(50, &View, &Scroll);
 
 	// setup the variables
 	gs_ListBoxOriginalView = View;
@@ -616,7 +616,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 
 	static int s_DemoListId = 0;
 	static float s_ScrollValue = 0;
-	UiDoListboxStart(&s_DemoListId, &ListBox, 17.0f, Localize("Demos"), aFooterLabel, m_lDemos.size(), 1, m_DemolistSelectedIndex, s_ScrollValue);
+	UiDoListboxStart(&s_DemoListId, &ListBox, 50.0f, Localize("Demos"), aFooterLabel, m_lDemos.size(), 1, m_DemolistSelectedIndex, s_ScrollValue);
 	for(sorted_array<CDemoItem>::range r = m_lDemos.all(); !r.empty(); r.pop_front())
 	{
 		CListboxItem Item = UiDoListboxNextItem((void*)(&r.front()));

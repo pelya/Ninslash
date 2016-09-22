@@ -24,12 +24,12 @@
 void CMenus::RenderGame(CUIRect MainView)
 {
 	CUIRect Button, ButtonBar;
-	MainView.HSplitTop(45.0f, &ButtonBar, &MainView);
+	MainView.HSplitTop(100.0f, &ButtonBar, &MainView);
 	RenderTools()->DrawUIRect(&ButtonBar, ms_ColorTabbarActive, CUI::CORNER_ALL, 10.0f);
 
 	// button bar
 	ButtonBar.HSplitTop(10.0f, 0, &ButtonBar);
-	ButtonBar.HSplitTop(25.0f, &ButtonBar, 0);
+	ButtonBar.HSplitTop(80.0f, &ButtonBar, 0);
 	ButtonBar.VMargin(10.0f, &ButtonBar);
 
 	ButtonBar.VSplitRight(120.0f, &ButtonBar, &Button);
@@ -385,7 +385,7 @@ void CMenus::RenderServerControlServer(CUIRect MainView)
 	static int s_VoteList = 0;
 	static float s_ScrollValue = 0;
 	CUIRect List = MainView;
-	UiDoListboxStart(&s_VoteList, &List, 24.0f, "", "", m_pClient->m_pVoting->m_NumVoteOptions, 1, m_CallvoteSelectedOption, s_ScrollValue);
+	UiDoListboxStart(&s_VoteList, &List, 50.0f, "", "", m_pClient->m_pVoting->m_NumVoteOptions, 1, m_CallvoteSelectedOption, s_ScrollValue);
 
 	for(CVoteOptionClient *pOption = m_pClient->m_pVoting->m_pFirst; pOption; pOption = pOption->m_pNext)
 	{
@@ -419,7 +419,7 @@ void CMenus::RenderServerControlKick(CUIRect MainView, bool FilterSpectators)
 	static int s_VoteList = 0;
 	static float s_ScrollValue = 0;
 	CUIRect List = MainView;
-	UiDoListboxStart(&s_VoteList, &List, 24.0f, "", "", NumOptions, 1, Selected, s_ScrollValue);
+	UiDoListboxStart(&s_VoteList, &List, 50.0f, "", "", NumOptions, 1, Selected, s_ScrollValue);
 
 	for(int i = 0; i < NumOptions; i++)
 	{
@@ -446,12 +446,12 @@ void CMenus::RenderServerControl(CUIRect MainView)
 
 	// render background
 	CUIRect Bottom, Extended, TabBar, Button;
-	MainView.HSplitTop(20.0f, &Bottom, &MainView);
+	MainView.HSplitTop(50.0f, &Bottom, &MainView);
 	RenderTools()->DrawUIRect(&Bottom, ms_ColorTabbarActive, CUI::CORNER_T, 10.0f);
-	MainView.HSplitTop(20.0f, &TabBar, &MainView);
+	MainView.HSplitTop(50.0f, &TabBar, &MainView);
 	RenderTools()->DrawUIRect(&MainView, ms_ColorTabbarActive, CUI::CORNER_B, 10.0f);
 	MainView.Margin(10.0f, &MainView);
-	MainView.HSplitBottom(90.0f, &MainView, &Extended);
+	MainView.HSplitBottom(10.0f, &MainView, &Extended);
 
 	// tab bar
 	{
