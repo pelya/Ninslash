@@ -1,4 +1,5 @@
 #version 100
+precision mediump float;
 
 uniform lowp sampler2D texture;
 uniform mediump float rnd; // TODO: merge this with intensity into a single vec2
@@ -15,6 +16,6 @@ void main (void)
 {
 	float f = rand(vec2(0, gl_FragCoord.x+rnd));
 	lowp vec4 t = texture2D(texture, frag_texCoord.st);
-	lowp vec4 color = vec4(1.0f, 1.0f-f*0.5f, 1.0f-f, t.w);
-	gl_FragColor = t * frag_color + color*intensity*(1+rnd);
+	lowp vec4 color = vec4(1.0, 1.0-f*0.5, 1.0-f, t.w);
+	gl_FragColor = t * frag_color + color*intensity*(1.0+rnd);
 }

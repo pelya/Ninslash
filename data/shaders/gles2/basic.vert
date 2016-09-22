@@ -1,4 +1,5 @@
 #version 100
+precision highp float;
 
 uniform highp vec4 screenPos;
 
