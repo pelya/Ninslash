@@ -1,4 +1,5 @@
 #version 100
+
 uniform highp vec4 screenPos;
 
 attribute highp vec2 in_position; // TODO: merge this with in_texCoord into a single vec4

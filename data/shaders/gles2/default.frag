@@ -1,4 +1,5 @@
 #version 100
+
 uniform lowp sampler2D texture;
 uniform mediump float rnd; // TODO: merge this with intensity into a single vec2
 uniform lowp float intensity;
