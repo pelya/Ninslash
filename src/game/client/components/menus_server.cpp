@@ -1,5 +1,4 @@
-/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
-/* If you are missing that file, acquire a complete release at teeworlds.com.                */
+
 
 #include <base/math.h>
 
@@ -190,13 +189,13 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	UI()->DoLabelScaled(&MsgBox, Localize("in Tethering & Hotspot menu, then ask other players to connect to your Wi-Fi network,"), 20.0f, 0);
 	MainView.HSplitTop(30, 0, &MainView);
 	MsgBox = MainView;
-	UI()->DoLabelScaled(&MsgBox, Localize("open TeeWorlds, select LAN menu, and connect to your server."), 20.0f, 0);
+	UI()->DoLabelScaled(&MsgBox, Localize("open Ninslash, select LAN menu, and connect to your server."), 20.0f, 0);
 
 	MainView.HSplitTop(30, 0, &MainView);
 	MainView.VMargin(50.0f, &Button);
 	Button.h = 50;
 	static int s_ShareAppButton = 0;
-	if(DoButton_Menu(&s_ShareAppButton, Localize("Share TeeWorlds app over Bluetooth to other devices"), 0, &Button))
+	if(DoButton_Menu(&s_ShareAppButton, Localize("Share Ninslash over Bluetooth to other devices"), 0, &Button))
 	{
 		system("$SECURE_STORAGE_DIR/busybox cp -f $ANDROID_MY_OWN_APP_FILE $UNSECURE_STORAGE_DIR/Ninslash.apk");
 		system("am start --user -3 -a android.intent.action.SEND -t application/vnd.android.package-archive "

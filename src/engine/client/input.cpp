@@ -143,6 +143,9 @@ void CInput::GetMousePosition(float *x, float *y)
 		return;
 
 	float Sens = g_Config.m_InpMousesens/100.0f;
+#if defined(__ANDROID__)
+	Sens = 1.0f;
+#endif
 	int nx = 0, ny = 0;
 	SDL_GetMouseState(&nx, &ny);
 

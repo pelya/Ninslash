@@ -3,6 +3,7 @@
 #include <base/math.h>
 
 #include <engine/shared/config.h>
+#include <engine/graphics.h>
 
 #include <game/collision.h>
 #include <game/client/gameclient.h>
@@ -14,11 +15,43 @@
 
 #include <game/client/customstuff.h>
 
+#if defined(__ANDROID__)
+#include <SDL.h>
+#endif
+
 #include "controls.h"
+
+// Android constants
+enum {	LEFT_JOYSTICK_X = 0, LEFT_JOYSTICK_Y = 1,
+		RIGHT_JOYSTICK_X = 2, RIGHT_JOYSTICK_Y = 3,
+		SECOND_RIGHT_JOYSTICK_X = 20, SECOND_RIGHT_JOYSTICK_Y = 21,
+		ORIENTATION_X = 8, ORIENTATION_Y = 9, ORIENTATION_Z = 10,
+		ACCELEROMETER_X = 0, ACCELEROMETER_Y = 1,
+		NUM_JOYSTICK_AXES = 22 };
 
 CControls::CControls()
 {
 	mem_zero(&m_LastData, sizeof(m_LastData));
+
+#if defined(__ANDROID__)
+	SDL_Init(SDL_INIT_JOYSTICK);
+	m_Joystick = SDL_JoystickOpen(0);
+	if( m_Joystick && SDL_JoystickNumAxes(m_Joystick) < NUM_JOYSTICK_AXES )
+	{
+		SDL_JoystickClose(m_Joystick);
+		m_Joystick = NULL;
+	}
+
+	m_Gamepad = SDL_JoystickOpen(2);
+
+	m_Accelerometer = NULL;
+
+	SDL_JoystickEventState(SDL_QUERY);
+
+	m_UsingGamepad = false;
+	if( getenv("OUYA") )
+		m_UsingGamepad = true;
+#endif
 }
 
 void CControls::OnReset()
@@ -34,6 +67,13 @@ void CControls::OnReset()
 
 	m_InputDirectionLeft = 0;
 	m_InputDirectionRight = 0;
+
+	m_JoystickFirePressed = false;
+	m_JoystickRunPressed = false;
+	m_JoystickTapTime = 0;
+	for( int i = 0; i < NUM_WEAPONS; i++ )
+		m_AmmoCount[i] = 0;
+	m_OldMouseX = m_OldMouseY = 0.0f;
 }
 
 void CControls::OnRelease()
@@ -44,6 +84,8 @@ void CControls::OnRelease()
 void CControls::OnPlayerDeath()
 {
 	m_LastData.m_WantedWeapon = m_InputData.m_WantedWeapon = 0;
+	for( int i = 0; i < NUM_WEAPONS; i++ )
+		m_AmmoCount[i] = 0;
 }
 
 static void ConKeyInputState(IConsole::IResult *pResult, void *pUserData)
@@ -117,6 +159,7 @@ void CControls::OnMessage(int Msg, void *pRawMsg)
 		CNetMsg_Sv_WeaponPickup *pMsg = (CNetMsg_Sv_WeaponPickup *)pRawMsg;
 		if(g_Config.m_ClAutoswitchWeapons)
 			m_InputData.m_WantedWeapon = pMsg->m_Weapon+1;
+		// We don't really know ammo count, until we'll switch to that weapon, but any non-zero count will suffice here
 	}
 	*/
 	
@@ -128,6 +171,7 @@ void CControls::OnMessage(int Msg, void *pRawMsg)
 		CustomStuff()->m_WeaponpickTimer = 1.0f;
 		CustomStuff()->m_WeaponpickWeapon = pMsg->m_Weapon;
 		CustomStuff()->m_LastWeaponPicked = false;
+		m_AmmoCount[pMsg->m_Weapon%NUM_WEAPONS] = 10; // TODO: move ammo count for inactive weapons into the network protocol
 			
 		if(g_Config.m_ClAutoswitchWeapons)
 		{
@@ -230,6 +274,82 @@ int CControls::SnapInput(int *pData)
 
 void CControls::OnRender()
 {
+#if defined(__ANDROID__)
+	int64 CurTime = time_get();
+	bool FireWasPressed = false;
+
+	if( m_Joystick && !m_UsingGamepad )
+	{
+		TouchscreenInput(CurTime, &FireWasPressed);
+	}
+
+	if( m_Gamepad )
+	{
+		enum {
+			GAMEPAD_DEAD_ZONE = 65536 / 8,
+		};
+
+		// Get input from left joystick
+		int RunX = SDL_JoystickGetAxis(m_Gamepad, LEFT_JOYSTICK_X);
+		int RunY = SDL_JoystickGetAxis(m_Gamepad, LEFT_JOYSTICK_Y);
+		if( m_UsingGamepad )
+		{
+			//m_InputDirectionLeft = (RunX < -GAMEPAD_DEAD_ZONE);
+			//m_InputDirectionRight = (RunX > GAMEPAD_DEAD_ZONE);
+			static int OldRunX = 0, OldRunY = 0;
+			if( RunX < -GAMEPAD_DEAD_ZONE && OldRunX >= -GAMEPAD_DEAD_ZONE )
+				m_InputDirectionLeft = 1;
+			if( RunX >= -GAMEPAD_DEAD_ZONE && OldRunX < -GAMEPAD_DEAD_ZONE )
+				m_InputDirectionLeft = 0;
+			if( RunX > GAMEPAD_DEAD_ZONE && OldRunX <= GAMEPAD_DEAD_ZONE )
+				m_InputDirectionRight = 1;
+			if( RunX <= GAMEPAD_DEAD_ZONE && OldRunX > GAMEPAD_DEAD_ZONE )
+				m_InputDirectionRight = 0;
+			OldRunX = RunX;
+			OldRunY = RunY;
+		}
+
+		// Get input from right joystick
+		int AimX = SDL_JoystickGetAxis(m_Gamepad, RIGHT_JOYSTICK_X);
+		int AimY = SDL_JoystickGetAxis(m_Gamepad, RIGHT_JOYSTICK_Y);
+		if( abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE )
+		{
+			m_MousePos = vec2(AimX / 30, AimY / 30);
+			ClampMousePos();
+		}
+
+		if( !m_UsingGamepad && (abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE ||
+			abs(RunX) > GAMEPAD_DEAD_ZONE || abs(RunY) > GAMEPAD_DEAD_ZONE) || SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT) )
+		{
+			UI()->AndroidShowScreenKeys(false);
+			m_UsingGamepad = true;
+		}
+	}
+
+	if( g_Config.m_ClAutoswitchWeaponsOutOfAmmo && m_pClient->m_Snap.m_pLocalCharacter )
+	{
+		// Keep track of ammo count, we know weapon ammo only when we switch to that weapon, this is tracked on server and protocol does not track that
+		m_AmmoCount[m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS] = m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount;
+		// Autoswitch weapon if we're out of ammo
+		if( (m_InputData.m_Fire % 2 != 0 || FireWasPressed) &&
+			m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount == 0 &&
+			m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_HAMMER &&
+			m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_TOOL )
+		{
+			int w;
+			for( w = NUM_WEAPONS - 1; w > WEAPON_HAMMER; w-- )
+			{
+				if( w == m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
+					continue;
+				if( m_AmmoCount[w] > 0 )
+					break;
+			}
+			if( w != m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
+				m_InputData.m_WantedWeapon = w+1;
+		}
+	}
+#endif
+
 	// update target pos
 	if(m_pClient->m_Snap.m_pGameInfoObj && !m_pClient->m_Snap.m_SpecInfo.m_Active)
 		m_TargetPos = m_pClient->m_LocalCharacterPos + m_MousePos;
@@ -245,6 +365,16 @@ bool CControls::OnMouseMove(float x, float y)
 		(m_pClient->m_Snap.m_SpecInfo.m_Active && m_pClient->m_pChat->IsActive()))
 		return false;
 
+#if defined(__ANDROID__)
+	// We're using joystick on Android, mouse is disabled
+	if( m_OldMouseX != x || m_OldMouseY != y )
+	{
+		m_OldMouseX = x;
+		m_OldMouseY = y;
+		m_MousePos = vec2((x - g_Config.m_GfxScreenWidth/2), (y - g_Config.m_GfxScreenHeight/2));
+		ClampMousePos();
+	}
+#else
 	Input()->SetMouseModes(IInput::MOUSE_MODE_WARP_CENTER);
 	Input()->ShowCursor(false);
 
@@ -260,6 +390,7 @@ bool CControls::OnMouseMove(float x, float y)
 	else
 		m_MousePos += vec2(x, y) * ((200.0f + g_Config.m_InpMousesens) / 150.0f);
 	ClampMousePos();
+#endif
 
 	return true;
 }
@@ -270,7 +401,6 @@ void CControls::ClampMousePos()
 	{
 		m_MousePos.x = clamp(m_MousePos.x, 200.0f, Collision()->GetWidth()*32-200.0f);
 		m_MousePos.y = clamp(m_MousePos.y, 200.0f, Collision()->GetHeight()*32-200.0f);
-
 	}
 	else
 	{
@@ -282,3 +412,59 @@ void CControls::ClampMousePos()
 			m_MousePos = normalize(m_MousePos)*MouseMax;
 	}
 }
+
+#if defined(__ANDROID__)
+void CControls::TouchscreenInput(int64 CurTime, bool *FireWasPressed)
+{
+	// Get input from left joystick
+	int RunX = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_X);
+	int RunY = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_Y);
+	bool RunPressed = (RunX != 0 || RunY != 0);
+	// Get input from right joystick
+	int AimX = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_X);
+	int AimY = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_Y);
+	bool AimPressed = (AimX != 0 || AimY != 0);
+
+	if( m_JoystickRunPressed != RunPressed )
+	{
+		if( RunPressed && RunY < 0 )
+			m_InputData.m_Jump = 1;
+		else
+			m_InputData.m_Jump = 0;
+		m_JoystickTapTime = CurTime;
+	}
+
+	m_JoystickRunPressed = RunPressed;
+
+	if( RunPressed )
+	{
+		m_InputDirectionLeft = (RunX <= 0);
+		m_InputDirectionRight = (RunX > 0);
+	}
+
+	// Move 500ms in the same direction, to prevent speed bump when tapping
+	if( !RunPressed && m_JoystickTapTime + time_freq() / 2 > CurTime )
+	{
+		m_InputDirectionLeft = 0;
+		m_InputDirectionRight = 0;
+	}
+
+	if( AimPressed )
+	{
+		m_MousePos = vec2(AimX / 30, AimY / 30);
+		ClampMousePos();
+	}
+
+	if( AimPressed != m_JoystickFirePressed )
+	{
+		if( m_InputData.m_Fire % 2 != AimPressed )
+			m_InputData.m_Fire ++;
+		if( !AimPressed )
+		{
+			*FireWasPressed = true;
+		}
+	}
+
+	m_JoystickFirePressed = AimPressed;
+}
+#endif

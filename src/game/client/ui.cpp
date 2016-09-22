@@ -70,32 +70,21 @@ void CUI::ConvertMouseMove(float *x, float *y)
 #if defined(__ANDROID__)
 static void AndroidScreenKeysTwoJoysticks(SDL_Rect Buttons[], int ScreenW, int ScreenH)
 {
-	// Second joystick to the right, and small
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].w *= 0.6;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].h *= 0.6;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x =
-		ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].w * 1.7;
+	// First joystick to the left
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].w = ScreenW / 2;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].h = ScreenH * 0.8;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].x = 0;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].y =
+		ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].h;
+
+	// Second joystick to the right
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].w = ScreenW / 2;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].h = ScreenH * 0.8;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x = ScreenW / 2;
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y =
-		ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].h * 1.7;
-	// Hide third joystick
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].x = 0;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].y = 0;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].w = 0;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].h = 0;
+		ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].h;
+
 	/*
-	// Hook button above right joystick
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].x =
-		ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].w;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].y =
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y -
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].h;
-	// Fire button to the left of the right joystick
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].x =
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x -
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].w;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].y =
-		ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].h;
-	*/
 	// Hook button above right joystick
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].w =
 		ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x -
@@ -128,6 +117,7 @@ static void AndroidScreenKeysTwoJoysticks(SDL_Rect Buttons[], int ScreenW, int S
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].y =
 		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].y -
 		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].h;
+	*/
 }
 #endif
 

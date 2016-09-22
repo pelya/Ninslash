@@ -387,7 +387,7 @@ void CHud::RenderVoting()
 	if( Input()->KeyDown(KEY_MOUSE_1) )
 	{
 		float mx, my;
-		Input()->MouseRelative(&mx, &my);
+		Input()->GetMousePosition(&mx, &my);
 		mx = mx * m_Width / Graphics()->ScreenWidth();
 		my = my * m_Height / Graphics()->ScreenHeight();
 		if( my > TextY+TextH-10 && my < TextY+TextH+30 ) {
