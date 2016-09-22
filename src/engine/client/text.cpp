@@ -145,20 +145,24 @@ class CTextRender : public IEngineTextRender
 		static int FontMemoryUsage = 0;
 		int Width = CharWidth*Xchars;
 		int Height = CharHeight*Ychars;
-		void *pMem = mem_alloc(Width*Height, 1);
-		mem_zero(pMem, Width*Height);
+		void *pMem = mem_alloc(Width*Height*2, 1);
+		mem_zero(pMem, Width*Height*2);
+		for (unsigned i = 0; i < Width*Height; i ++)
+		{
+			((unsigned char *) pMem)[i*2] = 255;
+		}
 
 		for(int i = 0; i < 2; i++)
 		{
 			if(pSizeData->m_aTextures[i] != 0)
 			{
 				Graphics()->UnloadTexture(pSizeData->m_aTextures[i]);
-				FontMemoryUsage -= pSizeData->m_TextureWidth*pSizeData->m_TextureHeight;
+				FontMemoryUsage -= pSizeData->m_TextureWidth*pSizeData->m_TextureHeight*2;
 				pSizeData->m_aTextures[i] = 0;
 			}
 
 			pSizeData->m_aTextures[i] = Graphics()->LoadTextureRaw(Width, Height, CImageInfo::FORMAT_ALPHA, pMem, CImageInfo::FORMAT_ALPHA, IGraphics::TEXLOAD_NOMIPMAPS);
-			FontMemoryUsage += Width*Height;
+			FontMemoryUsage += Width*Height*2;
 		}
 
 		pSizeData->m_NumXChars = Xchars;
@@ -242,11 +246,16 @@ class CTextRender : public IEngineTextRender
 	{
 		int x = (SlotID%pSizeData->m_NumXChars) * (pSizeData->m_TextureWidth/pSizeData->m_NumXChars);
 		int y = (SlotID/pSizeData->m_NumXChars) * (pSizeData->m_TextureHeight/pSizeData->m_NumYChars);
+		for(unsigned i = 0, size = (pSizeData->m_TextureWidth/pSizeData->m_NumXChars) * (pSizeData->m_TextureHeight/pSizeData->m_NumYChars); i < size; i++)
+		{
+			ms_aDataLuminanceAlpha[i * 2] = 255;
+			ms_aDataLuminanceAlpha[i * 2 + 1] = ((unsigned char *) pData)[i];
+		}
 
 		Graphics()->LoadTextureRawSub(pSizeData->m_aTextures[Texnum], x, y,
 			pSizeData->m_TextureWidth/pSizeData->m_NumXChars,
 			pSizeData->m_TextureHeight/pSizeData->m_NumYChars,
-			CImageInfo::FORMAT_ALPHA, pData);
+			CImageInfo::FORMAT_ALPHA, ms_aDataLuminanceAlpha);
 		/*
 		glBindTexture(GL_TEXTURE_2D, pSizeData->m_aTextures[Texnum]);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y,
@@ -258,6 +267,7 @@ class CTextRender : public IEngineTextRender
 	// 32k of data used for rendering glyphs
 	unsigned char ms_aGlyphData[(1024/8) * (1024/8)];
 	unsigned char ms_aGlyphDataOutlined[(1024/8) * (1024/8)];
+	unsigned char ms_aDataLuminanceAlpha[(1024/8) * (1024/8) * 2];
 
 	int GetSlot(CFontSizeData *pSizeData)
 	{

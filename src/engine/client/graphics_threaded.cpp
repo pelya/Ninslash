@@ -345,7 +345,7 @@ static int ImageFormatToPixelSize(int Format)
 	switch(Format)
 	{
 	case CImageInfo::FORMAT_RGB: return 3;
-	case CImageInfo::FORMAT_ALPHA: return 1;
+	case CImageInfo::FORMAT_ALPHA: return 2;
 	default: return 4;
 	}
 }

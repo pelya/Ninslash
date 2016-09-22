@@ -116,7 +116,7 @@ bool CCommandProcessorFragment_General::RunCommand(const CCommandBuffer::SComman
 int CCommandProcessorFragment_OpenGL::TexFormatToOpenGLFormat(int TexFormat)
 {
 	if(TexFormat == CCommandBuffer::TEXFORMAT_RGB) return GL_RGB;
-	if(TexFormat == CCommandBuffer::TEXFORMAT_ALPHA) return GL_ALPHA;
+	if(TexFormat == CCommandBuffer::TEXFORMAT_ALPHA) return GL_LUMINANCE_ALPHA;
 	if(TexFormat == CCommandBuffer::TEXFORMAT_RGBA) return GL_RGBA;
 	return GL_RGBA;
 }
