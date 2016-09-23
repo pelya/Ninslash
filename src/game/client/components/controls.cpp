@@ -318,8 +318,8 @@ void CControls::OnRender()
 			ClampMousePos();
 		}
 
-		if( !m_UsingGamepad && (abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE ||
-			abs(RunX) > GAMEPAD_DEAD_ZONE || abs(RunY) > GAMEPAD_DEAD_ZONE) || SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT) )
+		if( !(m_UsingGamepad && (abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE ||
+			abs(RunX) > GAMEPAD_DEAD_ZONE || abs(RunY) > GAMEPAD_DEAD_ZONE)) || (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)) )
 		{
 			UI()->AndroidShowScreenKeys(false);
 			m_UsingGamepad = true;
@@ -331,6 +331,7 @@ void CControls::OnRender()
 		// Keep track of ammo count, we know weapon ammo only when we switch to that weapon, this is tracked on server and protocol does not track that
 		m_AmmoCount[m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS] = m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount;
 		// Autoswitch weapon if we're out of ammo
+		
 		if( (m_InputData.m_Fire % 2 != 0 || FireWasPressed) &&
 			m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount == 0 &&
 			m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_HAMMER &&
@@ -344,8 +345,15 @@ void CControls::OnRender()
 				if( m_AmmoCount[w] > 0 )
 					break;
 			}
+			//dbg_msg("controls", "Out of ammo - selected weapon %d ammo %d", w, m_AmmoCount[w]);
 			if( w != m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
-				m_InputData.m_WantedWeapon = w+1;
+			{
+				//m_InputData.m_WantedWeapon = w; // This changes weapon group instead
+				CNetMsg_Cl_SelectWeapon Msg;
+				Msg.m_Weapon = w+1;
+				Msg.m_Group = 0;
+				Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
+			}
 		}
 	}
 #endif
