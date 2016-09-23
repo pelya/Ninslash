@@ -282,6 +282,7 @@ int CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrS
 		UI()->SetHotItem(pID);
 		if(UI()->ActiveItem() == pID && UI()->MouseButtonClicked(0))
 		{
+			ReturnValue = true;
 			s_AtIndex = 0;
 			UI()->AndroidBlockAndGetTextInput(pStr, StrSize, "");
 		}
