@@ -597,23 +597,23 @@ int CMenus::RenderMenubar(CUIRect r)
 			m_DoubleClickIndex = -1;
 		}
 
-		Box.VSplitLeft(5.0f, 0, &Box);
-		Box.VSplitLeft(100.0f, &Button, &Box);
-		static int s_DemosButton=0;
-		if(DoButton_MenuTab(&s_DemosButton, Localize("Demos"), m_ActivePage==PAGE_DEMOS, &Button, CUI::CORNER_T))
-		{
-			DemolistPopulate();
-			NewPage = PAGE_DEMOS;
-			m_DoubleClickIndex = -1;
-		}
-
-		Box.VSplitLeft(5.0f, 0, &Box);
+		Box.VSplitLeft(10.0f, 0, &Box);
 		Box.VSplitLeft(100.0f, &Button, &Box);
 		static int s_ServerButton=0;
 		if(DoButton_MenuTab(&s_ServerButton, Localize("Server"), m_ActivePage==PAGE_SERVER, &Button, CUI::CORNER_T))
 		{
 			ServerCreatorInit();
 			NewPage = PAGE_SERVER;
+			m_DoubleClickIndex = -1;
+		}
+
+		Box.VSplitLeft(10.0f, 0, &Box);
+		Box.VSplitLeft(100.0f, &Button, &Box);
+		static int s_DemosButton=0;
+		if(DoButton_MenuTab(&s_DemosButton, Localize("Demos"), m_ActivePage==PAGE_DEMOS, &Button, CUI::CORNER_T))
+		{
+			DemolistPopulate();
+			NewPage = PAGE_DEMOS;
 			m_DoubleClickIndex = -1;
 		}
 	}
