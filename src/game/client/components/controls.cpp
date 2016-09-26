@@ -422,15 +422,12 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 
 	if( AimPressed != m_TouchJoyAimPressed )
 	{
-		dbg_msg("controls", "Aim %d %d anchor %d %d",  AimX, AimY, m_TouchJoyAimAnchor.x, m_TouchJoyAimAnchor.y);
 		if( !AimPressed )
 		{
 			SDL_Rect joypos;
 			SDL_ANDROID_GetScreenKeyboardButtonPos( SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2, &joypos );
 			this->Picker()->SetDrawPos(vec2(joypos.x - Graphics()->ScreenWidth() / 2 + (float)AimX / 65536 * joypos.w,
-										-(joypos.y - Graphics()->ScreenHeight() / 2 + (float)AimY / 65536 * joypos.h)));
-			dbg_msg("controls", "Picker draw pos %d %d", int(joypos.x - Graphics()->ScreenWidth() / 2 + (float)AimX / 65536 * joypos.w),
-														int(joypos.y - Graphics()->ScreenHeight() / 2 + (float)AimY / 65536 * joypos.h));
+										joypos.y - Graphics()->ScreenHeight() / 2 + (float)AimY / 65536 * joypos.h));
 			this->Picker()->OpenPicker();
 			m_InputData.m_Jump = 0;
 		}
@@ -438,13 +435,12 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 		{
 			if( distance(ivec2(AimX, AimY), m_TouchJoyAimAnchor) < TOUCHJOY_AIM_DEAD_ZONE / 2 )
 			{
-				dbg_msg("controls", "Jump %d",  m_TouchJoyAimTapTime + time_freq() / 2 >= CurTime);
 				if( m_TouchJoyAimTapTime + time_freq() / 2 >= CurTime )
 					m_InputData.m_Jump = 1;
 			}
 			else
 			{
-				this->Picker()->OnMouseMove((AimX - m_TouchJoyAimAnchor.x) / 10, (AimY - m_TouchJoyAimAnchor.y) / 10);
+				this->Picker()->OnMouseMove((AimX - m_TouchJoyAimAnchor.x) / 100, (AimY - m_TouchJoyAimAnchor.y) / 100);
 				dbg_msg("controls", "Picker mouse move %d %d", (AimX - m_TouchJoyAimAnchor.x) / 10, (AimY - m_TouchJoyAimAnchor.y) / 10);
 			}
 			this->Picker()->ClosePicker();
