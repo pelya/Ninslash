@@ -43,10 +43,14 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	static bool ServerRunning = false;
 	static bool ServerStarting = false;
 	static bool AddingBot = false;
-	if (time_get() / time_freq() > LastUpdateTime + 3)
+	if (time_get() / time_freq() > LastUpdateTime + 2)
 	{
 		LastUpdateTime = time_get() / time_freq();
+#if defined(__ANDROID__)
 		int status = system("$SECURE_STORAGE_DIR/busybox sh -c 'ps | grep ninslash_srv'");
+#else
+		int status = system("ps | grep ninslash_srv");
+#endif
 		ServerRunning = WEXITSTATUS(status) == 0;
 		ServerStarting = false;
 		AddingBot = false;
@@ -69,7 +73,11 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	static int s_StartServerButton = 0;
 	if(DoButton_Menu(&s_StartServerButton, Localize("Start server"), 0, &Button))
 	{
+#if defined(__ANDROID__)
 		system("$SECURE_STORAGE_DIR/ninslash_srv -f \"$UNSECURE_STORAGE_DIR/example configs/dm-autoexec.cfg\" >/dev/null 2>&1 &");
+#else
+		system("./ninslash_srv_d -f \"example configs/dm-autoexec.cfg\" || ./ninslash_srv -f \"example configs/dm-autoexec.cfg\" &");
+#endif
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
 		ServerStarting = true;
 	}
@@ -80,7 +88,11 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	static int s_StopServerButton = 0;
 	if(DoButton_Menu(&s_StopServerButton, Localize("Stop server"), 0, &Button))
 	{
+#if defined(__ANDROID__)
 		system("$SECURE_STORAGE_DIR/busybox killall ninslash_srv");
+#else
+		system("killall ninslash_srv ninslash_srv_d");
+#endif
 		LastUpdateTime = time_get() / time_freq() - 2;
 	}
 
