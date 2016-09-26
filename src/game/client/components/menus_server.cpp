@@ -71,29 +71,43 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	Button.h = 50;
 	Button.w = 300;
 	static int s_StartServerButton = 0;
-	if(DoButton_Menu(&s_StartServerButton, Localize("Start server"), 0, &Button))
+	if(DoButton_Menu(&s_StartServerButton, ServerRunning ? Localize("Stop server") : Localize("Start server"), 0, &Button))
 	{
+		if( ServerRunning )
+		{
 #if defined(__ANDROID__)
-		system("$SECURE_STORAGE_DIR/ninslash_srv -f \"$UNSECURE_STORAGE_DIR/example configs/dm-autoexec.cfg\" >/dev/null 2>&1 &");
+			system("$SECURE_STORAGE_DIR/busybox killall ninslash_srv");
 #else
-		system("./ninslash_srv_d -f \"example configs/dm-autoexec.cfg\" || ./ninslash_srv -f \"example configs/dm-autoexec.cfg\" &");
+			system("killall ninslash_srv ninslash_srv_d");
 #endif
-		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
-		ServerStarting = true;
+			LastUpdateTime = time_get() / time_freq() - 2;
+		}
+		else
+		{
+#if defined(__ANDROID__)
+			system("$SECURE_STORAGE_DIR/ninslash_srv -f \"$UNSECURE_STORAGE_DIR/example configs/dm-autoexec.cfg\" >/dev/null 2>&1 &");
+#else
+			system("./ninslash_srv_d -f \"example configs/dm-autoexec.cfg\" || ./ninslash_srv -f \"example configs/dm-autoexec.cfg\" &");
+#endif
+			LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
+			ServerStarting = true;
+		}
 	}
 
 	MainView.VSplitRight(350, 0, &Button);
 	Button.h = 50;
 	Button.w = 300;
 	static int s_StopServerButton = 0;
-	if(DoButton_Menu(&s_StopServerButton, Localize("Stop server"), 0, &Button))
+	if(DoButton_Menu(&s_StopServerButton, Localize("Start CTF server"), 0, &Button))
 	{
 #if defined(__ANDROID__)
-		system("$SECURE_STORAGE_DIR/busybox killall ninslash_srv");
+		system("$SECURE_STORAGE_DIR/ninslash_srv -f \"$UNSECURE_STORAGE_DIR/example configs/ctf-autoexec.cfg\" >/dev/null 2>&1 &");
+		//system("logwrapper $SECURE_STORAGE_DIR/ninslash_srv -f \"$UNSECURE_STORAGE_DIR/example configs/ctf-autoexec.cfg\" &");
 #else
-		system("killall ninslash_srv ninslash_srv_d");
+		system("./ninslash_srv_d -f \"example configs/ctf-autoexec.cfg\" || ./ninslash_srv -f \"example configs/ctf-autoexec.cfg\" &");
 #endif
-		LastUpdateTime = time_get() / time_freq() - 2;
+		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
+		ServerStarting = true;
 	}
 
 	MainView.HSplitTop(60, 0, &MainView);
