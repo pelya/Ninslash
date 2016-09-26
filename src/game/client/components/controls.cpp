@@ -275,87 +275,16 @@ int CControls::SnapInput(int *pData)
 void CControls::OnRender()
 {
 #if defined(__ANDROID__)
-	int64 CurTime = time_get();
 	bool FireWasPressed = false;
 
 	if( m_Joystick && !m_UsingGamepad )
-	{
-		TouchscreenInput(CurTime, &FireWasPressed);
-	}
+		TouchscreenInput(&FireWasPressed);
 
 	if( m_Gamepad )
-	{
-		enum {
-			GAMEPAD_DEAD_ZONE = 65536 / 8,
-		};
+		GamepadInput();
 
-		// Get input from left joystick
-		int RunX = SDL_JoystickGetAxis(m_Gamepad, LEFT_JOYSTICK_X);
-		int RunY = SDL_JoystickGetAxis(m_Gamepad, LEFT_JOYSTICK_Y);
-		if( m_UsingGamepad )
-		{
-			//m_InputDirectionLeft = (RunX < -GAMEPAD_DEAD_ZONE);
-			//m_InputDirectionRight = (RunX > GAMEPAD_DEAD_ZONE);
-			static int OldRunX = 0, OldRunY = 0;
-			if( RunX < -GAMEPAD_DEAD_ZONE && OldRunX >= -GAMEPAD_DEAD_ZONE )
-				m_InputDirectionLeft = 1;
-			if( RunX >= -GAMEPAD_DEAD_ZONE && OldRunX < -GAMEPAD_DEAD_ZONE )
-				m_InputDirectionLeft = 0;
-			if( RunX > GAMEPAD_DEAD_ZONE && OldRunX <= GAMEPAD_DEAD_ZONE )
-				m_InputDirectionRight = 1;
-			if( RunX <= GAMEPAD_DEAD_ZONE && OldRunX > GAMEPAD_DEAD_ZONE )
-				m_InputDirectionRight = 0;
-			OldRunX = RunX;
-			OldRunY = RunY;
-		}
-
-		// Get input from right joystick
-		int AimX = SDL_JoystickGetAxis(m_Gamepad, RIGHT_JOYSTICK_X);
-		int AimY = SDL_JoystickGetAxis(m_Gamepad, RIGHT_JOYSTICK_Y);
-		if( abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE )
-		{
-			m_MousePos = vec2(AimX / 30, AimY / 30);
-			ClampMousePos();
-		}
-
-		if( !m_UsingGamepad && (abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE ||
-			abs(RunX) > GAMEPAD_DEAD_ZONE || abs(RunY) > GAMEPAD_DEAD_ZONE || (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT))) )
-		{
-			UI()->AndroidShowScreenKeys(false);
-			m_UsingGamepad = true;
-		}
-	}
-
-	if( g_Config.m_ClAutoswitchWeaponsOutOfAmmo && m_pClient->m_Snap.m_pLocalCharacter )
-	{
-		// Keep track of ammo count, we know weapon ammo only when we switch to that weapon, this is tracked on server and protocol does not track that
-		m_AmmoCount[m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS] = m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount;
-		// Autoswitch weapon if we're out of ammo
-		
-		if( (m_InputData.m_Fire % 2 != 0 || FireWasPressed) &&
-			m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount == 0 &&
-			m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_HAMMER &&
-			m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_TOOL )
-		{
-			int w;
-			for( w = NUM_WEAPONS - 1; w > WEAPON_HAMMER; w-- )
-			{
-				if( w == m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
-					continue;
-				if( m_AmmoCount[w] > 0 )
-					break;
-			}
-			//dbg_msg("controls", "Out of ammo - selected weapon %d ammo %d", w, m_AmmoCount[w]);
-			if( w != m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
-			{
-				//m_InputData.m_WantedWeapon = w; // This changes weapon group instead
-				CNetMsg_Cl_SelectWeapon Msg;
-				Msg.m_Weapon = w+1;
-				Msg.m_Group = 0;
-				Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
-			}
-		}
-	}
+	if( g_Config.m_ClAutoswitchWeaponsOutOfAmmo )
+		AutoswitchWeaponsOutOfAmmo(FireWasPressed);
 #endif
 
 	// update target pos
@@ -422,8 +351,10 @@ void CControls::ClampMousePos()
 }
 
 #if defined(__ANDROID__)
-void CControls::TouchscreenInput(int64 CurTime, bool *FireWasPressed)
+void CControls::TouchscreenInput(bool *FireWasPressed)
 {
+	int64 CurTime = time_get();
+
 	// Get input from left joystick
 	int RunX = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_X);
 	int RunY = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_Y);
@@ -475,4 +406,82 @@ void CControls::TouchscreenInput(int64 CurTime, bool *FireWasPressed)
 
 	m_JoystickFirePressed = AimPressed;
 }
+
+void CControls::GamepadInput()
+{
+	enum {
+		GAMEPAD_DEAD_ZONE = 65536 / 8,
+	};
+
+	// Get input from left joystick
+	int RunX = SDL_JoystickGetAxis(m_Gamepad, LEFT_JOYSTICK_X);
+	int RunY = SDL_JoystickGetAxis(m_Gamepad, LEFT_JOYSTICK_Y);
+	if( m_UsingGamepad )
+	{
+		//m_InputDirectionLeft = (RunX < -GAMEPAD_DEAD_ZONE);
+		//m_InputDirectionRight = (RunX > GAMEPAD_DEAD_ZONE);
+		static int OldRunX = 0, OldRunY = 0;
+		if( RunX < -GAMEPAD_DEAD_ZONE && OldRunX >= -GAMEPAD_DEAD_ZONE )
+			m_InputDirectionLeft = 1;
+		if( RunX >= -GAMEPAD_DEAD_ZONE && OldRunX < -GAMEPAD_DEAD_ZONE )
+			m_InputDirectionLeft = 0;
+		if( RunX > GAMEPAD_DEAD_ZONE && OldRunX <= GAMEPAD_DEAD_ZONE )
+			m_InputDirectionRight = 1;
+		if( RunX <= GAMEPAD_DEAD_ZONE && OldRunX > GAMEPAD_DEAD_ZONE )
+			m_InputDirectionRight = 0;
+		OldRunX = RunX;
+		OldRunY = RunY;
+	}
+
+	// Get input from right joystick
+	int AimX = SDL_JoystickGetAxis(m_Gamepad, RIGHT_JOYSTICK_X);
+	int AimY = SDL_JoystickGetAxis(m_Gamepad, RIGHT_JOYSTICK_Y);
+	if( abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE )
+	{
+		m_MousePos = vec2(AimX / 30, AimY / 30);
+		ClampMousePos();
+	}
+
+	if( !m_UsingGamepad && (abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE ||
+		abs(RunX) > GAMEPAD_DEAD_ZONE || abs(RunY) > GAMEPAD_DEAD_ZONE || (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT))) )
+	{
+		UI()->AndroidShowScreenKeys(false);
+		m_UsingGamepad = true;
+	}
+}
+
+void CControls::AutoswitchWeaponsOutOfAmmo(bool FireWasPressed)
+{
+	if( ! m_pClient->m_Snap.m_pLocalCharacter )
+		return;
+
+	// Keep track of ammo count, we know weapon ammo only when we switch to that weapon, this is tracked on server and protocol does not track that
+	m_AmmoCount[m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS] = m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount;
+	// Autoswitch weapon if we're out of ammo
+	
+	if( (m_InputData.m_Fire % 2 != 0 || FireWasPressed) &&
+		m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount == 0 &&
+		m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_HAMMER &&
+		m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_TOOL )
+	{
+		int w;
+		for( w = NUM_WEAPONS - 1; w > WEAPON_HAMMER; w-- )
+		{
+			if( w == m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
+				continue;
+			if( m_AmmoCount[w] > 0 )
+				break;
+		}
+		//dbg_msg("controls", "Out of ammo - selected weapon %d ammo %d", w, m_AmmoCount[w]);
+		if( w != m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
+		{
+			//m_InputData.m_WantedWeapon = w; // This changes weapon group instead
+			CNetMsg_Cl_SelectWeapon Msg;
+			Msg.m_Weapon = w+1;
+			Msg.m_Group = 0;
+			Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
+		}
+	}
+}
+
 #endif

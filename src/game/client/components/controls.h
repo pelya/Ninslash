@@ -10,7 +10,9 @@ typedef struct _SDL_Joystick SDL_Joystick;
 
 class CControls : public CComponent
 {
-	void TouchscreenInput(int64 CurTime, bool *FireWasPressed);
+	void TouchscreenInput(bool *FireWasPressed);
+	void GamepadInput();
+	void AutoswitchWeaponsOutOfAmmo(bool FireWasPressed);
 
 public:
 	vec2 m_MousePos;
