@@ -29,6 +29,7 @@ public:
 
 	bool m_TouchJoyAimPressed;
 	ivec2 m_TouchJoyAimAnchor;
+	ivec2 m_TouchJoyAimPrev;
 	int64 m_TouchJoyAimTapTime;
 	bool m_TouchJoyFirePressed;
 

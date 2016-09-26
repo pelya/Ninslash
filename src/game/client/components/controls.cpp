@@ -76,6 +76,7 @@ void CControls::OnReset()
 	m_TouchJoyRunAnchor = ivec2(0,0);
 	m_TouchJoyAimPressed = false;
 	m_TouchJoyAimAnchor = ivec2(0,0);
+	m_TouchJoyAimPrev = ivec2(0,0);
 	m_TouchJoyAimTapTime = 0;
 	m_TouchJoyFirePressed = false;
 	for( int i = 0; i < NUM_WEAPONS; i++ )
@@ -413,15 +414,23 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 	int AimX = SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_X);
 	int AimY = SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_Y);
 	bool AimPressed = (AimX != 0 || AimY != 0);
+	if( !AimPressed )
+	{
+		AimX = m_TouchJoyAimPrev.x;
+		AimY = m_TouchJoyAimPrev.y;
+	}
 
 	if( AimPressed != m_TouchJoyAimPressed )
 	{
+		dbg_msg("controls", "Aim %d %d anchor %d %d",  AimX, AimY, m_TouchJoyAimAnchor.x, m_TouchJoyAimAnchor.y);
 		if( !AimPressed )
 		{
 			SDL_Rect joypos;
 			SDL_ANDROID_GetScreenKeyboardButtonPos( SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2, &joypos );
-			this->Picker()->SetDrawPos(vec2(joypos.x - Graphics()->ScreenWidth() / 2 + AimX / 65536.0f * joypos.w, joypos.y - Graphics()->ScreenHeight() / 2 + AimY / 65536.0f * joypos.h));
-			dbg_msg("controls", "Picker draw pos %f %f", joypos.x - Graphics()->ScreenWidth() / 2 + AimX / 65536.0f * joypos.w, joypos.y - Graphics()->ScreenHeight() / 2 + AimY / 65536.0f * joypos.h);
+			this->Picker()->SetDrawPos(vec2(joypos.x - Graphics()->ScreenWidth() / 2 + (float)AimX / 65536 * joypos.w,
+										-(joypos.y - Graphics()->ScreenHeight() / 2 + (float)AimY / 65536 * joypos.h)));
+			dbg_msg("controls", "Picker draw pos %d %d", int(joypos.x - Graphics()->ScreenWidth() / 2 + (float)AimX / 65536 * joypos.w),
+														int(joypos.y - Graphics()->ScreenHeight() / 2 + (float)AimY / 65536 * joypos.h));
 			this->Picker()->OpenPicker();
 			m_InputData.m_Jump = 0;
 		}
@@ -471,6 +480,8 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 			*FireWasPressed = true;
 		m_TouchJoyFirePressed = FirePressed;
 	}
+
+	m_TouchJoyAimPrev = ivec2(AimX, AimY);
 }
 
 void CControls::GamepadInput()
