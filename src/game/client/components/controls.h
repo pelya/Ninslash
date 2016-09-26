@@ -17,12 +17,20 @@ class CControls : public CComponent
 public:
 	vec2 m_MousePos;
 	vec2 m_TargetPos;
+
 	float m_OldMouseX;
 	float m_OldMouseY;
-	SDL_Joystick *m_Joystick;
-	bool m_JoystickFirePressed;
-	bool m_JoystickRunPressed;
-	int64 m_JoystickTapTime;
+
+	SDL_Joystick *m_TouchJoy;
+
+	bool m_TouchJoyRunPressed;
+	ivec2 m_TouchJoyRunAnchor;
+	int64 m_TouchJoyRunTapTime;
+
+	bool m_TouchJoyAimPressed;
+	ivec2 m_TouchJoyAimAnchor;
+	int64 m_TouchJoyAimTapTime;
+	bool m_TouchJoyFirePressed;
 
 	SDL_Joystick *m_Gamepad;
 	bool m_UsingGamepad;

@@ -258,6 +258,7 @@ void CGameClient::OnConsoleInit()
 		m_All.m_paComponents[i]->m_pClient = this;
 
 	m_pCustomStuff = new CCustomStuff();
+	m_pPicker = &gs_Picker;
 	
 	// let all the other components register their console commands
 	for(int i = 0; i < m_All.m_Num; i++)

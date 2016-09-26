@@ -32,6 +32,7 @@ protected:
 	class CCollision *Collision() const { return m_pClient->Collision(); }
 	
 	class CCustomStuff *CustomStuff() const { return m_pClient->CustomStuff(); }
+	class CPicker *Picker() { return m_pClient->Picker(); }
 public:
 	virtual ~CComponent() {}
 

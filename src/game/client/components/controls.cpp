@@ -17,10 +17,12 @@
 
 #if defined(__ANDROID__)
 #include <SDL.h>
+#include <SDL_screenkeyboard.h>
 #endif
 
 #include "controls.h"
 
+#if defined(__ANDROID__)
 // Android constants
 enum {	LEFT_JOYSTICK_X = 0, LEFT_JOYSTICK_Y = 1,
 		RIGHT_JOYSTICK_X = 2, RIGHT_JOYSTICK_Y = 3,
@@ -28,6 +30,7 @@ enum {	LEFT_JOYSTICK_X = 0, LEFT_JOYSTICK_Y = 1,
 		ORIENTATION_X = 8, ORIENTATION_Y = 9, ORIENTATION_Z = 10,
 		ACCELEROMETER_X = 0, ACCELEROMETER_Y = 1,
 		NUM_JOYSTICK_AXES = 22 };
+#endif
 
 CControls::CControls()
 {
@@ -35,11 +38,11 @@ CControls::CControls()
 
 #if defined(__ANDROID__)
 	SDL_Init(SDL_INIT_JOYSTICK);
-	m_Joystick = SDL_JoystickOpen(0);
-	if( m_Joystick && SDL_JoystickNumAxes(m_Joystick) < NUM_JOYSTICK_AXES )
+	m_TouchJoy = SDL_JoystickOpen(0);
+	if( m_TouchJoy && SDL_JoystickNumAxes(m_TouchJoy) < NUM_JOYSTICK_AXES )
 	{
-		SDL_JoystickClose(m_Joystick);
-		m_Joystick = NULL;
+		SDL_JoystickClose(m_TouchJoy);
+		m_TouchJoy = NULL;
 	}
 
 	m_Gamepad = SDL_JoystickOpen(2);
@@ -68,9 +71,13 @@ void CControls::OnReset()
 	m_InputDirectionLeft = 0;
 	m_InputDirectionRight = 0;
 
-	m_JoystickFirePressed = false;
-	m_JoystickRunPressed = false;
-	m_JoystickTapTime = 0;
+	m_TouchJoyRunPressed = false;
+	m_TouchJoyRunTapTime = 0;
+	m_TouchJoyRunAnchor = ivec2(0,0);
+	m_TouchJoyAimPressed = false;
+	m_TouchJoyAimAnchor = ivec2(0,0);
+	m_TouchJoyAimTapTime = 0;
+	m_TouchJoyFirePressed = false;
 	for( int i = 0; i < NUM_WEAPONS; i++ )
 		m_AmmoCount[i] = 0;
 	m_OldMouseX = m_OldMouseY = 0.0f;
@@ -277,7 +284,7 @@ void CControls::OnRender()
 #if defined(__ANDROID__)
 	bool FireWasPressed = false;
 
-	if( m_Joystick && !m_UsingGamepad )
+	if( m_TouchJoy && !m_UsingGamepad )
 		TouchscreenInput(&FireWasPressed);
 
 	if( m_Gamepad )
@@ -304,7 +311,7 @@ bool CControls::OnMouseMove(float x, float y)
 
 #if defined(__ANDROID__)
 	// We're using joystick on Android, mouse is disabled
-	if( m_OldMouseX != x || m_OldMouseY != y )
+	if( m_UsingGamepad && (m_OldMouseX != x || m_OldMouseY != y) )
 	{
 		m_OldMouseX = x;
 		m_OldMouseY = y;
@@ -353,58 +360,117 @@ void CControls::ClampMousePos()
 #if defined(__ANDROID__)
 void CControls::TouchscreenInput(bool *FireWasPressed)
 {
+	enum {
+		TOUCHJOY_DEAD_ZONE = 65536 / 40,
+		TOUCHJOY_AIM_DEAD_ZONE = 65536 / 10,
+	};
+
 	int64 CurTime = time_get();
 
-	// Get input from left joystick
-	int RunX = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_X);
-	int RunY = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_Y);
+	// Get input from the left joystick
+	int RunX = SDL_JoystickGetAxis(m_TouchJoy, LEFT_JOYSTICK_X);
+	int RunY = SDL_JoystickGetAxis(m_TouchJoy, LEFT_JOYSTICK_Y);
 	bool RunPressed = (RunX != 0 || RunY != 0);
-	// Get input from right joystick
-	int AimX = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_X);
-	int AimY = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_Y);
-	bool AimPressed = (AimX != 0 || AimY != 0);
 
-	if( m_JoystickRunPressed != RunPressed )
+	if( m_TouchJoyRunPressed != RunPressed )
 	{
-		if( RunPressed && RunY < 0 )
-			m_InputData.m_Jump = 1;
+		if( RunPressed )
+		{
+			// Tap to jetpack, and do not reset the anchor coordinates, if tapped under 300ms
+			if( m_TouchJoyRunTapTime + time_freq() / 3 > CurTime )
+				m_InputData.m_Hook = 1;
+			else
+				m_TouchJoyRunAnchor = ivec2(RunX, RunY);
+		}
 		else
-			m_InputData.m_Jump = 0;
-		m_JoystickTapTime = CurTime;
+		{
+			m_InputData.m_Hook = 0;
+		}
+		m_TouchJoyRunTapTime = CurTime;
+		m_TouchJoyRunPressed = RunPressed;
 	}
-
-	m_JoystickRunPressed = RunPressed;
 
 	if( RunPressed )
 	{
-		m_InputDirectionLeft = (RunX <= 0);
-		m_InputDirectionRight = (RunX > 0);
+		m_InputDirectionLeft = (RunX - m_TouchJoyRunAnchor.x < -TOUCHJOY_DEAD_ZONE);
+		m_InputDirectionRight = (RunX - m_TouchJoyRunAnchor.x > TOUCHJOY_DEAD_ZONE);
+		m_InputData.m_Down = (RunY - m_TouchJoyRunAnchor.y > TOUCHJOY_DEAD_ZONE * 3);
+		// Move the anchor if we move the finger too much
+		if( m_TouchJoyRunAnchor.x - RunX < -TOUCHJOY_DEAD_ZONE * 3 )
+			m_TouchJoyRunAnchor.x = RunX - TOUCHJOY_DEAD_ZONE * 3;
+		if( m_TouchJoyRunAnchor.x - RunX > TOUCHJOY_DEAD_ZONE * 3 )
+			m_TouchJoyRunAnchor.x = RunX + TOUCHJOY_DEAD_ZONE * 3;
 	}
 
-	// Move 500ms in the same direction, to prevent speed bump when tapping
-	if( !RunPressed && m_JoystickTapTime + time_freq() / 2 > CurTime )
+	// Move 100ms in the same direction, to prevent speed drop when tapping
+	if( !RunPressed && m_TouchJoyRunTapTime + time_freq() / 10 < CurTime )
 	{
 		m_InputDirectionLeft = 0;
 		m_InputDirectionRight = 0;
 	}
 
-	if( AimPressed )
-	{
-		m_MousePos = vec2(AimX / 30, AimY / 30);
-		ClampMousePos();
-	}
+	// Get input from the right joystick
+	int AimX = SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_X);
+	int AimY = SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_Y);
+	bool AimPressed = (AimX != 0 || AimY != 0);
 
-	if( AimPressed != m_JoystickFirePressed )
+	if( AimPressed != m_TouchJoyAimPressed )
 	{
-		if( m_InputData.m_Fire % 2 != AimPressed )
-			m_InputData.m_Fire ++;
 		if( !AimPressed )
 		{
-			*FireWasPressed = true;
+			SDL_Rect joypos;
+			SDL_ANDROID_GetScreenKeyboardButtonPos( SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2, &joypos );
+			this->Picker()->SetDrawPos(vec2(joypos.x - Graphics()->ScreenWidth() / 2 + AimX / 65536.0f * joypos.w, joypos.y - Graphics()->ScreenHeight() / 2 + AimY / 65536.0f * joypos.h));
+			dbg_msg("controls", "Picker draw pos %f %f", joypos.x - Graphics()->ScreenWidth() / 2 + AimX / 65536.0f * joypos.w, joypos.y - Graphics()->ScreenHeight() / 2 + AimY / 65536.0f * joypos.h);
+			this->Picker()->OpenPicker();
+			m_InputData.m_Jump = 0;
 		}
+		else
+		{
+			if( distance(ivec2(AimX, AimY), m_TouchJoyAimAnchor) < TOUCHJOY_AIM_DEAD_ZONE / 2 )
+			{
+				dbg_msg("controls", "Jump %d",  m_TouchJoyAimTapTime + time_freq() / 2 >= CurTime);
+				if( m_TouchJoyAimTapTime + time_freq() / 2 >= CurTime )
+					m_InputData.m_Jump = 1;
+			}
+			else
+			{
+				this->Picker()->OnMouseMove((AimX - m_TouchJoyAimAnchor.x) / 10, (AimY - m_TouchJoyAimAnchor.y) / 10);
+				dbg_msg("controls", "Picker mouse move %d %d", (AimX - m_TouchJoyAimAnchor.x) / 10, (AimY - m_TouchJoyAimAnchor.y) / 10);
+			}
+			this->Picker()->ClosePicker();
+		}
+		m_TouchJoyAimPressed = AimPressed;
+		m_TouchJoyAimAnchor = ivec2(AimX, AimY);
+		m_TouchJoyAimTapTime = CurTime;
 	}
 
-	m_JoystickFirePressed = AimPressed;
+	if( AimPressed )
+	{
+		m_MousePos = vec2(AimX - m_TouchJoyAimAnchor.x, AimY - m_TouchJoyAimAnchor.y) / 30;
+		ClampMousePos();
+		if( m_TouchJoyAimTapTime + time_freq() / 2 < CurTime )
+			m_InputData.m_Jump = 0;
+	}
+
+	if( !AimPressed && m_TouchJoyAimTapTime + time_freq() / 2 < CurTime )
+	{
+		this->Picker()->ClosePicker();
+	}
+
+	// TODO: draw jump button
+	//if( m_TouchJoyAimTapTime + time_freq() / 2 <= CurTime )
+
+	bool FirePressed = distance(ivec2(AimX, AimY), m_TouchJoyAimAnchor) > TOUCHJOY_AIM_DEAD_ZONE;
+
+	if( FirePressed != m_TouchJoyFirePressed )
+	{
+		if( m_InputData.m_Fire % 2 != FirePressed )
+			m_InputData.m_Fire ++;
+		if( !FirePressed )
+			*FireWasPressed = true;
+		m_TouchJoyFirePressed = FirePressed;
+	}
 }
 
 void CControls::GamepadInput()

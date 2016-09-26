@@ -10,6 +10,8 @@
 #include <game/gamecore.h>
 #include "render.h"
 
+class CPicker;
+
 class CGameClient : public IGameClient
 {
 	class CStack
@@ -46,9 +48,9 @@ class CGameClient : public IGameClient
 	class IEditor *m_pEditor;
 	class IFriends *m_pFriends;
 	
-	
 	class CCustomStuff *m_pCustomStuff;
 	class CSkelebank *m_pSkelebank;
+	class CPicker *m_pPicker;
 
 	CLayers m_Layers;
 	class CCollision m_Collision;
@@ -91,6 +93,8 @@ public:
 	class IFriends *Friends() { return m_pFriends; }
 	class CCustomStuff *CustomStuff() { return m_pCustomStuff; }
 	class CSkelebank *Skelebank() { return m_pSkelebank; }
+
+	class CPicker *Picker() { return m_pPicker; }
 
 	int NetobjNumCorrections() { return m_NetObjHandler.NumObjCorrections(); }
 	const char *NetobjCorrectedOn() { return m_NetObjHandler.CorrectedObjOn(); }

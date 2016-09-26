@@ -9,7 +9,7 @@
 
 #if defined(__ANDROID__)
 #include <SDL.h>
-#include "SDL_screenkeyboard.h"
+#include <SDL_screenkeyboard.h>
 #endif
 
 /********************************************************

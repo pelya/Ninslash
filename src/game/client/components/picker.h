@@ -2,6 +2,7 @@
 #define GAME_CLIENT_COMPONENTS_PICKER_H
 #include <base/vmath.h>
 #include <game/client/component.h>
+#include <game/client/customstuff.h>
 
 class CPicker : public CComponent
 {
@@ -30,6 +31,7 @@ class CPicker : public CComponent
 	
 	int m_PickerType;
 	bool m_ResetMouse;
+	vec2 m_Pos;
 
 public:
 	CPicker();
@@ -48,6 +50,9 @@ public:
 	void Emote(int Emoticon);
 	void DropWeapon();
 	void SwitchGroup();
+	void SetDrawPos(vec2 pos);
+	void OpenPicker(enum Pickers picker = PICKER_WEAPON);
+	void ClosePicker();
 };
 
 #endif

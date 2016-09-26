@@ -122,6 +122,7 @@ void CPicker::OnReset()
 	m_Selected = -1;
 	m_ItemSelected = -1;
 	m_ResetMouse = true;
+	m_Pos = vec2(0,0);
 }
 
 void CPicker::OnRelease()
@@ -139,8 +140,12 @@ bool CPicker::OnMouseMove(float x, float y)
 	if(!m_Active)
 		return false;
 
+#if !defined(__ANDROID__)
 	Input()->GetRelativePosition(&x, &y);
 	m_SelectorMouse += vec2(x,y);
+#else
+	m_SelectorMouse = vec2(x,y);
+#endif
 	return true;
 }
 
@@ -196,7 +201,7 @@ void CPicker::DrawEmoticons()
 		float NudgeX = 150.0f * cosf(Angle);
 		float NudgeY = 150.0f * sinf(Angle);
 		RenderTools()->SelectSprite(SPRITE_OOP + i);
-		IGraphics::CQuadItem QuadItem(Screen.w/2 + NudgeX, Screen.h/2 + NudgeY, Size, Size);
+		IGraphics::CQuadItem QuadItem(Screen.w/2 + NudgeX + m_Pos.x, Screen.h/2 + NudgeY + m_Pos.y, Size, Size);
 		Graphics()->QuadsDraw(&QuadItem, 1);
 	}
 
@@ -243,11 +248,11 @@ void CPicker::DrawWeapons()
 		float NudgeY = 135.0f * sinf(Angle);
 		RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[i+1].m_pSpriteBody);
 		
-		vec2 Pos = vec2(Screen.w/2 + NudgeX, Screen.h/2 + NudgeY);
+		vec2 Pos = vec2(Screen.w/2 + NudgeX + m_Pos.x, Screen.h/2 + NudgeY + m_Pos.y);
 		
 		RenderTools()->DrawSprite(Pos.x, Pos.y, g_pData->m_Weapons.m_aId[i+1].m_VisualSize * Size);
 		
-		if (distance(m_SelectorMouse+vec2(Screen.w/2, Screen.h/2), Pos) < 40 && 
+		if (distance(m_SelectorMouse+vec2(Screen.w/2, Screen.h/2)+m_Pos, Pos) < 40 && 
 			length(m_SelectorMouse) > 100.0f)
 		{
 			if (m_Selected != i)
@@ -277,7 +282,7 @@ void CPicker::DrawWeapons()
 				Graphics()->SetColor(0.2f, 1.0f, 0.2f, 0.5f);
 			else
 				Graphics()->SetColor(0.4f, .4f, 0.4f, 0.5f);
-			DrawCircle(Screen.w/2-32, Screen.h/2, 28, 20);
+			DrawCircle(Screen.w/2-32 + m_Pos.x, Screen.h/2 + m_Pos.y, 28, 20);
 			Graphics()->QuadsEnd();
 			
 			Graphics()->TextureSet(g_pData->m_aImages[IMAGE_ITEMS].m_Id);
@@ -287,14 +292,14 @@ void CPicker::DrawWeapons()
 			float Size = Selected ? 1.25f : 1.0f;
 		
 			RenderTools()->SelectSprite(SPRITE_ITEM1+PLAYERITEM_LANDMINE);
-			RenderTools()->DrawSprite(Screen.w/2 - 32, Screen.h/2, 64 * Size);
+			RenderTools()->DrawSprite(Screen.w/2 - 32 + m_Pos.x, Screen.h/2 + m_Pos.y, 64 * Size);
 			Graphics()->QuadsEnd();
 			
 			Graphics()->TextureSet(g_pData->m_aImages[IMAGE_ITEMNUMBERS].m_Id);
 			Graphics()->QuadsBegin();
 			Graphics()->SetColor(0.7f, .7f, 0.7f, 1.0f);
 			RenderTools()->SelectSprite(SPRITE_ITEMNUMBER_0+CustomStuff()->m_aLocalItems[PLAYERITEM_LANDMINE]);
-			RenderTools()->DrawSprite(Screen.w/2 - 32+20, Screen.h/2+20, 26 * Size);
+			RenderTools()->DrawSprite(Screen.w/2 - 32+20 + m_Pos.x, Screen.h/2+20 + m_Pos.y, 26 * Size);
 			Graphics()->QuadsEnd();
 			
 		}
@@ -308,7 +313,7 @@ void CPicker::DrawWeapons()
 				Graphics()->SetColor(0.2f, 1.0f, 0.2f, 0.5f);
 			else
 				Graphics()->SetColor(0.4f, .4f, 0.4f, 0.5f);
-			DrawCircle(Screen.w/2+32, Screen.h/2, 28, 20);
+			DrawCircle(Screen.w/2+32 + m_Pos.x, Screen.h/2 + m_Pos.y, 28, 20);
 			Graphics()->QuadsEnd();
 			
 			Graphics()->TextureSet(g_pData->m_aImages[IMAGE_ITEMS].m_Id);
@@ -318,14 +323,14 @@ void CPicker::DrawWeapons()
 			float Size = Selected ? 1.25f : 1.0f;
 		
 			RenderTools()->SelectSprite(SPRITE_ITEM1+PLAYERITEM_ELECTROMINE);
-			RenderTools()->DrawSprite(Screen.w/2 + 32, Screen.h/2, 64 * Size);
+			RenderTools()->DrawSprite(Screen.w/2 + 32 + m_Pos.x, Screen.h/2 + m_Pos.y, 64 * Size);
 			Graphics()->QuadsEnd();
 			
 			Graphics()->TextureSet(g_pData->m_aImages[IMAGE_ITEMNUMBERS].m_Id);
 			Graphics()->QuadsBegin();
 			Graphics()->SetColor(0.7f, .7f, 0.7f, 1.0f);
 			RenderTools()->SelectSprite(SPRITE_ITEMNUMBER_0+CustomStuff()->m_aLocalItems[PLAYERITEM_ELECTROMINE]);
-			RenderTools()->DrawSprite(Screen.w/2 + 32+20, Screen.h/2+20, 26 * Size);
+			RenderTools()->DrawSprite(Screen.w/2 + 32+20 + m_Pos.x, Screen.h/2+20 + m_Pos.y, 26 * Size);
 			Graphics()->QuadsEnd();
 		}
 	}
@@ -336,7 +341,7 @@ void CPicker::DrawWeapons()
 		float Size = 18;
 		char aBuf[64];
 		str_format(aBuf, sizeof(aBuf), "(%d, %d)", int(m_SelectorMouse.x), int(m_SelectorMouse.y));
-		TextRender()->Text(0, Screen.w/2-TextRender()->TextWidth(0, Size, aBuf, -1)/2, Screen.h/2-9, Size, aBuf, -1);
+		TextRender()->Text(0, Screen.w/2 + m_Pos.x-TextRender()->TextWidth(0, Size, aBuf, -1)/2, Screen.h/2-9 + m_Pos.y, Size, aBuf, -1);
 	}
 	*/
 }
@@ -377,7 +382,7 @@ void CPicker::DrawItems()
 		float NudgeX = 135.0f * cosf(Angle);
 		float NudgeY = 135.0f * sinf(Angle);
 		RenderTools()->SelectSprite(SPRITE_ITEM1+i);
-		RenderTools()->DrawSprite(Screen.w/2 + NudgeX, Screen.h/2 + NudgeY, 52 * Size);
+		RenderTools()->DrawSprite(Screen.w/2 + NudgeX + m_Pos.x, Screen.h/2 + NudgeY + m_Pos.y, 52 * Size);
 	}
 	Graphics()->QuadsEnd();
 	
@@ -407,7 +412,7 @@ void CPicker::DrawItems()
 		float NudgeX = 135.0f * cosf(Angle);
 		float NudgeY = 135.0f * sinf(Angle);
 		RenderTools()->SelectSprite(SPRITE_ITEMNUMBER_0+a);
-		RenderTools()->DrawSprite(Screen.w/2 + NudgeX + 24, Screen.h/2 + NudgeY + 16, 32 * Size);
+		RenderTools()->DrawSprite(Screen.w/2 + NudgeX + 24 + m_Pos.x, Screen.h/2 + NudgeY + 16 + m_Pos.y, 32 * Size);
 	}
 	Graphics()->QuadsEnd();
 	
@@ -415,7 +420,7 @@ void CPicker::DrawItems()
 	if (m_Selected >= 0 && m_Selected < NUM_PLAYERITEMS)
 	{
 		float Size = 18;
-		TextRender()->Text(0, Screen.w/2-TextRender()->TextWidth(0,Size,aPlayerItemName[m_Selected], -1)/2, Screen.h/2-9, Size, aPlayerItemName[m_Selected], -1);
+		TextRender()->Text(0, Screen.w/2 + m_Pos.x-TextRender()->TextWidth(0,Size,aPlayerItemName[m_Selected], -1)/2, Screen.h/2-9 + m_Pos.y, Size, aPlayerItemName[m_Selected], -1);
 	}
 	*/
 }
@@ -453,10 +458,10 @@ void CPicker::DrawKit()
 		float NudgeY = 135.0f * sinf(Angle);
 		RenderTools()->SelectSprite(SPRITE_KIT_BASE+i);
 		
-		vec2 Pos = vec2(Screen.w/2 + NudgeX, Screen.h/2 + NudgeY);
+		vec2 Pos = vec2(Screen.w/2 + NudgeX + m_Pos.x, Screen.h/2 + NudgeY + m_Pos.x);
 		RenderTools()->DrawSprite(Pos.x, Pos.y, 70 * Size);
 		
-		if (distance(m_SelectorMouse+vec2(Screen.w/2, Screen.h/2), Pos) < 40 && 
+		if (distance(m_SelectorMouse+vec2(Screen.w/2, Screen.h/2) + m_Pos, Pos) < 40 && 
 		length(m_SelectorMouse) > 100.0f)
 		{
 			if (m_Selected != i)
@@ -478,14 +483,14 @@ void CPicker::DrawKit()
 	Graphics()->QuadsBegin();
 	Graphics()->SetColor(1, 1, 1, 0.5f);
 	RenderTools()->SelectSprite(SPRITE_PICKUP_KIT);
-	RenderTools()->DrawSprite(Screen.w/2+KitPos.x, Screen.h/2+KitPos.y, 64);
+	RenderTools()->DrawSprite(Screen.w/2+KitPos.x + m_Pos.x, Screen.h/2+KitPos.y + m_Pos.y, 64);
 	Graphics()->QuadsEnd();
 	
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_ITEMNUMBERS].m_Id);
 	Graphics()->QuadsBegin();
 	Graphics()->SetColor(1, 1, 1, 0.5f);
 	RenderTools()->SelectSprite(SPRITE_ITEMNUMBER_0+CustomStuff()->m_LocalKits);
-	RenderTools()->DrawSprite(Screen.w/2+KitPos.x+30, Screen.h/2+KitPos.y+25, 32);
+	RenderTools()->DrawSprite(Screen.w/2+KitPos.x+30 + m_Pos.x, Screen.h/2+KitPos.y+25 + m_Pos.y, 32);
 	Graphics()->QuadsEnd();
 	
 	/*
@@ -510,7 +515,7 @@ void CPicker::DrawKit()
 		float NudgeX = 135.0f * cosf(Angle);
 		float NudgeY = 135.0f * sinf(Angle);
 		RenderTools()->SelectSprite(SPRITE_ITEMNUMBER_0+a);
-		RenderTools()->DrawSprite(Screen.w/2 + NudgeX + 24, Screen.h/2 + NudgeY + 16, 32 * Size);
+		RenderTools()->DrawSprite(Screen.w/2 + NudgeX + 24 + m_Pos.x, Screen.h/2 + NudgeY + 16 + m_Pos.y, 32 * Size);
 	}
 	Graphics()->QuadsEnd();
 	*/
@@ -519,7 +524,7 @@ void CPicker::DrawKit()
 	if (m_Selected >= 0 && m_Selected < NUM_PLAYERITEMS)
 	{
 		float Size = 18;
-		TextRender()->Text(0, Screen.w/2-TextRender()->TextWidth(0,Size,aPlayerItemName[m_Selected], -1)/2, Screen.h/2-9, Size, aPlayerItemName[m_Selected], -1);
+		TextRender()->Text(0, Screen.w/2 + m_Pos.x-TextRender()->TextWidth(0,Size,aPlayerItemName[m_Selected], -1)/2, Screen.h/2-9 + m_Pos.y, Size, aPlayerItemName[m_Selected], -1);
 	}
 	*/
 }
@@ -643,7 +648,7 @@ void CPicker::OnRender()
 	Graphics()->TextureSet(-1);
 	Graphics()->QuadsBegin();
 	Graphics()->SetColor(0,0,0,0.3f);
-	DrawCircle(Screen.w/2, Screen.h/2, 190.0f, 64);
+	DrawCircle(Screen.w/2 + m_Pos.x, Screen.h/2 + m_Pos.y, 190.0f, 64);
 	Graphics()->QuadsEnd();
 
 	switch (m_PickerType)
@@ -668,7 +673,7 @@ void CPicker::OnRender()
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_CURSOR].m_Id);
 	Graphics()->QuadsBegin();
 	Graphics()->SetColor(1,1,1,1);
-	IGraphics::CQuadItem QuadItem(m_SelectorMouse.x+Screen.w/2,m_SelectorMouse.y+Screen.h/2,24,24);
+	IGraphics::CQuadItem QuadItem(m_SelectorMouse.x+Screen.w/2 + m_Pos.x,m_SelectorMouse.y+Screen.h/2 + m_Pos.y,24,24);
 	Graphics()->QuadsDrawTL(&QuadItem, 1);
 	Graphics()->QuadsEnd();
 }
@@ -792,4 +797,20 @@ void CPicker::Emote(int Emoticon)
 	CNetMsg_Cl_Emoticon Msg;
 	Msg.m_Emoticon = Emoticon;
 	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
+}
+
+void CPicker::SetDrawPos(vec2 pos)
+{
+	m_Pos = pos;
+}
+
+void CPicker::OpenPicker(enum Pickers picker)
+{
+	m_Active = true;
+	m_PickerType = picker;
+}
+
+void CPicker::ClosePicker()
+{
+	m_Active = false;
 }
