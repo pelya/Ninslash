@@ -426,8 +426,7 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 		{
 			SDL_Rect joypos;
 			SDL_ANDROID_GetScreenKeyboardButtonPos( SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2, &joypos );
-			this->Picker()->SetDrawPos(vec2(joypos.x - Graphics()->ScreenWidth() / 2 + (float)AimX / 65536 * joypos.w,
-										joypos.y - Graphics()->ScreenHeight() / 2 + (float)AimY / 65536 * joypos.h));
+			this->Picker()->SetDrawPos(vec2(joypos.x + AimX * joypos.w / 65536, joypos.y + AimY * joypos.h / 65536));
 			this->Picker()->OpenPicker();
 			m_InputData.m_Jump = 0;
 		}
@@ -440,10 +439,10 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 			}
 			else
 			{
-				this->Picker()->OnMouseMove((AimX - m_TouchJoyAimAnchor.x) / 100, (AimY - m_TouchJoyAimAnchor.y) / 100);
-				dbg_msg("controls", "Picker mouse move %d %d", (AimX - m_TouchJoyAimAnchor.x) / 10, (AimY - m_TouchJoyAimAnchor.y) / 10);
+				this->Picker()->OnMouseMove((AimX - m_TouchJoyAimAnchor.x) / 50, (AimY - m_TouchJoyAimAnchor.y) / 50);
+				//dbg_msg("controls", "Picker mouse move %d %d", (AimX - m_TouchJoyAimAnchor.x) / 10, (AimY - m_TouchJoyAimAnchor.y) / 10);
 			}
-			this->Picker()->ClosePicker();
+			// this->Picker()->ClosePicker(); 
 		}
 		m_TouchJoyAimPressed = AimPressed;
 		m_TouchJoyAimAnchor = ivec2(AimX, AimY);
@@ -456,12 +455,12 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 		ClampMousePos();
 		if( m_TouchJoyAimTapTime + time_freq() / 2 < CurTime )
 			m_InputData.m_Jump = 0;
+		if( m_TouchJoyAimTapTime != CurTime )
+			this->Picker()->ClosePicker(); // We need to call onRender() after setting picker coordinates, so call it with a delay
 	}
 
 	if( !AimPressed && m_TouchJoyAimTapTime + time_freq() / 2 < CurTime )
-	{
 		this->Picker()->ClosePicker();
-	}
 
 	// TODO: draw jump button
 	//if( m_TouchJoyAimTapTime + time_freq() / 2 <= CurTime )

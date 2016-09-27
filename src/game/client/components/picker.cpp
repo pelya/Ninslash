@@ -801,7 +801,10 @@ void CPicker::Emote(int Emoticon)
 
 void CPicker::SetDrawPos(vec2 pos)
 {
-	m_Pos = pos;
+	CUIRect Screen = *UI()->Screen();
+	m_Pos = vec2(pos.x * Screen.w / Graphics()->ScreenWidth(), pos.y * Screen.h / Graphics()->ScreenHeight());
+	m_Pos -= vec2(Screen.w / 2, Screen.h / 2);
+	dbg_msg("controls", "Picker draw pos %f %f adjusted %f %f screen %f %f", pos.x, pos.y, m_Pos.x, m_Pos.y, Screen.x, Screen.y);
 }
 
 void CPicker::OpenPicker(enum Pickers picker)
