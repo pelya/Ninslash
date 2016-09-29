@@ -79,6 +79,7 @@ void CControls::OnReset()
 	m_TouchJoyAimPrev = ivec2(0,0);
 	m_TouchJoyAimTapTime = 0;
 	m_TouchJoyFirePressed = false;
+	m_TouchJoyWeaponSelected = false;
 	for( int i = 0; i < NUM_WEAPONS; i++ )
 		m_AmmoCount[i] = 0;
 	m_OldMouseX = m_OldMouseY = 0.0f;
@@ -180,13 +181,15 @@ void CControls::OnMessage(int Msg, void *pRawMsg)
 		CustomStuff()->m_WeaponpickWeapon = pMsg->m_Weapon;
 		CustomStuff()->m_LastWeaponPicked = false;
 		m_AmmoCount[pMsg->m_Weapon%NUM_WEAPONS] = 10; // TODO: move ammo count for inactive weapons into the network protocol
-			
+		// Does not quite work yet
+		/*
 		if(g_Config.m_ClAutoswitchWeapons)
 		{
 			char aBuf[32];
 			str_format(aBuf, sizeof(aBuf), "weaponpick %d", pMsg->m_Weapon-1);
 			Console()->ExecuteLine(aBuf);
 		}
+		*/
 	}
 }
 
@@ -372,7 +375,12 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 	int RunX = SDL_JoystickGetAxis(m_TouchJoy, LEFT_JOYSTICK_X);
 	int RunY = SDL_JoystickGetAxis(m_TouchJoy, LEFT_JOYSTICK_Y);
 	bool RunPressed = (RunX != 0 || RunY != 0);
+	// Get input from the right joystick
+	int AimX = SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_X);
+	int AimY = SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_Y);
+	bool AimPressed = (AimX != 0 || AimY != 0);
 
+	// Process left joystick
 	if( m_TouchJoyRunPressed != RunPressed )
 	{
 		if( RunPressed )
@@ -396,13 +404,21 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 		m_InputDirectionLeft = (RunX - m_TouchJoyRunAnchor.x < -TOUCHJOY_DEAD_ZONE);
 		m_InputDirectionRight = (RunX - m_TouchJoyRunAnchor.x > TOUCHJOY_DEAD_ZONE);
 		m_InputData.m_Down = (RunY - m_TouchJoyRunAnchor.y > TOUCHJOY_DEAD_ZONE * 3);
+		// Change your facing direction if not aiming
+		if( !AimPressed )
+		{
+			if( m_MousePos.x == 0 )
+				m_MousePos.x = 1;
+			if( m_MousePos.x < 0 && m_InputDirectionRight || m_MousePos.x > 0 && m_InputDirectionLeft )
+				m_MousePos.x = -m_MousePos.x;
+		}
 		// Move the anchor if we move the finger too much
 		if( m_TouchJoyRunAnchor.x - RunX < -TOUCHJOY_DEAD_ZONE * 3 )
 			m_TouchJoyRunAnchor.x = RunX - TOUCHJOY_DEAD_ZONE * 3;
 		if( m_TouchJoyRunAnchor.x - RunX > TOUCHJOY_DEAD_ZONE * 3 )
 			m_TouchJoyRunAnchor.x = RunX + TOUCHJOY_DEAD_ZONE * 3;
-		if( m_TouchJoyRunTapTime + time_freq() / 2 < CurTime )
-			m_InputData.m_Hook = 0; // Disengage jetpack in 0.5 seconds after use
+		if( m_TouchJoyRunTapTime + time_freq() * 1.1f < CurTime )
+			m_InputData.m_Hook = 0; // Disengage jetpack in 1 second after use
 	}
 
 	// Move 100ms in the same direction, to prevent speed drop when tapping
@@ -412,10 +428,7 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 		m_InputDirectionRight = 0;
 	}
 
-	// Get input from the right joystick
-	int AimX = SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_X);
-	int AimY = SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_Y);
-	bool AimPressed = (AimX != 0 || AimY != 0);
+	// Process right joystick
 	if( !AimPressed )
 	{
 		AimX = m_TouchJoyAimPrev.x;
@@ -428,9 +441,13 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 		{
 			SDL_Rect joypos;
 			SDL_ANDROID_GetScreenKeyboardButtonPos( SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2, &joypos );
-			this->Picker()->SetDrawPos(vec2(joypos.x + (AimX + 32767) * joypos.w / 65536, joypos.y + (AimY + 32767) * joypos.h / 65536));
-			this->Picker()->OpenPicker();
 			m_InputData.m_Jump = 0;
+			if ( !m_TouchJoyWeaponSelected || m_TouchJoyAimTapTime + time_freq() / 3 < CurTime )
+			{
+				this->Picker()->SetDrawPos(vec2(joypos.x + (AimX + 32767) * joypos.w / 65536, joypos.y + (AimY + 32767) * joypos.h / 65536));
+				this->Picker()->OpenPicker();
+			}
+			m_TouchJoyWeaponSelected = false;
 		}
 		else
 		{
@@ -442,8 +459,8 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 			else
 			{
 				this->Picker()->OnMouseMove((AimX - m_TouchJoyAimAnchor.x) / 50, (AimY - m_TouchJoyAimAnchor.y) / 50);
+				m_TouchJoyWeaponSelected = true;
 			}
-			// this->Picker()->ClosePicker(); 
 		}
 		m_TouchJoyAimPressed = AimPressed;
 		m_TouchJoyAimAnchor = ivec2(AimX, AimY);
@@ -454,10 +471,10 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 	{
 		m_MousePos = vec2(AimX - m_TouchJoyAimAnchor.x, AimY - m_TouchJoyAimAnchor.y) / 30;
 		ClampMousePos();
-		if( m_TouchJoyAimTapTime + time_freq() / 2 < CurTime )
-			m_InputData.m_Jump = 0; // Disengage jetpack in 0.5 seconds after use
+		if( m_TouchJoyAimTapTime + time_freq() * 1.1f < CurTime )
+			m_InputData.m_Jump = 0; // Disengage jetpack in 1 second after use
 		if( m_TouchJoyAimTapTime != CurTime )
-			this->Picker()->ClosePicker(); // We need to call onRender() after setting picker coordinates, so call it with a delay
+			this->Picker()->ClosePicker(); // We need to call onRender() after setting picker coordinates, so call it in another frame
 	}
 
 	if( !AimPressed && m_TouchJoyAimTapTime + time_freq() / 2 < CurTime )

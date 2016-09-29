@@ -32,6 +32,7 @@ public:
 	ivec2 m_TouchJoyAimPrev;
 	int64 m_TouchJoyAimTapTime;
 	bool m_TouchJoyFirePressed;
+	bool m_TouchJoyWeaponSelected;
 
 	SDL_Joystick *m_Gamepad;
 	bool m_UsingGamepad;
