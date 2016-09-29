@@ -649,6 +649,23 @@ void CPicker::OnRender()
 	Graphics()->QuadsBegin();
 	Graphics()->SetColor(0,0,0,0.3f);
 	DrawCircle(Screen.w/2 + m_Pos.x, Screen.h/2 + m_Pos.y, 190.0f, 64);
+#if defined(__ANDROID__)
+	// Draw jump button
+	Graphics()->SetColor(1,1,1,0.3f);
+	IGraphics::CFreeformItem arrow[2] = {
+		IGraphics::CFreeformItem(
+			Screen.w/2 + m_Pos.x, Screen.h/2 + m_Pos.y - 10.0f,
+			Screen.w/2 + m_Pos.x, Screen.h/2 + m_Pos.y - 20.0f,
+			Screen.w/2 + m_Pos.x - 50.0f, Screen.h/2 + m_Pos.y + 20.0f,
+			Screen.w/2 + m_Pos.x - 50.0f, Screen.h/2 + m_Pos.y + 10.0f),
+		IGraphics::CFreeformItem(
+			Screen.w/2 + m_Pos.x, Screen.h/2 + m_Pos.y - 10.0f,
+			Screen.w/2 + m_Pos.x, Screen.h/2 + m_Pos.y - 20.0f,
+			Screen.w/2 + m_Pos.x + 50.0f, Screen.h/2 + m_Pos.y + 20.0f,
+			Screen.w/2 + m_Pos.x + 50.0f, Screen.h/2 + m_Pos.y + 10.0f)
+		};
+		m_pClient->Graphics()->QuadsDrawFreeform(arrow, 2);
+#endif
 	Graphics()->QuadsEnd();
 
 	switch (m_PickerType)
@@ -804,7 +821,6 @@ void CPicker::SetDrawPos(vec2 pos)
 	CUIRect Screen = *UI()->Screen();
 	m_Pos = vec2(pos.x * Screen.w / Graphics()->ScreenWidth(), pos.y * Screen.h / Graphics()->ScreenHeight());
 	m_Pos -= vec2(Screen.w / 2, Screen.h / 2);
-	dbg_msg("controls", "Picker draw pos %f %f adjusted %f %f screen %f %f", pos.x, pos.y, m_Pos.x, m_Pos.y, Screen.x, Screen.y);
 }
 
 void CPicker::OpenPicker(enum Pickers picker)

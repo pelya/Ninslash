@@ -401,6 +401,8 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 			m_TouchJoyRunAnchor.x = RunX - TOUCHJOY_DEAD_ZONE * 3;
 		if( m_TouchJoyRunAnchor.x - RunX > TOUCHJOY_DEAD_ZONE * 3 )
 			m_TouchJoyRunAnchor.x = RunX + TOUCHJOY_DEAD_ZONE * 3;
+		if( m_TouchJoyRunTapTime + time_freq() / 2 < CurTime )
+			m_InputData.m_Hook = 0; // Disengage jetpack in 0.5 seconds after use
 	}
 
 	// Move 100ms in the same direction, to prevent speed drop when tapping
@@ -426,7 +428,7 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 		{
 			SDL_Rect joypos;
 			SDL_ANDROID_GetScreenKeyboardButtonPos( SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2, &joypos );
-			this->Picker()->SetDrawPos(vec2(joypos.x + AimX * joypos.w / 65536, joypos.y + AimY * joypos.h / 65536));
+			this->Picker()->SetDrawPos(vec2(joypos.x + (AimX + 32767) * joypos.w / 65536, joypos.y + (AimY + 32767) * joypos.h / 65536));
 			this->Picker()->OpenPicker();
 			m_InputData.m_Jump = 0;
 		}
@@ -440,7 +442,6 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 			else
 			{
 				this->Picker()->OnMouseMove((AimX - m_TouchJoyAimAnchor.x) / 50, (AimY - m_TouchJoyAimAnchor.y) / 50);
-				//dbg_msg("controls", "Picker mouse move %d %d", (AimX - m_TouchJoyAimAnchor.x) / 10, (AimY - m_TouchJoyAimAnchor.y) / 10);
 			}
 			// this->Picker()->ClosePicker(); 
 		}
@@ -454,7 +455,7 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 		m_MousePos = vec2(AimX - m_TouchJoyAimAnchor.x, AimY - m_TouchJoyAimAnchor.y) / 30;
 		ClampMousePos();
 		if( m_TouchJoyAimTapTime + time_freq() / 2 < CurTime )
-			m_InputData.m_Jump = 0;
+			m_InputData.m_Jump = 0; // Disengage jetpack in 0.5 seconds after use
 		if( m_TouchJoyAimTapTime != CurTime )
 			this->Picker()->ClosePicker(); // We need to call onRender() after setting picker coordinates, so call it with a delay
 	}
