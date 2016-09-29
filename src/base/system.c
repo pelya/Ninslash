@@ -887,7 +887,13 @@ static int priv_net_create_socket(int domain, int type, struct sockaddr *addr, i
 		setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&ipv6only, sizeof(ipv6only));
 	}
 #endif
-
+#if defined(CONF_FAMILY_UNIX)
+	int reuse = 1;
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse));
+#ifdef SO_REUSEPORT
+	setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, (const char*)&reuse, sizeof(reuse));
+#endif
+#endif
 	/* bind the socket */
 	e = bind(sock, addr, sockaddrlen);
 	if(e != 0)
