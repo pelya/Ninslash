@@ -442,7 +442,7 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 			SDL_Rect joypos;
 			SDL_ANDROID_GetScreenKeyboardButtonPos( SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2, &joypos );
 			m_InputData.m_Jump = 0;
-			if ( !m_TouchJoyWeaponSelected || m_TouchJoyAimTapTime + time_freq() / 3 < CurTime )
+			if ( !(m_TouchJoyWeaponSelected && m_TouchJoyAimTapTime + time_freq() / 3 < CurTime) )
 			{
 				this->Picker()->SetDrawPos(vec2(joypos.x + (AimX + 32767) * joypos.w / 65536, joypos.y + (AimY + 32767) * joypos.h / 65536));
 				this->Picker()->OpenPicker();
@@ -451,15 +451,17 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 		}
 		else
 		{
-			if( distance(ivec2(AimX, AimY), m_TouchJoyAimAnchor) < TOUCHJOY_AIM_DEAD_ZONE / 2 )
+			if( m_TouchJoyAimTapTime + time_freq() / 2 >= CurTime )
 			{
-				if( m_TouchJoyAimTapTime + time_freq() / 2 >= CurTime )
-					m_InputData.m_Jump = 1;
-			}
-			else
-			{
-				this->Picker()->OnMouseMove((AimX - m_TouchJoyAimAnchor.x) / 50, (AimY - m_TouchJoyAimAnchor.y) / 50);
-				m_TouchJoyWeaponSelected = true;
+				if( distance(ivec2(AimX, AimY), m_TouchJoyAimAnchor) < TOUCHJOY_AIM_DEAD_ZONE / 2 )
+				{
+						m_InputData.m_Jump = 1;
+				}
+				else
+				{
+					this->Picker()->OnMouseMove((AimX - m_TouchJoyAimAnchor.x) / 50, (AimY - m_TouchJoyAimAnchor.y) / 50);
+					m_TouchJoyWeaponSelected = true;
+				}
 			}
 		}
 		m_TouchJoyAimPressed = AimPressed;
