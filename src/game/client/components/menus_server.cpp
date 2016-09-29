@@ -71,7 +71,7 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	Button.h = 50;
 	Button.w = 300;
 	static int s_StartServerButton = 0;
-	if(DoButton_Menu(&s_StartServerButton, ServerRunning ? Localize("Stop server") : Localize("Start server"), 0, &Button))
+	if(DoButton_Menu(&s_StartServerButton, ServerRunning ? Localize("Stop server") : Localize("Start DM server"), 0, &Button))
 	{
 		if( ServerRunning )
 		{
@@ -94,11 +94,27 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 		}
 	}
 
+	MainView.VSplitLeft(10, 0, &Button);
+	Button.h = 50;
+	Button.w = 300;
+	static int s_StartInfServerButton = 0;
+	if(DoButton_Menu(&s_StartInfServerButton, Localize("Start INF server"), 0, &Button))
+	{
+#if defined(__ANDROID__)
+		system("$SECURE_STORAGE_DIR/ninslash_srv -f \"$UNSECURE_STORAGE_DIR/example configs/inf-autoexec .cfg\" >/dev/null 2>&1 &");
+		//system("logwrapper $SECURE_STORAGE_DIR/ninslash_srv -f \"$UNSECURE_STORAGE_DIR/example configs/ctf-autoexec.cfg\" &");
+#else
+		system("./ninslash_srv_d -f \"example configs/ctf-autoexec.cfg\" || ./ninslash_srv -f \"example configs/inf-autoexec .cfg\" &");
+#endif
+		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
+		ServerStarting = true;
+	}
+
 	MainView.VSplitRight(350, 0, &Button);
 	Button.h = 50;
 	Button.w = 300;
-	static int s_StopServerButton = 0;
-	if(DoButton_Menu(&s_StopServerButton, Localize("Start CTF server"), 0, &Button))
+	static int s_StartCtfServerButton = 0;
+	if(DoButton_Menu(&s_StartCtfServerButton, Localize("Start CTF server"), 0, &Button))
 	{
 #if defined(__ANDROID__)
 		system("$SECURE_STORAGE_DIR/ninslash_srv -f \"$UNSECURE_STORAGE_DIR/example configs/ctf-autoexec.cfg\" >/dev/null 2>&1 &");
