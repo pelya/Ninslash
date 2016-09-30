@@ -128,6 +128,7 @@ static void ConKeyInputNextPrevWeapon(IConsole::IResult *pResult, void *pUserDat
 	CInputSet *pSet = (CInputSet *)pUserData;
 	ConKeyInputCounter(pResult, pSet->m_pVariable);
 	pSet->m_pControls->m_InputData.m_WantedWeapon = 0;
+	pSet->m_pControls->m_WeaponIdxOutOfAmmo = -1;
 }
 
 void CControls::OnConsoleInit()
@@ -179,12 +180,12 @@ void CControls::OnMessage(int Msg, void *pRawMsg)
 		CustomStuff()->m_WeaponpickTimer = 1.0f;
 		CustomStuff()->m_WeaponpickWeapon = pMsg->m_Weapon;
 		CustomStuff()->m_LastWeaponPicked = false;
+		m_WeaponIdxOutOfAmmo = -1;
 		if(g_Config.m_ClAutoswitchWeapons)
 		{
 			char aBuf[32];
 			str_format(aBuf, sizeof(aBuf), "weaponpick %d", pMsg->m_Weapon-1);
 			Console()->ExecuteLine(aBuf);
-			m_WeaponIdxOutOfAmmo = -1;
 		}
 	}
 }
@@ -282,17 +283,15 @@ int CControls::SnapInput(int *pData)
 void CControls::OnRender()
 {
 #if defined(__ANDROID__)
-	bool FireWasPressed = false;
-
 	if( m_TouchJoy && !m_UsingGamepad )
-		TouchscreenInput(&FireWasPressed);
+		TouchscreenInput();
 
 	if( m_Gamepad )
 		GamepadInput();
+#endif
 
 	if( g_Config.m_ClAutoswitchWeaponsOutOfAmmo )
-		AutoswitchWeaponsOutOfAmmo(FireWasPressed);
-#endif
+		AutoswitchWeaponsOutOfAmmo();
 
 	// update target pos
 	if(m_pClient->m_Snap.m_pGameInfoObj && !m_pClient->m_Snap.m_SpecInfo.m_Active)
@@ -357,8 +356,44 @@ void CControls::ClampMousePos()
 	}
 }
 
+void CControls::AutoswitchWeaponsOutOfAmmo()
+{
+	if( ! m_pClient->m_Snap.m_pLocalCharacter )
+		return;
+
+#if !defined(__ANDROID__)
+	if( Picker()->IsOpened() )
+		m_WeaponIdxOutOfAmmo = -1;
+#endif
+
+	if( m_InputData.m_Fire % 2 != 0 &&
+		m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount == 0 &&
+		m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_HAMMER &&
+		m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_TOOL )
+	{
+		if (m_WeaponIdxOutOfAmmo == -1)
+			m_WeaponIdxOutOfAmmo = NUM_WEAPONS - 1;
+		int w;
+		for( w = m_WeaponIdxOutOfAmmo; w > WEAPON_HAMMER; w-- )
+		{
+			if( w == m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
+				continue;
+			if( CustomStuff()->m_LocalWeapons & (1 << w) )
+				break;
+		}
+		m_WeaponIdxOutOfAmmo = w;
+		//dbg_msg("controls", "Out of ammo - selected weapon %d current %d mask %x", w, m_pClient->m_Snap.m_pLocalCharacter->m_Weapon, CustomStuff()->m_LocalWeapons);
+		if( w != m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
+		{
+			char aBuf[32];
+			str_format(aBuf, sizeof(aBuf), "weaponpick %d", w - 1);
+			Console()->ExecuteLine(aBuf);
+		}
+	}
+}
+
 #if defined(__ANDROID__)
-void CControls::TouchscreenInput(bool *FireWasPressed)
+void CControls::TouchscreenInput()
 {
 	enum {
 		TOUCHJOY_DEAD_ZONE = 65536 / 40,
@@ -382,7 +417,7 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 		if( RunPressed )
 		{
 			// Tap to jetpack, and do not reset the anchor coordinates, if tapped under 300ms
-			if( m_TouchJoyRunTapTime + time_freq() / 3 > CurTime && distance(ivec2(RunX, RunY), m_TouchJoyRunLastPos) < TOUCHJOY_DEAD_ZONE )
+			if( m_TouchJoyRunTapTime + time_freq() / 3 > CurTime /* && distance(ivec2(RunX, RunY), m_TouchJoyRunLastPos) < TOUCHJOY_DEAD_ZONE */ )
 				m_InputData.m_Hook = 1;
 			else
 				m_TouchJoyRunAnchor = ivec2(RunX, RunY);
@@ -486,8 +521,6 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 	{
 		if( m_InputData.m_Fire % 2 != FirePressed )
 			m_InputData.m_Fire ++;
-		if( !FirePressed )
-			*FireWasPressed = true;
 		m_TouchJoyFirePressed = FirePressed;
 	}
 
@@ -540,39 +573,5 @@ void CControls::GamepadInput()
 	}
 }
 
-void CControls::AutoswitchWeaponsOutOfAmmo(bool FireWasPressed)
-{
-	if( ! m_pClient->m_Snap.m_pLocalCharacter )
-		return;
-
-	// Keep track of ammo count, we know weapon ammo only when we switch to that weapon, this is tracked on server and protocol does not track that
-	m_AmmoCount[m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS] = m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount;
-	// Autoswitch weapon if we're out of ammo
-	
-	if( (m_InputData.m_Fire % 2 != 0 || FireWasPressed) &&
-		m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount == 0 &&
-		m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_HAMMER &&
-		m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_TOOL )
-	{
-		if (m_WeaponIdxOutOfAmmo == -1)
-			m_WeaponIdxOutOfAmmo = NUM_WEAPONS - 1;
-		int w;
-		for( w = m_WeaponIdxOutOfAmmo; w > WEAPON_HAMMER; w-- )
-		{
-			if( w == m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
-				continue;
-			if( CustomStuff()->m_LocalWeapons & (1 << w) )
-				break;
-		}
-		m_WeaponIdxOutOfAmmo = w;
-		//dbg_msg("controls", "Out of ammo - selected weapon %d ammo %d", w, m_AmmoCount[w]);
-		if( w != m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
-		{
-			char aBuf[32];
-			str_format(aBuf, sizeof(aBuf), "weaponpick %d", 1);
-			Console()->ExecuteLine(aBuf);
-		}
-	}
-}
 
 #endif
