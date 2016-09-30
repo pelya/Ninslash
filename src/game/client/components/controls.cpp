@@ -448,13 +448,13 @@ void CControls::TouchscreenInput()
 			m_TouchJoyRunAnchor.x = RunX - TOUCHJOY_DEAD_ZONE * 3;
 		if( m_TouchJoyRunAnchor.x - RunX > TOUCHJOY_DEAD_ZONE * 3 )
 			m_TouchJoyRunAnchor.x = RunX + TOUCHJOY_DEAD_ZONE * 3;
-		//dbg_msg("controls", "Disengage jetpack time %f < %f", m_TouchJoyRunTapTime + time_freq() * 1.1f, (float)CurTime);
-		if( m_TouchJoyRunTapTime + time_freq() * 1.1f < CurTime )
+		if( m_TouchJoyRunTapTime + time_freq() * 11 / 10 < CurTime )
 		{
 			m_InputData.m_Hook = 0; // Disengage jetpack in 1 second after use
-			//dbg_msg("controls", "Disengage jetpack run");
 		}
 	}
+
+	//dbg_msg("controls", "");
 
 	// Move 100ms in the same direction, to prevent speed drop when tapping
 	if( !RunPressed && m_TouchJoyRunTapTime + time_freq() / 10 < CurTime )
@@ -510,7 +510,7 @@ void CControls::TouchscreenInput()
 	{
 		m_MousePos = vec2(AimX - m_TouchJoyAimAnchor.x, AimY - m_TouchJoyAimAnchor.y) / 30;
 		ClampMousePos();
-		if( m_TouchJoyAimTapTime + time_freq() * 1.1f < CurTime )
+		if( m_TouchJoyAimTapTime + time_freq() * 11 / 10 < CurTime )
 			m_InputData.m_Jump = 0; // Disengage jetpack in 1 second after use
 		if( m_TouchJoyAimTapTime != CurTime )
 			Picker()->ClosePicker(); // We need to call onRender() after setting picker coordinates, so call it in another frame
