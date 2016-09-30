@@ -144,7 +144,7 @@ bool CPicker::OnMouseMove(float x, float y)
 	Input()->GetRelativePosition(&x, &y);
 	m_SelectorMouse += vec2(x,y);
 #else
-	m_SelectorMouse = vec2(x,y);
+	m_SelectorMouse = vec2(x,y) * vec2((float)Screen.w / Graphics()->ScreenWidth(), (float)Screen.h / Graphics()->ScreenHeight());
 #endif
 	return true;
 }
@@ -269,6 +269,7 @@ void CPicker::DrawWeapons()
 	if (Unselect)
 		m_Selected = -1;
 	
+#if !defined(__ANDROID__)
 	// render mines
 	if (CustomStuff()->m_aLocalItems[PLAYERITEM_LANDMINE] + CustomStuff()->m_aLocalItems[PLAYERITEM_ELECTROMINE] > 0)
 	{		
@@ -334,7 +335,7 @@ void CPicker::DrawWeapons()
 			Graphics()->QuadsEnd();
 		}
 	}
-	
+#endif
 	/*
 	if (m_Selected >= 0 && m_Selected < NUM_PLAYERITEMS)
 	{
@@ -576,7 +577,9 @@ void CPicker::OnRender()
 	if (SelectedAngle < 0)
 		SelectedAngle += 2*pi;
 
+#if !defined(__ANDROID__)
 	if (length(m_SelectorMouse) > 100.0f)
+#endif
 	{
 		if (m_PickerType == PICKER_EMOTICON)
 			m_Selected = (int)(SelectedAngle / (2*pi) * NUM_EMOTICONS);
@@ -617,6 +620,7 @@ void CPicker::OnRender()
 		*/
 	}
 	// items in the middle
+#if !defined(__ANDROID__)
 	else if (m_PickerType == PICKER_WEAPON)
 	{
 		m_Selected = -1;
@@ -638,6 +642,7 @@ void CPicker::OnRender()
 		else
 			m_ItemSelected = -1;
 	}
+#endif
 
 	CUIRect Screen = *UI()->Screen();
 

@@ -186,7 +186,7 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	Button.h = 50;
 	Button.w = 500;
 
-	s_bots = (int)(DoScrollbarH(&s_bots, &Button, s_bots/10.0f)*10.0f+0.1f);
+	s_bots = (int)(DoScrollbarH(&s_bots, &Button, s_bots/15.0f)*15.0f+0.1f);
 
 	char aBuf[64];
 	str_format(aBuf, sizeof(aBuf), "%s: %i", Localize("Bots"), s_bots);

@@ -386,7 +386,7 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 		if( RunPressed )
 		{
 			// Tap to jetpack, and do not reset the anchor coordinates, if tapped under 300ms
-			if( m_TouchJoyRunTapTime + time_freq() / 3 > CurTime )
+			if( m_TouchJoyRunTapTime + time_freq() / 3 > CurTime && distance(ivec2(RunX, RunY), m_TouchJoyRunAnchor) < TOUCHJOY_DEAD_ZONE )
 				m_InputData.m_Hook = 1;
 			else
 				m_TouchJoyRunAnchor = ivec2(RunX, RunY);
@@ -442,7 +442,7 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 			SDL_Rect joypos;
 			SDL_ANDROID_GetScreenKeyboardButtonPos( SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2, &joypos );
 			m_InputData.m_Jump = 0;
-			if ( !(m_TouchJoyWeaponSelected && m_TouchJoyAimTapTime + time_freq() / 3 < CurTime) )
+			if ( !(m_TouchJoyWeaponSelected && m_TouchJoyAimTapTime + time_freq() / 3 > CurTime) )
 			{
 				this->Picker()->SetDrawPos(vec2(joypos.x + (AimX + 32767) * joypos.w / 65536, joypos.y + (AimY + 32767) * joypos.h / 65536));
 				this->Picker()->OpenPicker();
@@ -455,11 +455,12 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 			{
 				if( distance(ivec2(AimX, AimY), m_TouchJoyAimAnchor) < TOUCHJOY_AIM_DEAD_ZONE / 2 )
 				{
-						m_InputData.m_Jump = 1;
+					m_InputData.m_Jump = 1;
+					this->Picker()->ClosePicker();
 				}
 				else
 				{
-					this->Picker()->OnMouseMove((AimX - m_TouchJoyAimAnchor.x) / 50, (AimY - m_TouchJoyAimAnchor.y) / 50);
+					this->Picker()->OnMouseMove((AimX - m_TouchJoyAimAnchor.x) * joypos.w / 32767, (AimY - m_TouchJoyAimAnchor.y) * joypos.h / 32767);
 					m_TouchJoyWeaponSelected = true;
 				}
 			}
@@ -481,9 +482,6 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 
 	if( !AimPressed && m_TouchJoyAimTapTime + time_freq() / 2 < CurTime )
 		this->Picker()->ClosePicker();
-
-	// TODO: draw jump button
-	//if( m_TouchJoyAimTapTime + time_freq() / 2 <= CurTime )
 
 	bool FirePressed = distance(ivec2(AimX, AimY), m_TouchJoyAimAnchor) > TOUCHJOY_AIM_DEAD_ZONE;
 
