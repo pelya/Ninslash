@@ -602,7 +602,6 @@ int CMenus::RenderMenubar(CUIRect r)
 		static int s_ServerButton=0;
 		if(DoButton_MenuTab(&s_ServerButton, Localize("Server"), m_ActivePage==PAGE_SERVER, &Button, CUI::CORNER_T))
 		{
-			ServerCreatorInit();
 			NewPage = PAGE_SERVER;
 			m_DoubleClickIndex = -1;
 		}
