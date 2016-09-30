@@ -839,3 +839,8 @@ void CPicker::ClosePicker()
 {
 	m_Active = false;
 }
+
+bool CPicker::IsOpened() const
+{
+	return m_Active;
+}

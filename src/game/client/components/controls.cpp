@@ -74,9 +74,10 @@ void CControls::OnReset()
 	m_TouchJoyRunPressed = false;
 	m_TouchJoyRunTapTime = 0;
 	m_TouchJoyRunAnchor = ivec2(0,0);
+	m_TouchJoyRunLastPos = ivec2(0,0);
 	m_TouchJoyAimPressed = false;
 	m_TouchJoyAimAnchor = ivec2(0,0);
-	m_TouchJoyAimPrev = ivec2(0,0);
+	m_TouchJoyAimLastPos = ivec2(0,0);
 	m_TouchJoyAimTapTime = 0;
 	m_TouchJoyFirePressed = false;
 	m_TouchJoyWeaponSelected = false;
@@ -386,7 +387,7 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 		if( RunPressed )
 		{
 			// Tap to jetpack, and do not reset the anchor coordinates, if tapped under 300ms
-			if( m_TouchJoyRunTapTime + time_freq() / 3 > CurTime && distance(ivec2(RunX, RunY), m_TouchJoyRunAnchor) < TOUCHJOY_DEAD_ZONE )
+			if( m_TouchJoyRunTapTime + time_freq() / 3 > CurTime && distance(ivec2(RunX, RunY), m_TouchJoyRunLastPos) < TOUCHJOY_DEAD_ZONE )
 				m_InputData.m_Hook = 1;
 			else
 				m_TouchJoyRunAnchor = ivec2(RunX, RunY);
@@ -431,8 +432,8 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 	// Process right joystick
 	if( !AimPressed )
 	{
-		AimX = m_TouchJoyAimPrev.x;
-		AimY = m_TouchJoyAimPrev.y;
+		AimX = m_TouchJoyAimLastPos.x;
+		AimY = m_TouchJoyAimLastPos.y;
 	}
 
 	if( AimPressed != m_TouchJoyAimPressed )
@@ -444,19 +445,19 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 			m_InputData.m_Jump = 0;
 			if ( !(m_TouchJoyWeaponSelected && m_TouchJoyAimTapTime + time_freq() / 3 > CurTime) )
 			{
-				this->Picker()->SetDrawPos(vec2(joypos.x + (AimX + 32767) * joypos.w / 65536, joypos.y + (AimY + 32767) * joypos.h / 65536));
-				this->Picker()->OpenPicker();
+				Picker()->SetDrawPos(vec2(joypos.x + (AimX + 32767) * joypos.w / 65536, joypos.y + (AimY + 32767) * joypos.h / 65536));
+				Picker()->OpenPicker();
 			}
 			m_TouchJoyWeaponSelected = false;
 		}
 		else
 		{
-			if( m_TouchJoyAimTapTime + time_freq() / 2 >= CurTime )
+			if( m_TouchJoyAimTapTime + time_freq() / 2 >= CurTime && Picker()->IsOpened() )
 			{
 				if( distance(ivec2(AimX, AimY), m_TouchJoyAimAnchor) < TOUCHJOY_AIM_DEAD_ZONE / 2 )
 				{
 					m_InputData.m_Jump = 1;
-					this->Picker()->ClosePicker();
+					Picker()->ClosePicker();
 				}
 				else
 				{
@@ -477,11 +478,11 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 		if( m_TouchJoyAimTapTime + time_freq() * 1.1f < CurTime )
 			m_InputData.m_Jump = 0; // Disengage jetpack in 1 second after use
 		if( m_TouchJoyAimTapTime != CurTime )
-			this->Picker()->ClosePicker(); // We need to call onRender() after setting picker coordinates, so call it in another frame
+			Picker()->ClosePicker(); // We need to call onRender() after setting picker coordinates, so call it in another frame
 	}
 
 	if( !AimPressed && m_TouchJoyAimTapTime + time_freq() / 2 < CurTime )
-		this->Picker()->ClosePicker();
+		Picker()->ClosePicker();
 
 	bool FirePressed = distance(ivec2(AimX, AimY), m_TouchJoyAimAnchor) > TOUCHJOY_AIM_DEAD_ZONE;
 
@@ -494,7 +495,10 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 		m_TouchJoyFirePressed = FirePressed;
 	}
 
-	m_TouchJoyAimPrev = ivec2(AimX, AimY);
+	if (RunPressed)
+		m_TouchJoyRunLastPos = ivec2(RunX, RunY);
+	if (AimPressed)
+		m_TouchJoyAimLastPos = ivec2(AimX, AimY);
 }
 
 void CControls::GamepadInput()

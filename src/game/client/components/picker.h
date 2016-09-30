@@ -53,6 +53,7 @@ public:
 	void SetDrawPos(vec2 pos);
 	void OpenPicker(enum Pickers picker = PICKER_WEAPON);
 	void ClosePicker();
+	bool IsOpened() const;
 };
 
 #endif
