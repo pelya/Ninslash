@@ -448,8 +448,12 @@ void CControls::TouchscreenInput()
 			m_TouchJoyRunAnchor.x = RunX - TOUCHJOY_DEAD_ZONE * 3;
 		if( m_TouchJoyRunAnchor.x - RunX > TOUCHJOY_DEAD_ZONE * 3 )
 			m_TouchJoyRunAnchor.x = RunX + TOUCHJOY_DEAD_ZONE * 3;
+		//dbg_msg("controls", "Disengage jetpack time %f < %f", m_TouchJoyRunTapTime + time_freq() * 1.1f, (float)CurTime);
 		if( m_TouchJoyRunTapTime + time_freq() * 1.1f < CurTime )
+		{
 			m_InputData.m_Hook = 0; // Disengage jetpack in 1 second after use
+			//dbg_msg("controls", "Disengage jetpack run");
+		}
 	}
 
 	// Move 100ms in the same direction, to prevent speed drop when tapping
