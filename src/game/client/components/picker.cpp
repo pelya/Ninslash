@@ -144,6 +144,7 @@ bool CPicker::OnMouseMove(float x, float y)
 	Input()->GetRelativePosition(&x, &y);
 	m_SelectorMouse += vec2(x,y);
 #else
+	CUIRect Screen = *UI()->Screen();
 	m_SelectorMouse = vec2(x,y) * vec2((float)Screen.w / Graphics()->ScreenWidth(), (float)Screen.h / Graphics()->ScreenHeight());
 #endif
 	return true;

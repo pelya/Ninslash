@@ -409,7 +409,7 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 		{
 			if( m_MousePos.x == 0 )
 				m_MousePos.x = 1;
-			if( m_MousePos.x < 0 && m_InputDirectionRight || m_MousePos.x > 0 && m_InputDirectionLeft )
+			if( (m_MousePos.x < 0 && m_InputDirectionRight) || (m_MousePos.x > 0 && m_InputDirectionLeft) )
 				m_MousePos.x = -m_MousePos.x;
 		}
 		// Move the anchor if we move the finger too much
@@ -437,10 +437,10 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 
 	if( AimPressed != m_TouchJoyAimPressed )
 	{
+		SDL_Rect joypos;
+		SDL_ANDROID_GetScreenKeyboardButtonPos( SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2, &joypos );
 		if( !AimPressed )
 		{
-			SDL_Rect joypos;
-			SDL_ANDROID_GetScreenKeyboardButtonPos( SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2, &joypos );
 			m_InputData.m_Jump = 0;
 			if ( !(m_TouchJoyWeaponSelected && m_TouchJoyAimTapTime + time_freq() / 3 > CurTime) )
 			{
