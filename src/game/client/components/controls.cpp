@@ -182,15 +182,12 @@ void CControls::OnMessage(int Msg, void *pRawMsg)
 		CustomStuff()->m_WeaponpickWeapon = pMsg->m_Weapon;
 		CustomStuff()->m_LastWeaponPicked = false;
 		m_AmmoCount[pMsg->m_Weapon%NUM_WEAPONS] = 10; // TODO: move ammo count for inactive weapons into the network protocol
-		// Does not quite work yet
-		/*
 		if(g_Config.m_ClAutoswitchWeapons)
 		{
 			char aBuf[32];
 			str_format(aBuf, sizeof(aBuf), "weaponpick %d", pMsg->m_Weapon-1);
 			Console()->ExecuteLine(aBuf);
 		}
-		*/
 	}
 }
 
