@@ -81,8 +81,7 @@ void CControls::OnReset()
 	m_TouchJoyAimTapTime = 0;
 	m_TouchJoyFirePressed = false;
 	m_TouchJoyWeaponSelected = false;
-	for( int i = 0; i < NUM_WEAPONS; i++ )
-		m_AmmoCount[i] = 0;
+	m_WeaponIdxOutOfAmmo = -1;
 	m_OldMouseX = m_OldMouseY = 0.0f;
 }
 
@@ -94,8 +93,7 @@ void CControls::OnRelease()
 void CControls::OnPlayerDeath()
 {
 	m_LastData.m_WantedWeapon = m_InputData.m_WantedWeapon = 0;
-	for( int i = 0; i < NUM_WEAPONS; i++ )
-		m_AmmoCount[i] = 0;
+	m_WeaponIdxOutOfAmmo = -1;
 }
 
 static void ConKeyInputState(IConsole::IResult *pResult, void *pUserData)
@@ -181,12 +179,12 @@ void CControls::OnMessage(int Msg, void *pRawMsg)
 		CustomStuff()->m_WeaponpickTimer = 1.0f;
 		CustomStuff()->m_WeaponpickWeapon = pMsg->m_Weapon;
 		CustomStuff()->m_LastWeaponPicked = false;
-		m_AmmoCount[pMsg->m_Weapon%NUM_WEAPONS] = 10; // TODO: move ammo count for inactive weapons into the network protocol
 		if(g_Config.m_ClAutoswitchWeapons)
 		{
 			char aBuf[32];
 			str_format(aBuf, sizeof(aBuf), "weaponpick %d", pMsg->m_Weapon-1);
 			Console()->ExecuteLine(aBuf);
+			m_WeaponIdxOutOfAmmo = -1;
 		}
 	}
 }
@@ -460,6 +458,7 @@ void CControls::TouchscreenInput(bool *FireWasPressed)
 				{
 					this->Picker()->OnMouseMove((AimX - m_TouchJoyAimAnchor.x) * joypos.w / 32767, (AimY - m_TouchJoyAimAnchor.y) * joypos.h / 32767);
 					m_TouchJoyWeaponSelected = true;
+					m_WeaponIdxOutOfAmmo = -1;
 				}
 			}
 		}
@@ -555,22 +554,23 @@ void CControls::AutoswitchWeaponsOutOfAmmo(bool FireWasPressed)
 		m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_HAMMER &&
 		m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_TOOL )
 	{
+		if (m_WeaponIdxOutOfAmmo == -1)
+			m_WeaponIdxOutOfAmmo = NUM_WEAPONS - 1;
 		int w;
-		for( w = NUM_WEAPONS - 1; w > WEAPON_HAMMER; w-- )
+		for( w = m_WeaponIdxOutOfAmmo; w > WEAPON_HAMMER; w-- )
 		{
 			if( w == m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
 				continue;
-			if( m_AmmoCount[w] > 0 )
+			if( CustomStuff()->m_LocalWeapons & (1 << w) )
 				break;
 		}
+		m_WeaponIdxOutOfAmmo = w;
 		//dbg_msg("controls", "Out of ammo - selected weapon %d ammo %d", w, m_AmmoCount[w]);
 		if( w != m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
 		{
-			//m_InputData.m_WantedWeapon = w; // This changes weapon group instead
-			CNetMsg_Cl_SelectWeapon Msg;
-			Msg.m_Weapon = w+1;
-			Msg.m_Group = 0;
-			Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
+			char aBuf[32];
+			str_format(aBuf, sizeof(aBuf), "weaponpick %d", 1);
+			Console()->ExecuteLine(aBuf);
 		}
 	}
 }
