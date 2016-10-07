@@ -132,7 +132,7 @@ class CCommandProcessorFragment_OpenGL
 		GLint getUniformLocation(const char *pName);
 		GLint getAttribLocation(const char *pName);
 
-		GLuint operator=(GLuint Program) { return (m_Program = Program); } // to easily assign a linked shader program
+		GLuint operator=(GLuint Program) { m_aUniformLocationCache.clear(); return (m_Program = Program); } // to easily assign a linked shader program
 	};
 	CShader m_aShader[NUM_SHADERS];
 

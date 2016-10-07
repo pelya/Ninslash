@@ -1046,11 +1046,13 @@ int CGraphicsBackend_SDL_OpenGL::Shutdown()
 	delete m_pProcessor;
 	m_pProcessor = 0;
 
+#if !defined(__ANDROID__)
 #if SDL_VERSION_ATLEAST(2,0,0)
 	SDL_GL_DeleteContext(m_GLContext);
 	SDL_DestroyWindow(m_pWindow);
 #endif
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
+#endif
 	return 0;
 }
 

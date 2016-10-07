@@ -1924,8 +1924,8 @@ void CClient::Run()
 			}
 			if( Input()->VideoRestartNeeded() )
 			{
+				m_pGraphics->Shutdown();
 				m_pGraphics->Init();
-				//Kernel()->RequestInterface<IEngineTextRender>()->Init();
 				LoadData();
 				GameClient()->OnInit();
 			}
