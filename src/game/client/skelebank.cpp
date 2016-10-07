@@ -12,6 +12,13 @@ void CSkelebank::Init(IStorage *pStorage)
 {
 	m_pStorage = pStorage;
 
+	for ( int i = 0; i < m_lSkeletons.size(); i++ )
+		delete m_lSkeletons[i];
+	m_lSkeletons.clear();
+	for ( int i = 0; i < m_lAtlases.size(); i++ )
+		delete m_lAtlases[i];
+	m_lAtlases.clear();
+
 	AddSkeleton("data/anim/body1.json", IStorage::STORAGETYPE_CLIENT);
 	AddAtlas("data/anim/body1.atlas", IStorage::STORAGETYPE_CLIENT);
 

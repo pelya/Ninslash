@@ -3,6 +3,8 @@
 #ifndef ENGINE_CLIENT_CLIENT_H
 #define ENGINE_CLIENT_CLIENT_H
 
+extern int gs_TextureBlob;
+
 class CGraph
 {
 public:

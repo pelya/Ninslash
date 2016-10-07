@@ -1928,6 +1928,7 @@ void CClient::Run()
 				m_pGraphics->Init();
 				LoadData();
 				GameClient()->OnInit();
+				gs_TextureBlob = -1;
 			}
 		}
 

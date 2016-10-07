@@ -1609,7 +1609,7 @@ void CMenus::OnRender()
 	m_NumInputEvents = 0;
 }
 
-static int gs_TextureBlob = -1;
+int gs_TextureBlob = -1;
 
 void CMenus::RenderBackground()
 {
