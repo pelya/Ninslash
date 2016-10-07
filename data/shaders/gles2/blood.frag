@@ -15,7 +15,7 @@ void main (void)
 	
 	float r = 0.7;
 	
-	float Step = 0.5 / 1600.0;
+	const float Step = 0.5 / 1600.0;
 	
 	float SumRed = (texture2D(texture, frag_texCoord.st + vec2(-Step, -Step)).r + texture2D(texture, frag_texCoord.st + vec2(+Step, +Step)).r) / 2.0;
 	

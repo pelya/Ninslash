@@ -414,6 +414,8 @@ void CPlayers::RenderPlayer(
 			Graphics()->ShaderBegin(SHADER_RAGE, pCustomPlayerInfo->m_EffectIntensity[EFFECT_RAGE]);
 		else if (pCustomPlayerInfo->m_EffectIntensity[EFFECT_FUEL] > 0.0f)
 			Graphics()->ShaderBegin(SHADER_FUEL, pCustomPlayerInfo->m_EffectIntensity[EFFECT_FUEL]);
+		else if (Player.m_Weapon == WEAPON_CHAINSAW && Player.m_AttackTick > Client()->GameTick() - 600 * Client()->GameTickSpeed()/1000)
+			Graphics()->ShaderBegin(SHADER_CHAINSAW, (Player.m_AttackTick - Client()->GameTick() + 600 * Client()->GameTickSpeed()/1000));
 		
 		//Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
 		Graphics()->TextureSet(g_pData->m_aImages[IMAGE_WEAPONS].m_Id);
