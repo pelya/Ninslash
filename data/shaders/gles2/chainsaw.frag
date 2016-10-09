@@ -4,14 +4,15 @@ precision mediump float;
 uniform lowp sampler2D texture;
 uniform mediump float rnd; // TODO: merge this with intensity into a single vec2
 uniform lowp float intensity;
+uniform highp vec4 screenPos;
 
 varying highp vec2 frag_texCoord;
 varying lowp vec4 frag_color;
 
 void main (void)
 {
-	mediump float StepX = 4.0 / float(screenwidth);
-	mediump float StepY = 4.0 / float(screenheight);
+	mediump float StepX = 2.0 * screenPos.z;
+	mediump float StepY = 2.0 * screenPos.w;
 	const mediump float chainsawHandleStart = 236.0 / 512.0;
 	const mediump float chainsawBladeEnd = 320.0 / 512.0;
 	mediump float gradient = clamp( 2.0 * (frag_texCoord.x - chainsawHandleStart) / (chainsawBladeEnd - chainsawHandleStart), 0.0, 1.0);
