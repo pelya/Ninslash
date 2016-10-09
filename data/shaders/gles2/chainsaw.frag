@@ -5,9 +5,6 @@ uniform lowp sampler2D texture;
 uniform mediump float rnd; // TODO: merge this with intensity into a single vec2
 uniform lowp float intensity;
 
-uniform highp int screenwidth;
-uniform highp int screenheight;
-
 varying highp vec2 frag_texCoord;
 varying lowp vec4 frag_color;
 
