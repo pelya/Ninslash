@@ -31,6 +31,12 @@ typedef GLchar GLcharARB;
 #define	glShaderSourceARB			glShaderSource
 #define	glUniform1iARB				glUniform1i
 #define	glUniform1fARB				glUniform1f
+#define	glUniform2iARB				glUniform2i
+#define	glUniform2fARB				glUniform2f
+#define	glUniform3iARB				glUniform3i
+#define	glUniform3fARB				glUniform3f
+#define	glUniform4iARB				glUniform4i
+#define	glUniform4fARB				glUniform4f
 #define	glUseProgramObjectARB		glUseProgram
 
 #endif /* __ANDROID_STUB_GLEW_H__*/
