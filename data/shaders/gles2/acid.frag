@@ -13,9 +13,9 @@ void main (void)
 {
 	lowp vec4 t = texture2D(texture, frag_texCoord);
 	highp float StepY = screenPos.w;
-	mediump float SumGreen = (texture2D(texture, frag_texCoord + vec2(0, +StepY)).g + t.g)/2.0f;
+	mediump float SumGreen = (texture2D(texture, frag_texCoord + vec2(0, +StepY)).g + t.g)/2.0;
 	
-	mediump float g = SumGreen * 0.7f;
+	mediump float g = SumGreen * 0.7;
 	
 	// get alpha
 	float a = step(0.7, t.g);
