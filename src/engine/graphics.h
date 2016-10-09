@@ -10,6 +10,7 @@ enum RenderBuffers
 	RENDERBUFFER_TILES,
 	RENDERBUFFER_SPLATTER,
 	RENDERBUFFER_BLOOD,
+	RENDERBUFFER_ACID,
 	RENDERBUFFER_LIGHT,
 	NUM_RENDERBUFFERS
 };
@@ -17,6 +18,7 @@ enum RenderBuffers
 enum Shaders
 {
 	SHADER_DEFAULT,
+	SHADER_CHAINSAW,
 	SHADER_ELECTRIC,
 	SHADER_DEATHRAY,
 	SHADER_SPAWN,
@@ -26,7 +28,7 @@ enum Shaders
 	SHADER_RAGE,
 	SHADER_FUEL,
 	SHADER_BLOOD,
-	SHADER_CHAINSAW,
+	SHADER_ACID,
 	NUM_SHADERS
 };
 
@@ -128,6 +130,8 @@ public:
 	virtual void LoadShaders() = 0;
 	virtual void ShaderBegin(int Shade, float Intensity = 1.0f) = 0;
 	virtual void ShaderEnd() = 0;
+	
+	virtual void CameraToShaders(int ScreenWidth, int ScreenHeight, int CameraX, int CameraY) = 0;
 	
 	virtual int LoadPNG(CImageInfo *pImg, const char *pFilename, int StorageType) = 0;
 	virtual int UnloadTexture(int Index) = 0;
