@@ -4,7 +4,6 @@ precision mediump float;
 uniform lowp sampler2D texture;
 uniform mediump float rnd; // TODO: merge this with intensity into a single vec2
 uniform lowp float intensity;
-
 uniform highp vec4 screenPos;
 
 varying highp vec2 frag_texCoord;
@@ -13,7 +12,7 @@ varying lowp vec4 frag_color;
 void main (void)
 {
 	lowp vec4 t = texture2D(texture, frag_texCoord);
-	mediump float StepY = screenPos.w;
+	highp float StepY = screenPos.w;
 	mediump float SumGreen = (texture2D(texture, frag_texCoord + vec2(0, +StepY)).g + t.g)/2.0f;
 	
 	mediump float g = SumGreen * 0.7f;
