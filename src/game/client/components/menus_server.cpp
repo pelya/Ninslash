@@ -19,12 +19,22 @@
 
 #include "menus.h"
 
+#if defined(WIN32)
+#include <Windows.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <process.h>
+
+static HANDLE serverProcess = -1;
+#else
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#endif
 
 static sorted_array<string> s_maplist;
+static bool atexitRegistered = false;
 
 static int MapScan(const char *pName, int IsDir, int DirType, void *pUser)
 {
@@ -42,6 +52,19 @@ void CMenus::ServerCreatorInit()
 	{
 		Storage()->ListDirectory(IStorage::TYPE_ALL, "maps", MapScan, &s_maplist);
 	}
+}
+
+static void StopServer()
+{
+#if defined(WIN32)
+	if( serverProcess != -1 )
+		TerminateProcess(serverProcess, 0);
+	serverProcess = -1;
+#elif defined(__ANDROID__)
+	system("$SECURE_STORAGE_DIR/busybox killall ninslash_srv");
+#else
+	system("killall ninslash_srv ninslash_srv_d");
+#endif
 }
 
 static void StartServer(const char *type, const char *map, int bots)
@@ -66,30 +89,30 @@ static void StartServer(const char *type, const char *map, int bots)
 	fwrite(aBuf, str_length(aBuf), 1, ff);
 	fclose(ff);
 
-#if defined(__ANDROID__)
+#if defined(WIN32)
+	serverProcess = (HANDLE) _spawnl(_P_NOWAIT, "ninslash_srv.exe", "ninslash_srv.exe", "-f", "server.cfg", NULL);
+#elif defined(__ANDROID__)
 	system("$SECURE_STORAGE_DIR/ninslash_srv -f server.cfg >/dev/null 2>&1 &");
 #else
 	system("./ninslash_srv_d -f server.cfg || ./ninslash_srv -f server.cfg &");
 #endif
-}
 
-static void StopServer()
-{
-#if defined(__ANDROID__)
-	system("$SECURE_STORAGE_DIR/busybox killall ninslash_srv");
-#else
-	system("killall ninslash_srv ninslash_srv_d");
-#endif
+	if( !atexitRegistered )
+		atexit(&StopServer);
+	atexitRegistered = true;
 }
 
 static bool ServerStatus()
 {
-#if defined(__ANDROID__)
-		int status = system("$SECURE_STORAGE_DIR/busybox sh -c 'ps | grep ninslash_srv'");
+#if defined(WIN32)
+	return serverProcess != -1;
+#elif defined(__ANDROID__)
+	int status = system("$SECURE_STORAGE_DIR/busybox sh -c 'ps | grep ninslash_srv'");
+	return WEXITSTATUS(status) == 0;
 #else
-		int status = system("ps | grep ninslash_srv");
+	int status = system("ps | grep ninslash_srv");
+	return WEXITSTATUS(status) == 0;
 #endif
-		return WEXITSTATUS(status) == 0;
 }
 
 void CMenus::ServerCreatorProcess(CUIRect MainView)
@@ -135,27 +158,26 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	MainView.VSplitLeft(50, 0, &Button);
 	Button.h = 50;
 	Button.w = 200;
-	static int s_StartServerButton = 0;
-	if(DoButton_Menu(&s_StartServerButton, ServerRunning ? Localize("Stop server") : Localize("Start DM server"), 0, &Button))
+	static int s_StopServerButton = 0;
+	if( ServerRunning && DoButton_Menu(&s_StopServerButton, Localize("Stop server"), 0, &Button))
 	{
-		if( ServerRunning )
-		{
-			StopServer();
-			LastUpdateTime = time_get() / time_freq() - 2;
-		}
-		else
-		{
-			StartServer("dm", s_maplist[s_map].cstr(), s_bots);
-			LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
-			ServerStarting = true;
-		}
+		StopServer();
+		LastUpdateTime = time_get() / time_freq() - 2;
+	}
+
+	static int s_StartDmServerButton = 0;
+	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartDmServerButton, Localize("Start DM server"), 0, &Button))
+	{
+		StartServer("dm", s_maplist[s_map].cstr(), s_bots);
+		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
+		ServerStarting = true;
 	}
 
 	MainView.VSplitLeft(300, 0, &Button);
 	Button.h = 50;
 	Button.w = 200;
 	static int s_StartInfServerButton = 0;
-	if(!ServerRunning && DoButton_Menu(&s_StartInfServerButton, Localize("Start INF server"), 0, &Button))
+	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartInfServerButton, Localize("Start INF server"), 0, &Button) )
 	{
 		StartServer("inf", s_maplist[s_map].cstr(), s_bots);
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
@@ -166,7 +188,7 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	Button.h = 50;
 	Button.w = 200;
 	static int s_StartCtfServerButton = 0;
-	if(!ServerRunning && DoButton_Menu(&s_StartCtfServerButton, Localize("Start CTF server"), 0, &Button))
+	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartCtfServerButton, Localize("Start CTF server"), 0, &Button) )
 	{
 		StartServer("ctf", s_maplist[s_map].cstr(), s_bots);
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
@@ -182,16 +204,18 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 
 	MainView.HSplitTop(60, 0, &MainView);
 
-	MainView.VSplitLeft(50, 0, &Button);
+	MainView.VSplitLeft(50, 0, &MsgBox);
+	MsgBox.w = 100;
+
+	char aBuf[64];
+	str_format(aBuf, sizeof(aBuf), "%s: %i", Localize("Bots"), s_bots);
+	UI()->DoLabelScaled(&MsgBox, aBuf, 20.0f, -1);
+
+	MainView.VSplitLeft(150, 0, &Button);
 	Button.h = 50;
 	Button.w = 500;
 
 	s_bots = (int)(DoScrollbarH(&s_bots, &Button, s_bots/15.0f)*15.0f+0.1f);
-
-	char aBuf[64];
-	str_format(aBuf, sizeof(aBuf), "%s: %i", Localize("Bots"), s_bots);
-	MainView.VSplitRight(300, 0, &MsgBox);
-	UI()->DoLabelScaled(&MsgBox, aBuf, 20.0f, 0);
 
 	MainView.HSplitTop(60, 0, &MainView);
 
@@ -211,39 +235,4 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	}
 
 	s_map = UiDoListboxEnd(&s_ScrollValue, 0);
-
-	/*
-	MainView.VSplitRight(350, 0, &Button);
-	Button.h = 50;
-	Button.w = 300;
-	static int s_EditServerConfigButton = 0;
-	if(DoButton_Menu(&s_EditServerConfigButton, Localize("Edit server config"), 0, &Button))
-	{
-		system("am start --user -3 -a android.intent.action.VIEW -t 'text/*' -d \"file://$UNSECURE_STORAGE_DIR/example configs/dm-autoexec.cfg\"");
-	}
-
-	MainView.HSplitTop(60, 0, &MainView);
-	MsgBox = MainView;
-
-	MainView.HSplitTop(60, 0, &MainView);
-	MsgBox = MainView;
-	UI()->DoLabelScaled(&MsgBox, Localize("If you don't have Wi-Fi connection, go to Android Settings, and enable Wi-Fi hotspot"), 20.0f, 0);
-	MainView.HSplitTop(30, 0, &MainView);
-	MsgBox = MainView;
-	UI()->DoLabelScaled(&MsgBox, Localize("in Tethering & Hotspot menu, then ask other players to connect to your Wi-Fi network,"), 20.0f, 0);
-	MainView.HSplitTop(30, 0, &MainView);
-	MsgBox = MainView;
-	UI()->DoLabelScaled(&MsgBox, Localize("open Ninslash, select LAN menu, and connect to your server."), 20.0f, 0);
-
-	MainView.HSplitTop(30, 0, &MainView);
-	MainView.VMargin(50.0f, &Button);
-	Button.h = 50;
-	static int s_ShareAppButton = 0;
-	if(DoButton_Menu(&s_ShareAppButton, Localize("Share Ninslash over Bluetooth to other devices"), 0, &Button))
-	{
-		system("$SECURE_STORAGE_DIR/busybox cp -f $ANDROID_MY_OWN_APP_FILE $UNSECURE_STORAGE_DIR/Ninslash.apk");
-		system("am start --user -3 -a android.intent.action.SEND -t application/vnd.android.package-archive "
-				"--eu android.intent.extra.STREAM file://$UNSECURE_STORAGE_DIR/Ninslash.apk");
-	}
-	*/
 }
