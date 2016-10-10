@@ -885,10 +885,10 @@ int CMenus::Render()
 			RenderServerbrowser(MainView);
 		else if(g_Config.m_UiPage == PAGE_LAN)
 			RenderServerbrowser(MainView);
-		else if(g_Config.m_UiPage == PAGE_DEMOS)
-			RenderDemoList(MainView);
 		else if(g_Config.m_UiPage == PAGE_SERVER)
 			ServerCreatorProcess(MainView);
+		else if(g_Config.m_UiPage == PAGE_DEMOS)
+			RenderDemoList(MainView);
 		else if(g_Config.m_UiPage == PAGE_FAVORITES)
 			RenderServerbrowser(MainView);
 		else if(g_Config.m_UiPage == PAGE_SETTINGS)
