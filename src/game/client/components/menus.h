@@ -120,8 +120,8 @@ class CMenus : public CComponent
 		PAGE_INTERNET,
 		PAGE_LAN,
 		PAGE_FAVORITES,
-		PAGE_DEMOS,
 		PAGE_SERVER,
+		PAGE_DEMOS,
 		PAGE_SETTINGS,
 		PAGE_SYSTEM,
 	};
