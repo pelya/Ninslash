@@ -442,11 +442,16 @@ void CControls::TouchscreenInput()
 		// Change your facing direction if not aiming
 		if( !AimPressed )
 		{
-			m_MousePos.y = 0;
-			if( m_InputDirectionRight )
-				m_MousePos.x = 100;
-			if( m_InputDirectionLeft )
-				m_MousePos.x = -100;
+			if( m_InputDirectionRight && m_MousePos.x <= 0 )
+			{
+				m_MousePos.x = 200;
+				m_MousePos.y = 20;
+			}
+			if( m_InputDirectionLeft && m_MousePos.x >= 0 )
+			{
+				m_MousePos.x = -200;
+				m_MousePos.y = 20;
+			}
 		}
 		// Activate run-assist jetpack if we slide finger up
 		/*
