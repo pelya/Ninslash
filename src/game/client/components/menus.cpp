@@ -652,7 +652,7 @@ int CMenus::RenderMenubar(CUIRect r)
 	Box.VSplitRight(90.0f, &Box, &Button);
 	static int s_QuitButton=0;
 	if(DoButton_MenuTab(&s_QuitButton, Localize("Quit"), 0, &Button, CUI::CORNER_T))
-		m_Popup = POPUP_QUIT;
+		Client()->Quit(); // m_Popup = POPUP_QUIT;
 
 	Box.VSplitRight(10.0f, &Box, &Button);
 	Box.VSplitRight(130.0f, &Box, &Button);
