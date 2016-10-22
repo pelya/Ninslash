@@ -74,13 +74,14 @@ void CControls::OnReset()
 	m_TouchJoyRunPressed = false;
 	m_TouchJoyRunTapTime = 0;
 	m_TouchJoyRunAnchor = ivec2(0,0);
-	m_TouchJoyRunLastPos = ivec2(0,0);
+	//m_TouchJoyRunLastPos = ivec2(0,0);
 	m_TouchJoyAimPressed = false;
 	m_TouchJoyAimAnchor = ivec2(0,0);
 	m_TouchJoyAimLastPos = ivec2(0,0);
 	m_TouchJoyAimTapTime = 0;
 	m_TouchJoyFirePressed = false;
-	m_TouchJoyWeaponSelected = false;
+	m_TouchJoyLeftJumpPressed = false;
+	m_TouchJoyRightJumpPressed = false;
 	m_WeaponIdxOutOfAmmo = -1;
 	m_OldMouseX = m_OldMouseY = 0.0f;
 }
@@ -396,7 +397,7 @@ void CControls::AutoswitchWeaponsOutOfAmmo()
 void CControls::TouchscreenInput()
 {
 	enum {
-		TOUCHJOY_DEAD_ZONE = 65536 / 40,
+		TOUCHJOY_DEAD_ZONE = 65536 / 20,
 		TOUCHJOY_AIM_DEAD_ZONE = 65536 / 10,
 	};
 
@@ -410,20 +411,23 @@ void CControls::TouchscreenInput()
 	int AimX = SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_X);
 	int AimY = SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_Y);
 	bool AimPressed = (AimX != 0 || AimY != 0);
+	bool oldTouchJoyLeftJump = m_TouchJoyLeftJumpPressed;
+	bool oldTouchJoyRightJump = m_TouchJoyRightJumpPressed;
 
 	// Process left joystick
 	if( m_TouchJoyRunPressed != RunPressed )
 	{
 		if( RunPressed )
 		{
-			// Tap to jetpack, and do not reset the anchor coordinates, if tapped under 300ms
-			if( m_TouchJoyRunTapTime + time_freq() / 3 > CurTime /* && distance(ivec2(RunX, RunY), m_TouchJoyRunLastPos) < TOUCHJOY_DEAD_ZONE */ )
-				m_InputData.m_Hook = 1;
+			// Tap to jetpack, and do not reset the anchor coordinates, if tapped under 500ms
+			if( m_TouchJoyRunTapTime + time_freq() / 2 > CurTime )
+				m_TouchJoyLeftJumpPressed = true;
 			else
 				m_TouchJoyRunAnchor = ivec2(RunX, RunY);
 		}
 		else
 		{
+			m_TouchJoyLeftJumpPressed = false;
 			m_InputData.m_Hook = 0;
 		}
 		m_TouchJoyRunTapTime = CurTime;
@@ -443,15 +447,25 @@ void CControls::TouchscreenInput()
 			if( (m_MousePos.x < 0 && m_InputDirectionRight) || (m_MousePos.x > 0 && m_InputDirectionLeft) )
 				m_MousePos.x = -m_MousePos.x;
 		}
+		// Activate run-assist jetpack if we slide finger up
+		/*
+		if( RunY - m_TouchJoyRunAnchor.y < -TOUCHJOY_DEAD_ZONE * 3 )
+			m_InputData.m_Hook = 1;
+		else
+			m_InputData.m_Hook = 0;
+		*/
+		// Activate run-assist jetpack if we slide finger even more
+		if( m_TouchJoyRunAnchor.x - RunX < -TOUCHJOY_DEAD_ZONE * 3 || m_TouchJoyRunAnchor.x - RunX > TOUCHJOY_DEAD_ZONE * 3 )
+			m_InputData.m_Hook = 1;
+		else
+			m_InputData.m_Hook = 0;
 		// Move the anchor if we move the finger too much
-		if( m_TouchJoyRunAnchor.x - RunX < -TOUCHJOY_DEAD_ZONE * 3 )
-			m_TouchJoyRunAnchor.x = RunX - TOUCHJOY_DEAD_ZONE * 3;
-		if( m_TouchJoyRunAnchor.x - RunX > TOUCHJOY_DEAD_ZONE * 3 )
-			m_TouchJoyRunAnchor.x = RunX + TOUCHJOY_DEAD_ZONE * 3;
+		if( m_TouchJoyRunAnchor.x - RunX < -TOUCHJOY_DEAD_ZONE * 4 )
+			m_TouchJoyRunAnchor.x = RunX - TOUCHJOY_DEAD_ZONE * 4;
+		if( m_TouchJoyRunAnchor.x - RunX > TOUCHJOY_DEAD_ZONE * 4 )
+			m_TouchJoyRunAnchor.x = RunX + TOUCHJOY_DEAD_ZONE * 4;
 		if( m_TouchJoyRunTapTime + time_freq() * 11 / 10 < CurTime )
-		{
-			m_InputData.m_Hook = 0; // Disengage jetpack in 1 second after use
-		}
+			m_TouchJoyLeftJumpPressed = false;
 	}
 
 	//dbg_msg("controls", "");
@@ -474,35 +488,18 @@ void CControls::TouchscreenInput()
 	{
 		SDL_Rect joypos;
 		SDL_ANDROID_GetScreenKeyboardButtonPos( SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2, &joypos );
-		if( !AimPressed )
+		if( AimPressed )
 		{
-			m_InputData.m_Jump = 0;
-			if ( !(m_TouchJoyWeaponSelected && m_TouchJoyAimTapTime + time_freq() / 3 > CurTime) )
-			{
-				Picker()->SetDrawPos(vec2(joypos.x + (AimX + 32767) * joypos.w / 65536, joypos.y + (AimY + 32767) * joypos.h / 65536));
-				Picker()->OpenPicker();
-			}
-			m_TouchJoyWeaponSelected = false;
+			if( m_TouchJoyAimTapTime + time_freq() / 2 > CurTime )
+				m_TouchJoyRightJumpPressed = true;
+			else
+				m_TouchJoyAimAnchor = ivec2(AimX, AimY);
 		}
 		else
 		{
-			if( m_TouchJoyAimTapTime + time_freq() / 2 >= CurTime && Picker()->IsOpened() )
-			{
-				if( distance(ivec2(AimX, AimY), m_TouchJoyAimAnchor) < TOUCHJOY_AIM_DEAD_ZONE / 2 )
-				{
-					m_InputData.m_Jump = 1;
-					Picker()->ClosePicker();
-				}
-				else
-				{
-					this->Picker()->OnMouseMove((AimX - m_TouchJoyAimAnchor.x) * joypos.w / 32767, (AimY - m_TouchJoyAimAnchor.y) * joypos.h / 32767);
-					m_TouchJoyWeaponSelected = true;
-					m_WeaponIdxOutOfAmmo = -1;
-				}
-			}
+			m_TouchJoyRightJumpPressed = false;
 		}
 		m_TouchJoyAimPressed = AimPressed;
-		m_TouchJoyAimAnchor = ivec2(AimX, AimY);
 		m_TouchJoyAimTapTime = CurTime;
 	}
 
@@ -511,13 +508,11 @@ void CControls::TouchscreenInput()
 		m_MousePos = vec2(AimX - m_TouchJoyAimAnchor.x, AimY - m_TouchJoyAimAnchor.y) / 30;
 		ClampMousePos();
 		if( m_TouchJoyAimTapTime + time_freq() * 11 / 10 < CurTime )
-			m_InputData.m_Jump = 0; // Disengage jetpack in 1 second after use
-		if( m_TouchJoyAimTapTime != CurTime )
-			Picker()->ClosePicker(); // We need to call onRender() after setting picker coordinates, so call it in another frame
+			m_TouchJoyRightJumpPressed = false; // Disengage jetpack in 1 second after use
 	}
 
-	if( !AimPressed && m_TouchJoyAimTapTime + time_freq() / 2 < CurTime )
-		Picker()->ClosePicker();
+	if( m_TouchJoyLeftJumpPressed != oldTouchJoyLeftJump || m_TouchJoyRightJumpPressed != oldTouchJoyRightJump )
+		m_InputData.m_Jump = (m_TouchJoyLeftJumpPressed || m_TouchJoyRightJumpPressed);
 
 	bool FirePressed = distance(ivec2(AimX, AimY), m_TouchJoyAimAnchor) > TOUCHJOY_AIM_DEAD_ZONE;
 
@@ -528,8 +523,8 @@ void CControls::TouchscreenInput()
 		m_TouchJoyFirePressed = FirePressed;
 	}
 
-	if (RunPressed)
-		m_TouchJoyRunLastPos = ivec2(RunX, RunY);
+	//if (RunPressed)
+	//	m_TouchJoyRunLastPos = ivec2(RunX, RunY);
 	if (AimPressed)
 		m_TouchJoyAimLastPos = ivec2(AimX, AimY);
 }
