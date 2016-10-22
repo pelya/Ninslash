@@ -439,20 +439,6 @@ void CControls::TouchscreenInput()
 		m_InputDirectionLeft = (RunX - m_TouchJoyRunAnchor.x < -TOUCHJOY_DEAD_ZONE);
 		m_InputDirectionRight = (RunX - m_TouchJoyRunAnchor.x > TOUCHJOY_DEAD_ZONE);
 		m_InputData.m_Down = (RunY - m_TouchJoyRunAnchor.y > TOUCHJOY_DEAD_ZONE * 3);
-		// Change your facing direction if not aiming
-		if( !AimPressed )
-		{
-			if( m_InputDirectionRight && m_MousePos.x <= 0 )
-			{
-				m_MousePos.x = 200;
-				m_MousePos.y = 20;
-			}
-			if( m_InputDirectionLeft && m_MousePos.x >= 0 )
-			{
-				m_MousePos.x = -200;
-				m_MousePos.y = 20;
-			}
-		}
 		// Activate run-assist jetpack if we slide finger up
 		/*
 		if( RunY - m_TouchJoyRunAnchor.y < -TOUCHJOY_DEAD_ZONE * 3 )
@@ -465,6 +451,20 @@ void CControls::TouchscreenInput()
 			m_InputData.m_Hook = 1;
 		else
 			m_InputData.m_Hook = 0;
+		// Change your facing direction if not aiming
+		if( !AimPressed )
+		{
+			if( m_InputDirectionRight && (m_MousePos.x <= 0 || m_InputData.m_Hook) )
+			{
+				m_MousePos.x = 200;
+				m_MousePos.y = -11;
+			}
+			if( m_InputDirectionLeft && (m_MousePos.x >= 0 || m_InputData.m_Hook) )
+			{
+				m_MousePos.x = -200;
+				m_MousePos.y = -11;
+			}
+		}
 		// Move the anchor if we move the finger too much
 		if( m_TouchJoyRunAnchor.x - RunX < -TOUCHJOY_DEAD_ZONE * 5 )
 			m_TouchJoyRunAnchor.x = RunX - TOUCHJOY_DEAD_ZONE * 5;
@@ -481,6 +481,7 @@ void CControls::TouchscreenInput()
 	{
 		m_InputDirectionLeft = 0;
 		m_InputDirectionRight = 0;
+		m_InputData.m_Down = 0;
 	}
 
 	// Process right joystick
