@@ -1838,8 +1838,9 @@ char str_uppercase(char c)
 	return c;
 }
 
+
 int str_toint(const char *str) { return atoi(str); }
-float str_tofloat(const char *str) { return atof(str); }
+float str_tofloat(const char *str) { return (strtod(str, NULL)); }
 
 
 const char *str_utf8_skip_whitespaces(const char *str)
