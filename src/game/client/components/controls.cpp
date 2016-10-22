@@ -442,10 +442,11 @@ void CControls::TouchscreenInput()
 		// Change your facing direction if not aiming
 		if( !AimPressed )
 		{
-			if( m_MousePos.x == 0 )
-				m_MousePos.x = 1;
-			if( (m_MousePos.x < 0 && m_InputDirectionRight) || (m_MousePos.x > 0 && m_InputDirectionLeft) )
-				m_MousePos.x = -m_MousePos.x;
+			m_MousePos.y = 0;
+			if( m_InputDirectionRight )
+				m_MousePos.x = 100;
+			if( m_InputDirectionLeft )
+				m_MousePos.x = -100;
 		}
 		// Activate run-assist jetpack if we slide finger up
 		/*
@@ -455,15 +456,15 @@ void CControls::TouchscreenInput()
 			m_InputData.m_Hook = 0;
 		*/
 		// Activate run-assist jetpack if we slide finger even more
-		if( m_TouchJoyRunAnchor.x - RunX < -TOUCHJOY_DEAD_ZONE * 3 || m_TouchJoyRunAnchor.x - RunX > TOUCHJOY_DEAD_ZONE * 3 )
+		if( m_TouchJoyRunAnchor.x - RunX < -TOUCHJOY_DEAD_ZONE * 4 || m_TouchJoyRunAnchor.x - RunX > TOUCHJOY_DEAD_ZONE * 4 )
 			m_InputData.m_Hook = 1;
 		else
 			m_InputData.m_Hook = 0;
 		// Move the anchor if we move the finger too much
-		if( m_TouchJoyRunAnchor.x - RunX < -TOUCHJOY_DEAD_ZONE * 4 )
-			m_TouchJoyRunAnchor.x = RunX - TOUCHJOY_DEAD_ZONE * 4;
-		if( m_TouchJoyRunAnchor.x - RunX > TOUCHJOY_DEAD_ZONE * 4 )
-			m_TouchJoyRunAnchor.x = RunX + TOUCHJOY_DEAD_ZONE * 4;
+		if( m_TouchJoyRunAnchor.x - RunX < -TOUCHJOY_DEAD_ZONE * 5 )
+			m_TouchJoyRunAnchor.x = RunX - TOUCHJOY_DEAD_ZONE * 5;
+		if( m_TouchJoyRunAnchor.x - RunX > TOUCHJOY_DEAD_ZONE * 5 )
+			m_TouchJoyRunAnchor.x = RunX + TOUCHJOY_DEAD_ZONE * 5;
 		if( m_TouchJoyRunTapTime + time_freq() * 11 / 10 < CurTime )
 			m_TouchJoyLeftJumpPressed = false;
 	}
@@ -514,7 +515,7 @@ void CControls::TouchscreenInput()
 	if( m_TouchJoyLeftJumpPressed != oldTouchJoyLeftJump || m_TouchJoyRightJumpPressed != oldTouchJoyRightJump )
 		m_InputData.m_Jump = (m_TouchJoyLeftJumpPressed || m_TouchJoyRightJumpPressed);
 
-	bool FirePressed = distance(ivec2(AimX, AimY), m_TouchJoyAimAnchor) > TOUCHJOY_AIM_DEAD_ZONE;
+	bool FirePressed = AimPressed && distance(ivec2(AimX, AimY), m_TouchJoyAimAnchor) > TOUCHJOY_AIM_DEAD_ZONE;
 
 	if( FirePressed != m_TouchJoyFirePressed )
 	{
