@@ -26,7 +26,7 @@
 // Android constants
 enum {	LEFT_JOYSTICK_X = 0, LEFT_JOYSTICK_Y = 1,
 		RIGHT_JOYSTICK_X = 2, RIGHT_JOYSTICK_Y = 3,
-		SECOND_RIGHT_JOYSTICK_X = 20, SECOND_RIGHT_JOYSTICK_Y = 21,
+		TOP_JOYSTICK_X = 20, TOP_JOYSTICK_Y = 21,
 		ORIENTATION_X = 8, ORIENTATION_Y = 9, ORIENTATION_Z = 10,
 		ACCELEROMETER_X = 0, ACCELEROMETER_Y = 1,
 		NUM_JOYSTICK_AXES = 22 };
@@ -82,6 +82,7 @@ void CControls::OnReset()
 	m_TouchJoyFirePressed = false;
 	m_TouchJoyLeftJumpPressed = false;
 	m_TouchJoyRightJumpPressed = false;
+	m_TouchJoyWeaponbarPressed = false;
 	m_WeaponIdxOutOfAmmo = -1;
 	m_OldMouseX = m_OldMouseY = 0.0f;
 }
@@ -362,11 +363,6 @@ void CControls::AutoswitchWeaponsOutOfAmmo()
 	if( ! m_pClient->m_Snap.m_pLocalCharacter )
 		return;
 
-#if !defined(__ANDROID__)
-	if( Picker()->IsOpened() )
-		m_WeaponIdxOutOfAmmo = -1;
-#endif
-
 	if( m_InputData.m_Fire % 2 != 0 &&
 		m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount == 0 &&
 		m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_HAMMER &&
@@ -394,8 +390,77 @@ void CControls::AutoswitchWeaponsOutOfAmmo()
 }
 
 #if defined(__ANDROID__)
+void CControls::GamepadInput()
+{
+	enum {
+		GAMEPAD_DEAD_ZONE = 65536 / 8,
+	};
+
+	// Get input from left joystick
+	int RunX = SDL_JoystickGetAxis(m_Gamepad, LEFT_JOYSTICK_X);
+	int RunY = SDL_JoystickGetAxis(m_Gamepad, LEFT_JOYSTICK_Y);
+	if( m_UsingGamepad )
+	{
+		//m_InputDirectionLeft = (RunX < -GAMEPAD_DEAD_ZONE);
+		//m_InputDirectionRight = (RunX > GAMEPAD_DEAD_ZONE);
+		static int OldRunX = 0, OldRunY = 0;
+		if( RunX < -GAMEPAD_DEAD_ZONE && OldRunX >= -GAMEPAD_DEAD_ZONE )
+			m_InputDirectionLeft = 1;
+		if( RunX >= -GAMEPAD_DEAD_ZONE && OldRunX < -GAMEPAD_DEAD_ZONE )
+			m_InputDirectionLeft = 0;
+		if( RunX > GAMEPAD_DEAD_ZONE && OldRunX <= GAMEPAD_DEAD_ZONE )
+			m_InputDirectionRight = 1;
+		if( RunX <= GAMEPAD_DEAD_ZONE && OldRunX > GAMEPAD_DEAD_ZONE )
+			m_InputDirectionRight = 0;
+		OldRunX = RunX;
+		OldRunY = RunY;
+	}
+
+	// Get input from right joystick
+	int AimX = SDL_JoystickGetAxis(m_Gamepad, RIGHT_JOYSTICK_X);
+	int AimY = SDL_JoystickGetAxis(m_Gamepad, RIGHT_JOYSTICK_Y);
+	if( abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE )
+	{
+		m_MousePos = vec2(AimX / 30, AimY / 30);
+		ClampMousePos();
+	}
+
+	if( !m_UsingGamepad && (abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE ||
+		abs(RunX) > GAMEPAD_DEAD_ZONE || abs(RunY) > GAMEPAD_DEAD_ZONE || (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT))) )
+	{
+		UI()->AndroidShowScreenKeys(false);
+		m_UsingGamepad = true;
+	}
+}
+
+void CControls::WeaponBarInput()
+{
+	// Get input from the top joystick
+	int TopX = SDL_JoystickGetAxis(m_TouchJoy, TOP_JOYSTICK_X);
+	int TopY = SDL_JoystickGetAxis(m_TouchJoy, TOP_JOYSTICK_Y);
+	bool TopPressed = (TopX != 0 || TopY != 0);
+
+	if (TopPressed)
+	{
+		if (m_pClient->->Weaponbar()->OnFingerTouch(vec2((TopX + 32768) / 65536.0f, (TopY + 32768) / 65536.0f)))
+			m_WeaponIdxOutOfAmmo = -1;
+	}
+
+	if (TopPressed != m_TouchJoyWeaponbarPressed)
+	{
+		m_TouchJoyWeaponbarPressed = TopPressed;
+		if (!TopPressed)
+		{
+			if (m_pClient->->Weaponbar()->OnFingerRelease())
+				m_WeaponIdxOutOfAmmo = -1;
+		}
+	}
+}
+
 void CControls::TouchscreenInput()
 {
+	WeaponBarInput();
+
 	enum {
 		TOUCHJOY_DEAD_ZONE = 65536 / 20,
 		TOUCHJOY_AIM_DEAD_ZONE = 65536 / 10,
@@ -535,49 +600,4 @@ void CControls::TouchscreenInput()
 	if (AimPressed)
 		m_TouchJoyAimLastPos = ivec2(AimX, AimY);
 }
-
-void CControls::GamepadInput()
-{
-	enum {
-		GAMEPAD_DEAD_ZONE = 65536 / 8,
-	};
-
-	// Get input from left joystick
-	int RunX = SDL_JoystickGetAxis(m_Gamepad, LEFT_JOYSTICK_X);
-	int RunY = SDL_JoystickGetAxis(m_Gamepad, LEFT_JOYSTICK_Y);
-	if( m_UsingGamepad )
-	{
-		//m_InputDirectionLeft = (RunX < -GAMEPAD_DEAD_ZONE);
-		//m_InputDirectionRight = (RunX > GAMEPAD_DEAD_ZONE);
-		static int OldRunX = 0, OldRunY = 0;
-		if( RunX < -GAMEPAD_DEAD_ZONE && OldRunX >= -GAMEPAD_DEAD_ZONE )
-			m_InputDirectionLeft = 1;
-		if( RunX >= -GAMEPAD_DEAD_ZONE && OldRunX < -GAMEPAD_DEAD_ZONE )
-			m_InputDirectionLeft = 0;
-		if( RunX > GAMEPAD_DEAD_ZONE && OldRunX <= GAMEPAD_DEAD_ZONE )
-			m_InputDirectionRight = 1;
-		if( RunX <= GAMEPAD_DEAD_ZONE && OldRunX > GAMEPAD_DEAD_ZONE )
-			m_InputDirectionRight = 0;
-		OldRunX = RunX;
-		OldRunY = RunY;
-	}
-
-	// Get input from right joystick
-	int AimX = SDL_JoystickGetAxis(m_Gamepad, RIGHT_JOYSTICK_X);
-	int AimY = SDL_JoystickGetAxis(m_Gamepad, RIGHT_JOYSTICK_Y);
-	if( abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE )
-	{
-		m_MousePos = vec2(AimX / 30, AimY / 30);
-		ClampMousePos();
-	}
-
-	if( !m_UsingGamepad && (abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE ||
-		abs(RunX) > GAMEPAD_DEAD_ZONE || abs(RunY) > GAMEPAD_DEAD_ZONE || (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT))) )
-	{
-		UI()->AndroidShowScreenKeys(false);
-		m_UsingGamepad = true;
-	}
-}
-
-
 #endif

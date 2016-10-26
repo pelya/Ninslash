@@ -37,6 +37,8 @@ public:
 	bool m_TouchJoyLeftJumpPressed;
 	bool m_TouchJoyRightJumpPressed;
 
+	bool m_TouchJoyWeaponbarPressed;
+
 	int m_WeaponIdxOutOfAmmo;
 
 	SDL_Joystick *m_Gamepad;

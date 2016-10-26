@@ -11,6 +11,7 @@
 #include "render.h"
 
 class CPicker;
+class CWeaponbar;
 
 class CGameClient : public IGameClient
 {
@@ -51,6 +52,7 @@ class CGameClient : public IGameClient
 	class CCustomStuff *m_pCustomStuff;
 	class CSkelebank *m_pSkelebank;
 	class CPicker *m_pPicker;
+	class CWeaponbar *m_pWeaponbar;
 
 	CLayers m_Layers;
 	class CCollision m_Collision;
@@ -95,6 +97,7 @@ public:
 	class CSkelebank *Skelebank() { return m_pSkelebank; }
 
 	class CPicker *Picker() { return m_pPicker; }
+	class CWeaponbar *Weaponbar() { return m_pWeaponbar; }
 
 	int NetobjNumCorrections() { return m_NetObjHandler.NumObjCorrections(); }
 	const char *NetobjCorrectedOn() { return m_NetObjHandler.CorrectedObjOn(); }

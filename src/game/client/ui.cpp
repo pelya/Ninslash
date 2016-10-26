@@ -84,16 +84,13 @@ static void AndroidScreenKeysTwoJoysticks(SDL_Rect Buttons[], int ScreenW, int S
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y =
 		ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].h;
 
+	// Third joystick is a weapon selection bar, plus the scores/chat button
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].w = ScreenW;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].h = ScreenH * 0.2;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].x = 0;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].y = 0;
+
 	/*
-	// Hook button above right joystick
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].w =
-		ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x -
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].w;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].x =
-		ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].w;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].y =
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y -
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].h * 0.5;
 	// Fire button to the left of the right joystick
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].h =
 		ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y -
