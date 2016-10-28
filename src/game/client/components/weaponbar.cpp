@@ -13,6 +13,7 @@
 
 
 #include <game/client/components/sounds.h>
+#include <game/client/components/scoreboard.h>
 #include "weaponbar.h"
 
 CWeaponbar::CWeaponbar()
@@ -27,6 +28,7 @@ void CWeaponbar::OnReset()
 	m_InitialPos = vec2(0,0);
 	m_CanDrop = true;
 	m_LastPicked = -1;
+	m_ScoreboardShown = false;
 }
 
 void CWeaponbar::OnRelease()
@@ -112,5 +114,17 @@ void CWeaponbar::OnRender()
 
 	Graphics()->QuadsEnd();
 
+	if (m_Touching && m_Pos.x < Screen.w * 0.3f)
+	{
+		if (!m_ScoreboardShown)
+			m_pClient->m_pScoreboard->Show(true); //Console()->ExecuteLine("+scoreboard");
+		m_ScoreboardShown = true;
+	}
+	else
+	{
+		if (m_ScoreboardShown)
+			m_pClient->m_pScoreboard->Show(false);  //Console()->ExecuteLine("-scoreboard");
+		m_ScoreboardShown = false;
+	}
 	// TODO: mines, build tools
 }

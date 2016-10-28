@@ -11,6 +11,7 @@ class CWeaponbar : public CComponent
 	vec2 m_Pos;
 	int m_LastPicked;
 	bool m_CanDrop;
+	bool m_ScoreboardShown;
 
 public:
 	CWeaponbar();

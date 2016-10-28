@@ -30,6 +30,10 @@ void CHud::OnReset()
 
 void CScoreboard::RenderGameTimer()
 {
+	int Width = 300.0f*Graphics()->ScreenAspect();
+	int Height = 300.0f;
+	Graphics()->MapScreen(0.0f, 0.0f, Width, Height);
+
 	float Half = 300.0f*Graphics()->ScreenAspect()/2.0f;
 
 	if(!(m_pClient->m_Snap.m_pGameInfoObj->m_GameStateFlags&GAMESTATEFLAG_SUDDENDEATH))
@@ -523,7 +527,6 @@ void CHud::RenderHealthAndAmmo(const CNetObj_Character *pCharacter)
 	
 	
 	y += 16;
-	
 	// render selected weapons
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_WEAPONS].m_Id);
 	Graphics()->QuadsBegin();
@@ -532,7 +535,9 @@ void CHud::RenderHealthAndAmmo(const CNetObj_Character *pCharacter)
 	Graphics()->SetColor(1, 1, 1, 0.5f);
 	if (pCharacter->m_SelectedGroup == 0)
 		Graphics()->SetColor(1, 1, 1, 1);
-	
+#if defined(__ANDROID__)
+	x += 16 + 40 + 40;
+#else
 	x += 16;
 	
 	if (pCharacter->m_WeaponGroup1 > 0)
@@ -564,7 +569,7 @@ void CHud::RenderHealthAndAmmo(const CNetObj_Character *pCharacter)
 		
 	RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[WEAPON_TOOL].m_pSpriteBody);
 	RenderTools()->DrawSprite(x, y, g_pData->m_Weapons.m_aId[WEAPON_TOOL].m_VisualSize * Size);
-	
+#endif
 	CustomStuff()->m_SelectedGroup = pCharacter->m_SelectedGroup+1;
 	
 	// weapon pickup effect

@@ -420,6 +420,11 @@ bool CScoreboard::Active()
 	return false;
 }
 
+void CScoreboard::Show(bool show)
+{
+	m_Active = show;
+}
+
 const char *CScoreboard::GetClanName(int Team)
 {
 	int ClanPlayers = 0;
