@@ -114,7 +114,7 @@ void CWeaponbar::OnRender()
 
 	Graphics()->QuadsEnd();
 
-	if (m_Touching && m_Pos.x < Screen.w * 0.3f)
+	if (m_Touching && m_Pos.x < Screen.w * 0.25f)
 	{
 		if (!m_ScoreboardShown)
 			m_pClient->m_pScoreboard->Show(true); //Console()->ExecuteLine("+scoreboard");
