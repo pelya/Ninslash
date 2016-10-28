@@ -19,8 +19,8 @@ public:
 	virtual void OnRender();
 	virtual void OnRelease();
 
-	bool OnFingerTouch(vec2 posNormalized);
-	bool OnFingerRelease();
+	void OnFingerTouch(vec2 posNormalized);
+	void OnFingerRelease();
 
 	int ScreenToWeapon(float pos, float width) const;
 };

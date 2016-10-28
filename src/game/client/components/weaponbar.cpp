@@ -25,8 +25,8 @@ void CWeaponbar::OnReset()
 	m_Touching = false;
 	m_Pos = vec2(0,0);
 	m_InitialPos = vec2(0,0);
-	m_LastPicked = -1;
 	m_CanDrop = true;
+	m_LastPicked = -1;
 }
 
 void CWeaponbar::OnRelease()
@@ -34,57 +34,23 @@ void CWeaponbar::OnRelease()
 	OnReset();
 }
 
-bool CWeaponbar::OnFingerTouch(vec2 pos)
+void CWeaponbar::OnFingerTouch(vec2 posNormalized)
 {
-	bool ret = false;
+	CUIRect Screen = *UI()->Screen();
+	posNormalized.x *= Screen.w;
 	if (!m_Touching)
-		m_InitialPos = pos;
+		m_InitialPos = posNormalized;
 	m_Touching = true;
-	m_Pos = pos;
-	int weapon = ScreenToWeapon(pos.x, 1.0f);
-	if (weapon >= 0 && weapon != m_LastPicked)
-	{
-		char aBuf[32];
-		str_format(aBuf, sizeof(aBuf), "weaponpick %d", weapon);
-		Console()->ExecuteLine(aBuf);
-		if (m_LastPicked > 0)
-			m_CanDrop = false;
-		m_LastPicked = weapon;
-		ret = true;
-	}
-	return ret;
+	m_Pos = posNormalized;
 }
 
-bool CWeaponbar::OnFingerRelease()
+void CWeaponbar::OnFingerRelease()
 {
-	bool ret = false;
-	if (m_CanDrop && m_LastPicked > 0 && absolute(m_InitialPos.y - m_Pos.y) > 0.6f)
-	{
+	if (m_CanDrop && absolute(m_InitialPos.y - m_Pos.y) > 0.4f)
 		Console()->ExecuteLine("+dropweapon");
-		ret = true;
-	}
 	m_Touching = false;
-	m_LastPicked = -1;
 	m_CanDrop = true;
-	return ret;
-}
-
-int CWeaponbar::ScreenToWeapon(float pos, float width) const
-{
-	pos = width - pos;
-	for (int i = 0, counter = 0; i < NUM_WEAPONS-1; i++)
-	{
-		int w = CustomStuff()->m_LocalWeapons;
-		if (!(w & (1<<(i+1))))
-			continue;
-		counter++;
-		float x = width * 0.55f * (NUM_WEAPONS - 2 - counter) / (NUM_WEAPONS - 2);
-		x += width * 0.45f;
-		x -= width / (NUM_WEAPONS - 2) / 4;
-		if (x > pos)
-			return i;
-	}
-	return -1;
+	m_LastPicked = -1;
 }
 
 void CWeaponbar::OnRender()
@@ -107,6 +73,7 @@ void CWeaponbar::OnRender()
 
 	int selected = m_pClient->m_Snap.m_pLocalCharacter ? m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS - 1 : -1;
 	int counter = 0;
+	bool changed = false;
 	for (int i = 0; i < NUM_WEAPONS-1; i++)
 	{
 		int w = CustomStuff()->m_LocalWeapons;
@@ -124,6 +91,18 @@ void CWeaponbar::OnRender()
 		{
 			pos.y *= 1.3f;
 			size = 0.7f;
+		}
+		if (m_Touching && m_Pos.x > pos.x - Screen.w / (NUM_WEAPONS - 2) / 4 && !changed)
+		{
+			changed = true;
+			if (selected != i && m_LastPicked != i)
+			{
+				char aBuf[32];
+				str_format(aBuf, sizeof(aBuf), "weaponpick %d", i);
+				Console()->ExecuteLine(aBuf);
+				m_CanDrop = false;
+				m_LastPicked = i;
+			}
 		}
 
 		RenderTools()->DrawSprite(pos.x, pos.y, g_pData->m_Weapons.m_aId[i+1].m_VisualSize * size);

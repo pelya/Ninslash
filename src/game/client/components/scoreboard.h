@@ -25,6 +25,7 @@ public:
 	virtual void OnRelease();
 
 	bool Active();
+	void RenderGameTimer();
 };
 
 #endif

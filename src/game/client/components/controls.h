@@ -11,6 +11,7 @@ typedef struct _SDL_Joystick SDL_Joystick;
 class CControls : public CComponent
 {
 	void TouchscreenInput();
+	void WeaponBarInput();
 	void GamepadInput();
 	void AutoswitchWeaponsOutOfAmmo();
 

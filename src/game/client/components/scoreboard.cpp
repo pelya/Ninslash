@@ -397,6 +397,7 @@ void CScoreboard::OnRender()
 	RenderGoals(Width/2-w/2, 150+760+10, w);
 	RenderSpectators(Width/2-w/2, 150+760+10+50+10, w);
 	RenderRecordingNotification((Width/7)*4);
+	RenderGameTimer();
 }
 
 bool CScoreboard::Active()

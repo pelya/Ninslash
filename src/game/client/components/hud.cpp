@@ -16,6 +16,7 @@
 #include "hud.h"
 #include "voting.h"
 #include "binds.h"
+#include "scoreboard.h"
 
 CHud::CHud()
 {
@@ -27,7 +28,7 @@ void CHud::OnReset()
 {
 }
 
-void CHud::RenderGameTimer()
+void CScoreboard::RenderGameTimer()
 {
 	float Half = 300.0f*Graphics()->ScreenAspect()/2.0f;
 
@@ -649,7 +650,7 @@ void CHud::OnRender()
 			RenderSpectatorHud();
 		}
 
-		RenderGameTimer();
+		//RenderGameTimer();
 		RenderPauseNotification();
 		RenderSuddenDeath();
 		RenderScoreHud();

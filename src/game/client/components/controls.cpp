@@ -9,6 +9,7 @@
 #include <game/client/gameclient.h>
 #include <game/client/component.h>
 #include <game/client/components/picker.h>
+#include <game/client/components/weaponbar.h>
 #include <game/client/components/chat.h>
 #include <game/client/components/menus.h>
 #include <game/client/components/scoreboard.h>
@@ -442,8 +443,7 @@ void CControls::WeaponBarInput()
 
 	if (TopPressed)
 	{
-		if (m_pClient->->Weaponbar()->OnFingerTouch(vec2((TopX + 32768) / 65536.0f, (TopY + 32768) / 65536.0f)))
-			m_WeaponIdxOutOfAmmo = -1;
+		m_pClient->Weaponbar()->OnFingerTouch(vec2((TopX + 32768) / 65536.0f, (TopY + 32768) / 65536.0f));
 	}
 
 	if (TopPressed != m_TouchJoyWeaponbarPressed)
@@ -451,8 +451,8 @@ void CControls::WeaponBarInput()
 		m_TouchJoyWeaponbarPressed = TopPressed;
 		if (!TopPressed)
 		{
-			if (m_pClient->->Weaponbar()->OnFingerRelease())
-				m_WeaponIdxOutOfAmmo = -1;
+			m_pClient->Weaponbar()->OnFingerRelease();
+			m_WeaponIdxOutOfAmmo = -1;
 		}
 	}
 }
