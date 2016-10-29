@@ -250,7 +250,7 @@ void CBuildings::RenderStand(const struct CNetObj_Building *pCurrent)
 		CustomStuff()->m_LocalWeapon != WEAPON_TOOL && CustomStuff()->m_LocalWeapon != WEAPON_HAMMER && CustomStuff()->m_LocalWeapon != WEAPON_GUN)
 	{
 		TextRender()->TextColor(0.2f, 0.7f, 0.2f, 1);
-		TextRender()->Text(0, pCurrent->m_X + 22, pCurrent->m_Y - 90, 32, m_pClient->m_pBinds->GetKey("+dropweapon"), -1);
+		TextRender()->Text(0, pCurrent->m_X + 22, pCurrent->m_Y - 90, 32, Localize("Drop weapon"), -1);
 		TextRender()->TextColor(1, 1, 1, 1);
 	}
 }
