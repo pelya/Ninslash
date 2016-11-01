@@ -22,7 +22,7 @@ CRegister::CRegister()
 	m_RegisterCount = 0;
 
 	mem_zero(m_aMasterserverInfo, sizeof(m_aMasterserverInfo));
-	m_RegisterRegisteredServer = -1;
+	m_RegisterUPNP = 0;
 }
 
 void CRegister::RegisterNewState(int State)
@@ -105,6 +105,7 @@ void CRegister::RegisterUpdate(int Nettype)
 	if(!g_Config.m_SvRegister)
 		return;
 
+	RegisterUPNP();
 	m_pMasterServer->Update();
 
 	if(m_RegisterState == REGISTERSTATE_START)
@@ -117,8 +118,6 @@ void CRegister::RegisterUpdate(int Nettype)
 	}
 	else if(m_RegisterState == REGISTERSTATE_UPDATE_ADDRS)
 	{
-		m_RegisterRegisteredServer = -1;
-
 		if(!m_pMasterServer->IsRefreshing())
 		{
 			int i;
@@ -165,47 +164,48 @@ void CRegister::RegisterUpdate(int Nettype)
 		if(Left == 0 || Now > m_RegisterStateStart+Freq*3)
 		{
 			// choose server
-			int Best = -1;
 			int i;
+			bool RegisteredCount = 0;
 			for(i = 0; i < IMasterServer::MAX_MASTERSERVERS; i++)
 			{
 				if(!m_aMasterserverInfo[i].m_Valid || m_aMasterserverInfo[i].m_Count == -1)
 					continue;
 
-				if(Best == -1 || m_aMasterserverInfo[i].m_Count < m_aMasterserverInfo[Best].m_Count)
-					Best = i;
+				char aBuf[256];
+				str_format(aBuf, sizeof(aBuf), "Sending heartbeats to '%s'", m_pMasterServer->GetName(i));
+				m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "register", aBuf);
+				m_aMasterserverInfo[i].m_LastSend = 0;
+				RegisterNewState(REGISTERSTATE_HEARTBEAT);
+				RegisteredCount++;
 			}
 
-			// server chosen
-			m_RegisterRegisteredServer = Best;
-			if(m_RegisterRegisteredServer == -1)
+			if(RegisteredCount == 0)
 			{
 				m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "register", "WARNING: No master servers. Retrying in 60 seconds");
 				RegisterNewState(REGISTERSTATE_ERROR);
-			}
-			else
-			{
-				char aBuf[256];
-				str_format(aBuf, sizeof(aBuf), "chose '%s' as master, sending heartbeats", m_pMasterServer->GetName(m_RegisterRegisteredServer));
-				m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "register", aBuf);
-				m_aMasterserverInfo[m_RegisterRegisteredServer].m_LastSend = 0;
-				RegisterNewState(REGISTERSTATE_HEARTBEAT);
 			}
 		}
 	}
 	else if(m_RegisterState == REGISTERSTATE_HEARTBEAT)
 	{
+		int i;
 		// check if we should send heartbeat
-		if(Now > m_aMasterserverInfo[m_RegisterRegisteredServer].m_LastSend+Freq*15)
+		for(i = 0; i < IMasterServer::MAX_MASTERSERVERS; i++)
 		{
-			m_aMasterserverInfo[m_RegisterRegisteredServer].m_LastSend = Now;
-			RegisterSendHeartbeat(m_aMasterserverInfo[m_RegisterRegisteredServer].m_Addr);
-		}
+			if(!m_aMasterserverInfo[i].m_Valid || m_aMasterserverInfo[i].m_Count == -1)
+				continue;
 
-		if(Now > m_RegisterStateStart+Freq*60)
-		{
-			m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "register", "WARNING: Master server is not responding, switching master");
-			RegisterNewState(REGISTERSTATE_START);
+			if(Now > m_aMasterserverInfo[i].m_LastSend+Freq*15)
+			{
+				m_aMasterserverInfo[i].m_LastSend = Now;
+				RegisterSendHeartbeat(m_aMasterserverInfo[i].m_Addr);
+			}
+
+			if(Now > m_RegisterStateStart+Freq*60)
+			{
+				m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "register", "WARNING: Master server is not responding, switching master");
+				RegisterNewState(REGISTERSTATE_START);
+			}
 		}
 	}
 	else if(m_RegisterState == REGISTERSTATE_REGISTERED)
@@ -286,4 +286,24 @@ int CRegister::RegisterProcessPacket(CNetChunk *pPacket)
 	}
 
 	return 0;
+}
+
+void CRegister::RegisterUPNP()
+{
+	int64 Now = time_get();
+	int64 Freq = time_freq();
+	if(Now > m_RegisterUPNP)
+	{
+		char cmd[1024];
+		m_RegisterUPNP = Now + Freq * 200;
+		unsigned short Port = g_Config.m_SvPort;
+		if(g_Config.m_SvExternalPort)
+			Port = g_Config.m_SvExternalPort;
+		const char *Bindir = getenv("APPDIR");
+		if(!Bindir)
+			Bindir = ".";
+		str_format(cmd, sizeof(cmd), "%s/upnpc -e Ninslash -a myself %d %d udp 300", Bindir, Port, Port);
+		m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "register", cmd);
+		system(cmd);
+	}
 }

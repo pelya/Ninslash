@@ -33,13 +33,15 @@ class CRegister
 	int m_RegisterCount;
 
 	CMasterserverInfo m_aMasterserverInfo[IMasterServer::MAX_MASTERSERVERS];
-	int m_RegisterRegisteredServer;
+	int64 m_RegisterUPNP;
 
 	void RegisterNewState(int State);
 	void RegisterSendFwcheckresponse(NETADDR *pAddr);
 	void RegisterSendHeartbeat(NETADDR Addr);
 	void RegisterSendCountRequest(NETADDR Addr);
 	void RegisterGotCount(struct CNetChunk *pChunk);
+
+	void RegisterUPNP();
 
 public:
 	CRegister();
