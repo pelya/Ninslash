@@ -35,7 +35,6 @@ public:
 	int64 m_TouchJoyAimTapTime;
 	bool m_TouchJoyFirePressed;
 
-	bool m_TouchJoyLeftJumpPressed;
 	bool m_TouchJoyRightJumpPressed;
 
 	bool m_TouchJoyWeaponbarPressed;

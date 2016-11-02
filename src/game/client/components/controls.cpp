@@ -81,7 +81,6 @@ void CControls::OnReset()
 	m_TouchJoyAimLastPos = ivec2(0,0);
 	m_TouchJoyAimTapTime = 0;
 	m_TouchJoyFirePressed = false;
-	m_TouchJoyLeftJumpPressed = false;
 	m_TouchJoyRightJumpPressed = false;
 	m_TouchJoyWeaponbarPressed = false;
 	m_WeaponIdxOutOfAmmo = -1;
@@ -473,10 +472,8 @@ void CControls::TouchscreenInput()
 	int RunY = SDL_JoystickGetAxis(m_TouchJoy, LEFT_JOYSTICK_Y);
 	bool RunPressed = (RunX != 0 || RunY != 0);
 	// Get input from the right joystick
-	int AimX = SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_X);
-	int AimY = SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_Y);
-	bool AimPressed = (AimX != 0 || AimY != 0);
-	bool oldTouchJoyLeftJump = m_TouchJoyLeftJumpPressed;
+	ivec2 AimPos = ivec2(SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_X), SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_Y));
+	bool AimPressed = (AimPos.x != 0 || AimPos.y != 0);
 	bool oldTouchJoyRightJump = m_TouchJoyRightJumpPressed;
 
 	// Process left joystick
@@ -485,14 +482,10 @@ void CControls::TouchscreenInput()
 		if( RunPressed )
 		{
 			// Tap to jetpack, and do not reset the anchor coordinates, if tapped under 500ms
-			if( m_TouchJoyRunTapTime + time_freq() / 2 > CurTime )
-				m_TouchJoyLeftJumpPressed = true;
-			else
-				m_TouchJoyRunAnchor = ivec2(RunX, RunY);
+			m_TouchJoyRunAnchor = ivec2(RunX, RunY);
 		}
 		else
 		{
-			m_TouchJoyLeftJumpPressed = false;
 			m_InputData.m_Hook = 0;
 		}
 		m_TouchJoyRunTapTime = CurTime;
@@ -535,8 +528,6 @@ void CControls::TouchscreenInput()
 			m_TouchJoyRunAnchor.x = RunX - TOUCHJOY_DEAD_ZONE * 5;
 		if( m_TouchJoyRunAnchor.x - RunX > TOUCHJOY_DEAD_ZONE * 5 )
 			m_TouchJoyRunAnchor.x = RunX + TOUCHJOY_DEAD_ZONE * 5;
-		if( m_TouchJoyRunTapTime + time_freq() * 11 / 10 < CurTime )
-			m_TouchJoyLeftJumpPressed = false;
 	}
 
 	//dbg_msg("controls", "");
@@ -552,8 +543,7 @@ void CControls::TouchscreenInput()
 	// Process right joystick
 	if( !AimPressed )
 	{
-		AimX = m_TouchJoyAimLastPos.x;
-		AimY = m_TouchJoyAimLastPos.y;
+		AimPos = m_TouchJoyAimLastPos;
 	}
 
 	if( AimPressed != m_TouchJoyAimPressed )
@@ -562,14 +552,15 @@ void CControls::TouchscreenInput()
 		SDL_ANDROID_GetScreenKeyboardButtonPos( SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2, &joypos );
 		if( AimPressed )
 		{
-			if( m_TouchJoyAimTapTime + time_freq() / 2 > CurTime )
+			if( m_TouchJoyAimTapTime + time_freq() / 2 > CurTime && distance(AimPos, m_TouchJoyAimLastPos) < TOUCHJOY_DEAD_ZONE )
 				m_TouchJoyRightJumpPressed = true;
-			else
-				m_TouchJoyAimAnchor = ivec2(AimX, AimY);
+			m_TouchJoyAimAnchor = AimPos;
 		}
 		else
 		{
 			m_TouchJoyRightJumpPressed = false;
+			if( m_TouchJoyAimTapTime + time_freq() / 4 > CurTime && distance(AimPos, m_TouchJoyAimAnchor) < TOUCHJOY_DEAD_ZONE )
+				m_TouchJoyRightJumpPressed = true;
 		}
 		m_TouchJoyAimPressed = AimPressed;
 		m_TouchJoyAimTapTime = CurTime;
@@ -577,16 +568,21 @@ void CControls::TouchscreenInput()
 
 	if( AimPressed )
 	{
-		m_MousePos = vec2(AimX - m_TouchJoyAimAnchor.x, AimY - m_TouchJoyAimAnchor.y) / 30;
+		m_MousePos = vec2(AimPos.x - m_TouchJoyAimAnchor.x, AimPos.y - m_TouchJoyAimAnchor.y) / 30;
 		ClampMousePos();
 		if( m_TouchJoyAimTapTime + time_freq() * 11 / 10 < CurTime )
 			m_TouchJoyRightJumpPressed = false; // Disengage jetpack in 1 second after use
 	}
+	else
+	{
+		if( m_TouchJoyAimTapTime != CurTime )
+			m_TouchJoyRightJumpPressed = false;
+	}
 
-	if( m_TouchJoyLeftJumpPressed != oldTouchJoyLeftJump || m_TouchJoyRightJumpPressed != oldTouchJoyRightJump )
-		m_InputData.m_Jump = (m_TouchJoyLeftJumpPressed || m_TouchJoyRightJumpPressed);
+	if( m_TouchJoyRightJumpPressed != oldTouchJoyRightJump )
+		m_InputData.m_Jump = m_TouchJoyRightJumpPressed;
 
-	bool FirePressed = AimPressed && distance(ivec2(AimX, AimY), m_TouchJoyAimAnchor) > TOUCHJOY_AIM_DEAD_ZONE;
+	bool FirePressed = AimPressed && distance(AimPos, m_TouchJoyAimAnchor) > TOUCHJOY_AIM_DEAD_ZONE;
 
 	if( FirePressed != m_TouchJoyFirePressed )
 	{
@@ -595,9 +591,7 @@ void CControls::TouchscreenInput()
 		m_TouchJoyFirePressed = FirePressed;
 	}
 
-	//if (RunPressed)
-	//	m_TouchJoyRunLastPos = ivec2(RunX, RunY);
 	if (AimPressed)
-		m_TouchJoyAimLastPos = ivec2(AimX, AimY);
+		m_TouchJoyAimLastPos = AimPos;
 }
 #endif
