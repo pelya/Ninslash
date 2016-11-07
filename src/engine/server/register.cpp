@@ -22,7 +22,7 @@ CRegister::CRegister()
 	m_RegisterCount = 0;
 
 	mem_zero(m_aMasterserverInfo, sizeof(m_aMasterserverInfo));
-	m_RegisterUPNP = 0;
+	m_UPNPThread = NULL;
 }
 
 void CRegister::RegisterNewState(int State)
@@ -105,7 +105,6 @@ void CRegister::RegisterUpdate(int Nettype)
 	if(!g_Config.m_SvRegister)
 		return;
 
-	RegisterUPNP();
 	m_pMasterServer->Update();
 
 	if(m_RegisterState == REGISTERSTATE_START)
@@ -115,6 +114,10 @@ void CRegister::RegisterUpdate(int Nettype)
 		RegisterNewState(REGISTERSTATE_UPDATE_ADDRS);
 		m_pMasterServer->RefreshAddresses(Nettype);
 		m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "register", "refreshing ip addresses");
+		if (m_UPNPThread == NULL)
+		{
+			m_UPNPThread = thread_init(&RegisterUPNPThread, NULL);
+		}
 	}
 	else if(m_RegisterState == REGISTERSTATE_UPDATE_ADDRS)
 	{
@@ -288,14 +291,16 @@ int CRegister::RegisterProcessPacket(CNetChunk *pPacket)
 	return 0;
 }
 
-void CRegister::RegisterUPNP()
+void CRegister::RegisterUPNPThread(void *)
 {
 	int64 Now = time_get();
 	int64 Freq = time_freq();
-	if(Now > m_RegisterUPNP)
+	int64 RegisterUPNP = 0;
+
+	if(Now > RegisterUPNP)
 	{
 		char cmd[1024];
-		m_RegisterUPNP = Now + Freq * 200;
+		RegisterUPNP = Now + Freq * 200;
 		unsigned short Port = g_Config.m_SvPort;
 		if(g_Config.m_SvExternalPort)
 			Port = g_Config.m_SvExternalPort;
@@ -303,7 +308,7 @@ void CRegister::RegisterUPNP()
 		if(!Bindir)
 			Bindir = ".";
 		str_format(cmd, sizeof(cmd), "%s/upnpc -e Ninslash -a myself %d %d udp 300", Bindir, Port, Port);
-		m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "register", cmd);
+		dbg_msg("Server", "UPNP register: %s\n", cmd);
 		system(cmd);
 	}
 }

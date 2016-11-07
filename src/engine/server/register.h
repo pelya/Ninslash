@@ -33,7 +33,7 @@ class CRegister
 	int m_RegisterCount;
 
 	CMasterserverInfo m_aMasterserverInfo[IMasterServer::MAX_MASTERSERVERS];
-	int64 m_RegisterUPNP;
+	void *m_UPNPThread;
 
 	void RegisterNewState(int State);
 	void RegisterSendFwcheckresponse(NETADDR *pAddr);
@@ -41,7 +41,7 @@ class CRegister
 	void RegisterSendCountRequest(NETADDR Addr);
 	void RegisterGotCount(struct CNetChunk *pChunk);
 
-	void RegisterUPNP();
+	static void RegisterUPNPThread(void *);
 
 public:
 	CRegister();
