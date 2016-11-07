@@ -514,12 +514,12 @@ void CControls::TouchscreenInput()
 		{
 			if( m_InputDirectionRight && (m_MousePos.x <= 0 || m_InputData.m_Hook) )
 			{
-				m_MousePos.x = 200;
+				m_MousePos.x = 100;
 				m_MousePos.y = -11;
 			}
 			if( m_InputDirectionLeft && (m_MousePos.x >= 0 || m_InputData.m_Hook) )
 			{
-				m_MousePos.x = -200;
+				m_MousePos.x = -100;
 				m_MousePos.y = -11;
 			}
 		}
@@ -532,8 +532,7 @@ void CControls::TouchscreenInput()
 
 	//dbg_msg("controls", "");
 
-	// Move 100ms in the same direction, to prevent speed drop when tapping
-	if( !RunPressed && m_TouchJoyRunTapTime + time_freq() / 10 < CurTime )
+	if( !RunPressed )
 	{
 		m_InputDirectionLeft = 0;
 		m_InputDirectionRight = 0;
@@ -552,7 +551,8 @@ void CControls::TouchscreenInput()
 		SDL_ANDROID_GetScreenKeyboardButtonPos( SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2, &joypos );
 		if( AimPressed )
 		{
-			if( m_TouchJoyAimTapTime + time_freq() / 2 > CurTime && distance(AimPos, m_TouchJoyAimLastPos) < TOUCHJOY_DEAD_ZONE )
+			if( (m_TouchJoyAimTapTime + time_freq() / 2 > CurTime || !m_pClient->m_PredictedChar.IsGrounded())
+				&& distance(AimPos, m_TouchJoyAimLastPos) < TOUCHJOY_DEAD_ZONE )
 				m_TouchJoyRightJumpPressed = true;
 			m_TouchJoyAimAnchor = AimPos;
 		}
@@ -568,7 +568,8 @@ void CControls::TouchscreenInput()
 
 	if( AimPressed )
 	{
-		m_MousePos = vec2(AimPos.x - m_TouchJoyAimAnchor.x, AimPos.y - m_TouchJoyAimAnchor.y) / 30;
+		if (distance(AimPos, m_TouchJoyAimAnchor) > TOUCHJOY_DEAD_ZONE / 5)
+			m_MousePos = vec2(AimPos.x - m_TouchJoyAimAnchor.x, AimPos.y - m_TouchJoyAimAnchor.y) / 30;
 		ClampMousePos();
 		if( m_TouchJoyAimTapTime + time_freq() * 11 / 10 < CurTime )
 			m_TouchJoyRightJumpPressed = false; // Disengage jetpack in 1 second after use
