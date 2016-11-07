@@ -551,9 +551,11 @@ void CControls::TouchscreenInput()
 		SDL_ANDROID_GetScreenKeyboardButtonPos( SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2, &joypos );
 		if( AimPressed )
 		{
-			if( (m_TouchJoyAimTapTime + time_freq() / 2 > CurTime || !m_pClient->m_PredictedChar.IsGrounded())
-				&& distance(AimPos, m_TouchJoyAimLastPos) < TOUCHJOY_DEAD_ZONE )
+			if( distance(AimPos, m_TouchJoyAimLastPos) < TOUCHJOY_DEAD_ZONE &&
+				(m_TouchJoyAimTapTime + time_freq() / 2 > CurTime || !m_pClient->m_PredictedChar.IsGrounded()) )
+			{
 				m_TouchJoyRightJumpPressed = true;
+			}
 			m_TouchJoyAimAnchor = AimPos;
 		}
 		else
