@@ -14,7 +14,7 @@ float rand(vec2 co){
 
 void main (void)
 {
-	float f = rand(vec2(gl_FragCoord.y/2.0, gl_FragCoord.x/2.0+rnd))*rand(vec2(gl_FragCoord.y/2.0, gl_FragCoord.x/2.0+rnd));
+	float f = rand(vec2(floor(gl_FragCoord.y/2.0), floor(gl_FragCoord.x/2.0)+rnd))*rand(vec2(floor(gl_FragCoord.y/2.0), floor(gl_FragCoord.x/2.0)+rnd));
 	lowp vec4 t = texture2D(texture, frag_texCoord.st);
 	float c1 = t.x + t.y + t.z;
 	c1 *= 3.0;
