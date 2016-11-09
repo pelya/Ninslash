@@ -22,6 +22,7 @@ class CHud : public CComponent
 	void RenderScoreHud();
 	void RenderSpectatorHud();
 	void RenderWarmupTimer();
+	void RenderTouchscreenButtons();
 
 	void MapscreenToGroup(float CenterX, float CenterY, struct CMapItemGroup *PGroup);
 public:

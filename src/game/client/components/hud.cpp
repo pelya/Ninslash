@@ -726,6 +726,29 @@ void CHud::RenderSpectatorHud()
 	TextRender()->Text(0, m_Width-174.0f, m_Height-13.0f, 8.0f, aBuf, -1);
 }
 
+void CHud::RenderTouchscreenButtons()
+{
+#if defined(__ANDROID__)
+	if( !m_pClient->m_pControls->m_TouchJoyAimPressed )
+	{
+		vec2 Screen = vec2(Graphics()->ScreenWidth(), Graphics()->ScreenHeight());
+		Graphics()->MapScreen(0, 0, Screen.x, Screen.y);
+		Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GUIBUTTONS].m_Id);
+		Graphics()->QuadsBegin();
+		Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+		RenderTools()->SelectSprite(SPRITE_GUIBUTTON_HOVER);
+		IGraphics::CQuadItem QuadItem(Screen.x * (0.5f + 0.5f * (m_pClient->m_pControls->m_TouchJoyAimLastPos.x + 32767) / 65536.0f),
+										Screen.y * (0.2f + 0.8f * (m_pClient->m_pControls->m_TouchJoyAimLastPos.y + 32767) / 65536.0f),
+										Screen.y * 0.1f, Screen.y * 0.1f);
+		Graphics()->QuadsDraw(&QuadItem, 1);
+		//RenderTools()->SelectSprite(SPRITE_GUIBUTTON_ON); // Debug
+		//IGraphics::CQuadItem QuadItem2(Screen.x / 2, Screen.y / 2, Screen.y * 0.1f, Screen.y * 0.1f);
+		//Graphics()->QuadsDrawTL(&QuadItem2, 1);
+		Graphics()->QuadsEnd();
+	}
+#endif
+}
+
 void CHud::OnRender()
 {
 	if(!m_pClient->m_Snap.m_pGameInfoObj)
@@ -758,4 +781,5 @@ void CHud::OnRender()
 		RenderVoting();
 	}
 	RenderCursor();
+	RenderTouchscreenButtons();
 }

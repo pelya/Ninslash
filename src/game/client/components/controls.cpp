@@ -87,7 +87,7 @@ void CControls::OnReset()
 	//m_TouchJoyRunLastPos = ivec2(0,0);
 	m_TouchJoyAimPressed = false;
 	m_TouchJoyAimAnchor = ivec2(0,0);
-	m_TouchJoyAimLastPos = ivec2(0,0);
+	m_TouchJoyAimLastPos = ivec2(20000,20000);
 	m_TouchJoyAimTapTime = 0;
 	m_TouchJoyFirePressed = false;
 	m_TouchJoyRightJumpPressed = false;
@@ -675,8 +675,7 @@ void CControls::TouchscreenInput()
 		SDL_ANDROID_GetScreenKeyboardButtonPos( SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2, &joypos );
 		if( AimPressed )
 		{
-			if( distance(AimPos, m_TouchJoyAimLastPos) < TOUCHJOY_DEAD_ZONE &&
-				(m_TouchJoyAimTapTime + time_freq() / 2 > CurTime || !m_pClient->m_PredictedChar.IsGrounded()) )
+			if( distance(AimPos, m_TouchJoyAimLastPos) < TOUCHJOY_DEAD_ZONE * 2 )
 			{
 				m_TouchJoyRightJumpPressed = true;
 			}
@@ -694,7 +693,7 @@ void CControls::TouchscreenInput()
 
 	if( AimPressed )
 	{
-		if (distance(AimPos, m_TouchJoyAimAnchor) > TOUCHJOY_DEAD_ZONE / 5)
+		if (distance(AimPos, m_TouchJoyAimAnchor) > TOUCHJOY_DEAD_ZONE / 3)
 			m_MousePos = vec2(AimPos.x - m_TouchJoyAimAnchor.x, AimPos.y - m_TouchJoyAimAnchor.y) / 30;
 		ClampMousePos();
 		if( m_TouchJoyAimTapTime + time_freq() * 11 / 10 < CurTime )

@@ -11,9 +11,9 @@ varying lowp vec4 frag_color;
 void main (void)
 {
 	lowp vec4 c = texture2D(texture, frag_texCoord);
-	mediump float s = (c.r + c.g + c.b) / 3.0f;
+	mediump float s = (c.r + c.g + c.b) / 3.0;
 	
-	s = (s + (1.0f - intensity) + s * intensity) / 2.0f;
+	s = (s + (1.0 - intensity) + s * intensity) / 2.0;
 	
 	gl_FragColor = vec4(s, s, s, c.a) * frag_color;
 }
