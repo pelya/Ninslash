@@ -95,14 +95,17 @@ void CAItexas::DoBehavior()
 	
 	if (UpdateWaypoint())
 	{
-		MoveTowardsWaypoint(20);
+		MoveTowardsWaypoint();
 	}
 	else
 	{
-		m_Hook = 0;
+		m_WaypointPos = m_TargetPos;
+		MoveTowardsWaypoint(true);
 	}
 	
 	RandomlyStopShooting();
+	
+	Build();
 	
 	// next reaction in
 	m_ReactionTime = 1 + frandom()*2;
