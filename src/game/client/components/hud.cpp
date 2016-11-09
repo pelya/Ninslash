@@ -606,6 +606,7 @@ void CHud::RenderHealthAndAmmo(const CNetObj_Character *pCharacter)
 		m_pClient->m_pControls->m_SignalWeapon = -1;
 	}
 	
+#if !defined(__ANDROID__)
 	for (int i = 1; i < NUM_WEAPONS; i++)
 	{
 		if (i != 1)
@@ -686,6 +687,7 @@ void CHud::RenderHealthAndAmmo(const CNetObj_Character *pCharacter)
 		
 		x += 40*Size;
 	}
+#endif
 
 	x = 150; y = 16;
 	
