@@ -12,7 +12,6 @@
 enum Pickers
 {
 	PICKER_WEAPON,
-	PICKER_ITEM,
 	PICKER_TOOL,
 	PICKER_EMOTICON,
 };
@@ -36,6 +35,8 @@ public:
 
 	int m_Picker;
 	int m_LocalTeam;
+	
+	int m_LatestWeapon;
 	
 	vec2 m_BuildPos;
 	bool m_BuildPosValid;

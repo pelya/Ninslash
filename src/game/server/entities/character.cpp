@@ -325,15 +325,15 @@ void CCharacter::DropWeapon()
 		
 		// remove the weapon from character
 		m_aWeapon[m_ActiveCustomWeapon].m_Got = false;
-		if (m_PrevWeapon >= 0 && m_PrevWeapon < NUM_CUSTOMWEAPONS)
+		if (m_PrevWeapon > 0 && m_PrevWeapon < NUM_CUSTOMWEAPONS)
 		{
 			if (m_aWeapon[m_PrevWeapon].m_Got)
 				SetCustomWeapon(m_PrevWeapon);
 			else
-				SetCustomWeapon(WEAPON_HAMMER);
+				SetCustomWeapon(W_HAMMER);
 		}
 		else
-			SetCustomWeapon(WEAPON_HAMMER);
+			SetCustomWeapon(W_HAMMER);
 		
 	}
 }
@@ -906,6 +906,7 @@ void CCharacter::GiveStartWeapon()
 	
 	GiveCustomWeapon(W_TOOL);
 	GiveCustomWeapon(W_HAMMER);
+	SetCustomWeapon(W_HAMMER);
 	//GiveCustomWeapon(W_PISTOL);
 	//SetCustomWeapon(W_PISTOL);
 	
