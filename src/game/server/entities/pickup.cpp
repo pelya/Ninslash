@@ -195,7 +195,7 @@ void CPickup::Tick()
 
 			// todo: clean and remove parent weapon type
 			case POWERUP_WEAPON:
-				if(m_Subtype >= 0 && m_Subtype < NUM_CUSTOMWEAPONS)
+				if(m_Subtype >= 0 && m_Subtype < NUM_WEAPONS)
 				{
 					/*
 					if (Parent < 0 || Parent >= NUM_WEAPONS)
@@ -302,7 +302,8 @@ void CPickup::TickPaused()
 
 void CPickup::Snap(int SnappingClient)
 {
-	if(m_SpawnTick != -1 || NetworkClipped(SnappingClient))
+	if(m_SpawnTick != -1 || NetworkClipped(SnappingClient) ||
+		(m_Type == POWERUP_WEAPON && !GameServer()->m_pController->CanSeePickup(SnappingClient, m_Type, m_Subtype))) // for gungame
 		return;
 
 	CNetObj_Pickup *pP = static_cast<CNetObj_Pickup *>(Server()->SnapNewItem(NETOBJTYPE_PICKUP, m_ID, sizeof(CNetObj_Pickup)));
@@ -313,7 +314,7 @@ void CPickup::Snap(int SnappingClient)
 	pP->m_Y = (int)m_Pos.y;
 	pP->m_Type = m_Type;
 	
-	if (m_Type == POWERUP_WEAPON && m_Subtype >= 0 && m_Subtype < NUM_CUSTOMWEAPONS)
+	if (m_Type == POWERUP_WEAPON && m_Subtype >= 0 && m_Subtype < NUM_WEAPONS)
 	{
 		//pP->m_Subtype = aCustomWeapon[m_Subtype].m_ParentWeapon;
 		pP->m_Subtype = m_Subtype;

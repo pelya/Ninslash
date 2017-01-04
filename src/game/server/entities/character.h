@@ -106,6 +106,7 @@ public:
 	bool AddKit();
 	
 	void SetHealth(int Health);
+	void RefillHealth();
 
 	void SetEmote(int Emote, int Tick);
 	void SetEmoteFor(int Emote, int Ticks, int LockEmote = 0, bool UseTime = true);
@@ -144,7 +145,7 @@ public:
 		bool m_Got;
 		bool m_Disabled;
 		bool m_Ready;
-	} m_aWeapon[NUM_CUSTOMWEAPONS];
+	} m_aWeapon[NUM_WEAPONS];
 	
 	bool AddClip(int Weapon = -1);
 	
@@ -184,6 +185,13 @@ public:
 	// next that shares a parent
 	int m_aNextWeapon[NUM_WEAPONS];
 
+	int m_Type;
+	
+	enum Types
+	{
+		PLAYER,
+		ROBOT
+	};
 	
 	bool SetLandmine();
 	bool SetElectromine();

@@ -56,12 +56,14 @@ protected:
 			m_Got = false;
 			m_FriendlyTeam = -1;
 			m_Pos = vec2(100,100);
+			m_Used = false;
 		}
 
 		vec2 m_Pos;
 		bool m_Got;
 		int m_FriendlyTeam;
 		float m_Score;
+		bool m_Used;
 	};
 
 	float EvaluateSpawnPos(CSpawnEval *pEval, vec2 Pos);
@@ -111,7 +113,11 @@ public:
 	const char *m_pGameType;
 
 	int CountPlayers(int Team = -1);
+	int CountBots();
 	
+	void TriggerSwitch(vec2 Pos);
+	
+	bool IsCoop() const;
 	bool IsTeamplay() const;
 	bool IsInfection() const;
 	bool IsGameOver() const { return m_GameOverTick != -1; }
@@ -169,6 +175,9 @@ public:
 	*/
 	virtual void OnCharacterSpawn(class CCharacter *pChr, bool RequestAI = false);
 	
+	
+	virtual bool GetSpawnPos(int Team, vec2 *pOutPos);
+	
 
 	/*
 		Function: on_CCharacter_death
@@ -187,6 +196,8 @@ public:
 	virtual int GetFlagState(int Team);
 	
 	virtual bool CanCharacterSpawn(int ClientID);
+	virtual bool CanSeePickup(int CID, int Type, int Subtype); // for gungame
+	virtual bool CanDropWeapon(class CCharacter *pCharacter);
 
 	virtual class CBomb *GetBomb();
 	virtual class CFlag *GetClosestBase(vec2 Pos, int Team = -1);
@@ -199,11 +210,13 @@ public:
 	virtual void OnPlayerInfoChange(class CPlayer *pP);
 
 	//
-	virtual bool CanSpawn(int Team, vec2 *pPos, int Bot = false);
+	virtual bool CanSpawn(int Team, vec2 *pPos, bool IsBot = false);
 
 	/*
 
 	*/
+	virtual int GetLockedWeapon(class CCharacter *pCharacter);
+	
 	virtual const char *GetTeamName(int Team);
 	virtual int GetAutoTeam(int NotThisID);
 	virtual bool CanJoinTeam(int Team, int NotThisID);
