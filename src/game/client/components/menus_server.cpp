@@ -67,7 +67,7 @@ static void StopServer()
 #endif
 }
 
-static void StartServer(const char *type, const char *map, int bots)
+static void StartServer(const char *type, const char *map, int bots, int buildings, int randomweapons)
 {
 	char aBuf[4096];
 	str_format(aBuf, sizeof(aBuf),
@@ -77,11 +77,10 @@ static void StartServer(const char *type, const char *map, int bots)
 		"sv_map %s\n"
 		"sv_maprotation %s\n"
 		"sv_preferredteamsize %d\n"
+		"sv_enablebuilding %d\n"
+		"sv_randomweapons %d\n"
 		"sv_scorelimit 0\n"
-		"sv_randomweapons 1\n"
-		"sv_vanillapickups 1\n"
-		"sv_weapondrops 1\n",
-		type, type, map, map, bots);
+		, type, type, map, map, bots, buildings, randomweapons);
 
 	FILE *ff = fopen("server.cfg", "wb");
 	if( !ff )
@@ -119,6 +118,8 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 {
 	static int s_map = 0;
 	static int s_bots = 5;
+	static int s_buildings = 0;
+	static int s_randomweapons = 1;
 
 	static int64 LastUpdateTime = 0;
 	static bool ServerRunning = false;
@@ -157,7 +158,7 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 
 	MainView.VSplitLeft(50, 0, &Button);
 	Button.h = 50;
-	Button.w = 200;
+	Button.w = 130;
 	static int s_StopServerButton = 0;
 	if( ServerRunning && DoButton_Menu(&s_StopServerButton, Localize("Stop server"), 0, &Button))
 	{
@@ -166,31 +167,53 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	}
 
 	static int s_StartDmServerButton = 0;
-	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartDmServerButton, Localize("Start DM server"), 0, &Button))
+	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartDmServerButton, Localize("DM server"), 0, &Button))
 	{
-		StartServer("dm", s_maplist[s_map].cstr(), s_bots);
+		StartServer("dm", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
 		ServerStarting = true;
 	}
 
-	MainView.VSplitLeft(300, 0, &Button);
+	MainView.VSplitLeft(200, 0, &Button);
 	Button.h = 50;
-	Button.w = 200;
+	Button.w = 130;
+	static int s_StartTdmServerButton = 0;
+	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartTdmServerButton, Localize("TDM server"), 0, &Button) )
+	{
+		StartServer("tdm", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
+		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
+		ServerStarting = true;
+	}
+
+	MainView.VSplitLeft(350, 0, &Button);
+	Button.h = 50;
+	Button.w = 130;
 	static int s_StartInfServerButton = 0;
-	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartInfServerButton, Localize("Start INF server"), 0, &Button) )
+	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartInfServerButton, Localize("INF server"), 0, &Button) )
 	{
-		StartServer("inf", s_maplist[s_map].cstr(), s_bots);
+		StartServer("inf", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
 		ServerStarting = true;
 	}
 
-	MainView.VSplitLeft(550, 0, &Button);
+	MainView.VSplitLeft(500, 0, &Button);
 	Button.h = 50;
-	Button.w = 200;
+	Button.w = 130;
 	static int s_StartCtfServerButton = 0;
-	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartCtfServerButton, Localize("Start CTF server"), 0, &Button) )
+	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartCtfServerButton, Localize("CTF server"), 0, &Button) )
 	{
-		StartServer("ctf", s_maplist[s_map].cstr(), s_bots);
+		StartServer("ctf", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
+		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
+		ServerStarting = true;
+	}
+
+	MainView.VSplitLeft(650, 0, &Button);
+	Button.h = 50;
+	Button.w = 130;
+	static int s_StartGunGameServerButton = 0;
+	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartGunGameServerButton, Localize("GunGame"), 0, &Button) )
+	{
+		StartServer("gun", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
 		ServerStarting = true;
 	}
@@ -216,6 +239,20 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	Button.w = 500;
 
 	s_bots = (int)(DoScrollbarH(&s_bots, &Button, s_bots/15.0f)*15.0f+0.1f);
+
+	MainView.HSplitTop(60, 0, &MainView);
+
+	MainView.VSplitLeft(50, 0, &Button);
+	Button.h = 50;
+	Button.w = 300;
+	if(DoButton_CheckBox(&s_buildings, Localize("Build turrets"), s_buildings != 0, &Button))
+		s_buildings ^= 1;
+
+	MainView.VSplitLeft(400, 0, &Button);
+	Button.h = 50;
+	Button.w = 300;
+	if(DoButton_CheckBox(&s_randomweapons, Localize("Start weapons"), s_randomweapons != 0, &Button))
+		s_randomweapons ^= 1;
 
 	MainView.HSplitTop(60, 0, &MainView);
 
