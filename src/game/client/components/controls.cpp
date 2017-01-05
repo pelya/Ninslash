@@ -211,13 +211,13 @@ void CControls::OnMessage(int Msg, void *pRawMsg)
 	if(Msg == NETMSGTYPE_SV_WEAPONPICKUP)
 	{
 		CNetMsg_Sv_WeaponPickup *pMsg = (CNetMsg_Sv_WeaponPickup *)pRawMsg;
-		
+		bool HaveOtherWeapons = (CustomStuff()->m_LocalWeapons & ~((1 << WEAPON_HAMMER) | (1 << WEAPON_TOOL)));
 		CustomStuff()->m_LocalWeapons |= 1 << (pMsg->m_Weapon);
 		CustomStuff()->m_WeaponpickTimer = 1.0f;
 		CustomStuff()->m_WeaponpickWeapon = pMsg->m_Weapon;
 		CustomStuff()->m_LastWeaponPicked = false;
 		m_WeaponIdxOutOfAmmo = -1;
-		if(g_Config.m_ClAutoswitchWeapons)
+		if(g_Config.m_ClAutoswitchWeapons || (g_Config.m_ClAutoswitchWeaponsOutOfAmmo && !HaveOtherWeapons))
 		{
 			/* old way using weapon groups
 			char aBuf[32];
