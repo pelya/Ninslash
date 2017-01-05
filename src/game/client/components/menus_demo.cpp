@@ -275,10 +275,17 @@ void CMenus::UiDoListboxStart(const void *pID, const CUIRect *pRect, float RowHe
 	UI()->DoLabel(&Header, pTitle, Header.h*ms_FontmodHeight, 0);
 
 	// draw footers
-	View.HSplitBottom(ms_ListheaderHeight, &View, &Footer);
-	RenderTools()->DrawUIRect(&Footer, vec4(1,1,1,0.25f), CUI::CORNER_B, 5.0f);
-	Footer.VSplitLeft(10.0f, 0, &Footer);
-	UI()->DoLabel(&Footer, pBottomText, Header.h*ms_FontmodHeight, 0);
+	if (pBottomText && pBottomText[0])
+	{
+		View.HSplitBottom(ms_ListheaderHeight, &View, &Footer);
+		RenderTools()->DrawUIRect(&Footer, vec4(1,1,1,0.25f), CUI::CORNER_B, 5.0f);
+		Footer.VSplitLeft(10.0f, 0, &Footer);
+		UI()->DoLabel(&Footer, pBottomText, Header.h*ms_FontmodHeight, 0);
+	}
+	else
+	{
+		View.h += Footer.h;
+	}
 
 	// background
 	RenderTools()->DrawUIRect(&View, vec4(0,0,0,0.15f), 0, 0);
