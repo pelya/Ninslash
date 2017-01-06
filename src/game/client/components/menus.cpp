@@ -428,6 +428,7 @@ float CMenus::DoScrollbarH(const void *pID, const CUIRect *pRect, float Current)
 	static float OffsetX;
 	pRect->VSplitLeft(33, &Handle, 0);
 
+	Handle.w = max(Handle.w, pRect->h);
 	Handle.x += (pRect->w-Handle.w)*Current;
 
 	// logic

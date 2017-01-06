@@ -232,9 +232,9 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 
 	char aBuf[64];
 	str_format(aBuf, sizeof(aBuf), "%s: %i", Localize("Bots"), s_bots);
-	UI()->DoLabelScaled(&MsgBox, aBuf, 20.0f, -1);
+	UI()->DoLabelScaled(&MsgBox, aBuf, 40.0f, -1);
 
-	MainView.VSplitLeft(150, 0, &Button);
+	MainView.VSplitLeft(250, 0, &Button);
 	Button.h = 50;
 	Button.w = 500;
 
