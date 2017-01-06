@@ -102,16 +102,16 @@ void CWeaponbar::OnRender()
 	Graphics()->QuadsBegin();
 	Graphics()->SetColor(1,1,1,1);
 
-	int selected = m_pClient->m_Snap.m_pLocalCharacter ? m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS - 1 : -1;
+	int selected = m_pClient->m_Snap.m_pLocalCharacter ? m_pClient->m_Snap.m_pLocalCharacter->m_Weapon % NUM_WEAPONS : -1;
 	int counter = 0;
 	bool changed = false;
-	for (int ii = 0, i = WeaponOrder[ii]; ii < NUM_WEAPONS-1; ii++, i = WeaponOrder[ii])
+	for (int ii = WEAPON_HAMMER, i = WeaponOrder[ii]; ii < NUM_WEAPONS; ii++, i = WeaponOrder[ii])
 	{
 		int w = CustomStuff()->m_LocalWeapons;
-		if (!(w & (1<<(i+1))))
+		if (!(w & (1<<i)))
 			continue;
 
-		RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[i+1].m_pSpriteBody);
+		RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[i].m_pSpriteBody);
 
 		float size = 0.6f;
 
@@ -136,7 +136,7 @@ void CWeaponbar::OnRender()
 			}
 		}
 
-		RenderTools()->DrawSprite(pos.x, pos.y, g_pData->m_Weapons.m_aId[i+1].m_VisualSize * size);
+		RenderTools()->DrawSprite(pos.x, pos.y, g_pData->m_Weapons.m_aId[i].m_VisualSize * size);
 
 		counter++;
 	}
