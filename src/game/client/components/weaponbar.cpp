@@ -5,8 +5,8 @@
 #include <game/generated/protocol.h>
 #include <game/generated/client_data.h>
 
-#include <game/gamecore.h> // get_angle
-#include <game/weapons.h> // get_angle
+#include <game/gamecore.h>
+#include <game/weapons.h>
 #include <game/client/ui.h>
 #include <game/client/render.h>
 #include <game/client/customstuff.h>

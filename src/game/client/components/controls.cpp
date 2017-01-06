@@ -6,6 +6,7 @@
 #include <engine/graphics.h>
 
 #include <game/collision.h>
+#include <game/weapons.h>
 #include <game/client/gameclient.h>
 #include <game/client/component.h>
 #include <game/client/components/picker.h>
@@ -490,7 +491,8 @@ void CControls::AutoswitchWeaponsOutOfAmmo()
 	if( m_InputData.m_Fire % 2 != 0 &&
 		m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount == 0 &&
 		m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_HAMMER &&
-		m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_TOOL )
+		m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_TOOL &&
+		aCustomWeapon[m_pClient->m_Snap.m_pLocalCharacter->m_Weapon].m_MaxAmmo > 0 )
 	{
 		if (m_WeaponIdxOutOfAmmo == -1)
 			m_WeaponIdxOutOfAmmo = NUM_WEAPONS - 1;
