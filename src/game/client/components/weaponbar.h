@@ -24,6 +24,8 @@ public:
 	void OnFingerRelease();
 
 	int ScreenToWeapon(float pos, float width) const;
+
+	static const int WeaponOrder[];
 };
 
 #endif

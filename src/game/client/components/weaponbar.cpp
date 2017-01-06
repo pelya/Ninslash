@@ -16,9 +16,38 @@
 #include <game/client/components/scoreboard.h>
 #include "weaponbar.h"
 
+/*
+const int CWeaponbar::WeaponOrder[] =
+{
+	0, //WEAPON_TOOL=0,
+	1, //WEAPON_HAMMER,
+	3, //WEAPON_SHOTGUN,
+	4, //WEAPON_RIFLE,
+	5, //WEAPON_LASER,
+	6, //WEAPON_ELECTRIC,
+	7, //WEAPON_GRENADE,
+	8, //WEAPON_FLAMER,
+	2, //WEAPON_CHAINSAW,
+};
+*/
+
+const int CWeaponbar::WeaponOrder[] =
+{
+	WEAPON_TOOL,
+	WEAPON_HAMMER,
+	WEAPON_CHAINSAW,
+	WEAPON_SHOTGUN,
+	WEAPON_RIFLE,
+	WEAPON_LASER,
+	WEAPON_ELECTRIC,
+	WEAPON_GRENADE,
+	WEAPON_FLAMER,
+};
+
 CWeaponbar::CWeaponbar()
 {
 	OnReset();
+	dbg_assert(sizeof(WeaponOrder) / sizeof(WeaponOrder[0]) == NUM_WEAPONS, "WeaponOrder array misses some weapons");
 }
 
 void CWeaponbar::OnReset()
@@ -76,7 +105,7 @@ void CWeaponbar::OnRender()
 	int selected = m_pClient->m_Snap.m_pLocalCharacter ? m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS - 1 : -1;
 	int counter = 0;
 	bool changed = false;
-	for (int i = 0; i < NUM_WEAPONS-1; i++)
+	for (int ii = 0, i = WeaponOrder[ii]; ii < NUM_WEAPONS-1; ii++, i = WeaponOrder[ii])
 	{
 		int w = CustomStuff()->m_LocalWeapons;
 		if (!(w & (1<<(i+1))))

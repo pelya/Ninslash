@@ -497,17 +497,17 @@ void CControls::AutoswitchWeaponsOutOfAmmo()
 		int w;
 		for( w = m_WeaponIdxOutOfAmmo; w > WEAPON_HAMMER; w-- )
 		{
-			if( w == m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
+			if( CWeaponbar::WeaponOrder[w] == m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
 				continue;
-			if( CustomStuff()->m_LocalWeapons & (1 << w) )
+			if( CustomStuff()->m_LocalWeapons & (1 << CWeaponbar::WeaponOrder[w]) )
 				break;
 		}
 		m_WeaponIdxOutOfAmmo = w;
 		//dbg_msg("controls", "Out of ammo - selected weapon %d current %d mask %x", w, m_pClient->m_Snap.m_pLocalCharacter->m_Weapon, CustomStuff()->m_LocalWeapons);
-		if( w != m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
+		if( CWeaponbar::WeaponOrder[w] != m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
 		{
 			char aBuf[32];
-			str_format(aBuf, sizeof(aBuf), "weaponpick %d", w - 1);
+			str_format(aBuf, sizeof(aBuf), "weaponpick %d", CWeaponbar::WeaponOrder[w] - 1);
 			Console()->ExecuteLine(aBuf);
 		}
 	}
