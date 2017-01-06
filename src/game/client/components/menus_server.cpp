@@ -80,7 +80,7 @@ static void StartServer(const char *type, const char *map, int bots, int buildin
 		"sv_enablebuilding %d\n"
 		"sv_randomweapons %d\n"
 		"sv_scorelimit 0\n"
-		, type, type, map, map, bots, buildings, randomweapons);
+		, type, type, map, map, bots + 1, buildings, randomweapons);
 
 	FILE *ff = fopen("server.cfg", "wb");
 	if( !ff )
