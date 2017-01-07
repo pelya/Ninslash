@@ -77,8 +77,9 @@ void CWeaponbar::OnFingerTouch(vec2 posNormalized)
 
 void CWeaponbar::OnFingerRelease()
 {
-	if (m_CanDrop && absolute(m_InitialPos.y - m_Pos.y) > 0.4f)
-		Console()->ExecuteLine("+dropweapon");
+	// Drop by sliding weapon bar up or down, disabled since we have a separate button
+	//if (m_CanDrop && absolute(m_InitialPos.y - m_Pos.y) > 0.4f)
+	//	Console()->ExecuteLine("+dropweapon");
 	m_Touching = false;
 	m_CanDrop = true;
 	m_LastPicked = -1;
@@ -98,6 +99,10 @@ void CWeaponbar::OnRender()
 
 	Graphics()->BlendNormal();
 
+	TextRender()->TextColor(0.3f, 0.3f, 0.3f, 1);
+	TextRender()->Text(0, Screen.w * 0.94f, Screen.h * 0.023f, 20, Localize("drop"), -1);
+	TextRender()->TextColor(1, 1, 1, 1);
+
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_WEAPONS].m_Id);
 	Graphics()->QuadsBegin();
 	Graphics()->SetColor(1,1,1,1);
@@ -115,23 +120,32 @@ void CWeaponbar::OnRender()
 
 		float size = 0.6f;
 
-		vec2 pos = vec2(Screen.w * 0.55f * (NUM_WEAPONS - 2 - counter) / (NUM_WEAPONS - 2), Screen.h * 0.05f);
-		pos.x += Screen.w * 0.45f;
-		pos.x -= Screen.w / (NUM_WEAPONS - 2) / 4;
+		vec2 pos = vec2(Screen.w * 0.50f * (NUM_WEAPONS - 2 - counter) / (NUM_WEAPONS - 2), Screen.h * 0.05f);
+		pos.x += Screen.w * 0.50f;
+		pos.x -= Screen.w / (NUM_WEAPONS - 2) * 0.7f;
 		if (selected == i)
 		{
 			pos.y *= 1.3f;
 			size = 0.7f;
 		}
+		if (m_Touching && counter == 0 && m_Pos.x > pos.x + Screen.w / (NUM_WEAPONS - 2) * 0.22f)
+		{
+			if (!changed && m_CanDrop)
+			{
+				Console()->ExecuteLine("+dropweapon");
+			}
+			m_CanDrop = false;
+			changed = true;
+		}
 		if (m_Touching && m_Pos.x > pos.x - Screen.w / (NUM_WEAPONS - 2) / 4 && !changed)
 		{
 			changed = true;
+			m_CanDrop = false;
 			if (selected != i && m_LastPicked != i)
 			{
 				char aBuf[32];
-				str_format(aBuf, sizeof(aBuf), "weaponpick %d", i);
+				str_format(aBuf, sizeof(aBuf), "weaponpick %d", i - 1);
 				Console()->ExecuteLine(aBuf);
-				m_CanDrop = false;
 				m_LastPicked = i;
 			}
 		}
