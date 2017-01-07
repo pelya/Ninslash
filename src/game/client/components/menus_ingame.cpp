@@ -390,9 +390,11 @@ void CMenus::RenderServerControlServer(CUIRect MainView)
 	for(CVoteOptionClient *pOption = m_pClient->m_pVoting->m_pFirst; pOption; pOption = pOption->m_pNext)
 	{
 		CListboxItem Item = UiDoListboxNextItem(pOption);
+		CUIRect TextRect = Item.m_Rect;
+		TextRect.y += 16;
 
 		if(Item.m_Visible)
-			UI()->DoLabelScaled(&Item.m_Rect, pOption->m_aDescription, 16.0f, -1);
+			UI()->DoLabelScaled(&TextRect, pOption->m_aDescription, 16.0f, -1);
 	}
 
 	m_CallvoteSelectedOption = UiDoListboxEnd(&s_ScrollValue, 0);
