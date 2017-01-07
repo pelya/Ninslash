@@ -251,7 +251,7 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	MainView.VSplitLeft(400, 0, &Button);
 	Button.h = 50;
 	Button.w = 300;
-	if(DoButton_CheckBox(&s_randomweapons, Localize("Start weapons"), s_randomweapons != 0, &Button))
+	if(DoButton_CheckBox(&s_randomweapons, Localize("Start with weapon"), s_randomweapons != 0, &Button))
 		s_randomweapons ^= 1;
 
 	MainView.HSplitTop(60, 0, &MainView);
