@@ -104,6 +104,10 @@ void CBinds::SetDefaults()
 	Bind(KEY_MOUSE_3, "+lastweapon");
 	//Bind(KEY_MOUSE_3, "+switch");
 	Bind(KEY_F, "+dropweapon");
+	Bind(KEY_M, "dropmine");
+	Bind(KEY_N, "+buildturret");
+	Bind(KEY_V, "+buildflamer");
+	Bind(KEY_B, "+buildbarrel");
 	Bind(KEY_LSHIFT, "+emote");
 	//Bind(KEY_E, "+itempicker");
 	Bind(KEY_RSHIFT, "+spectate");

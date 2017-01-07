@@ -12,6 +12,12 @@ class CWeaponbar : public CComponent
 	int m_LastPicked;
 	bool m_CanDrop;
 	bool m_ScoreboardShown;
+	bool m_BlockTouchEvents;
+
+	static void ConDropMine(IConsole::IResult *pResult, void *pUserData);
+	static void ConBuildTurret(IConsole::IResult *pResult, void *pUserData);
+	static void ConBuildFlamer(IConsole::IResult *pResult, void *pUserData);
+	static void ConBuildBarrel(IConsole::IResult *pResult, void *pUserData);
 
 public:
 	CWeaponbar();
@@ -19,6 +25,7 @@ public:
 	virtual void OnReset();
 	virtual void OnRender();
 	virtual void OnRelease();
+	virtual void OnConsoleInit();
 
 	void OnFingerTouch(vec2 posNormalized);
 	void OnFingerRelease();

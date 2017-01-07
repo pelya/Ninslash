@@ -846,6 +846,7 @@ void CHud::RenderHealthAndAmmo(const CNetObj_Character *pCharacter)
 	x = Area2Pos.x + 134; y = 16;
 	
 	// tool / build helper
+#if !defined(__ANDROID__)
 	if (!m_pClient->IsLocalUndead() && m_pClient->BuildingEnabled())
 	{
 		Graphics()->TextureSet(g_pData->m_aImages[IMAGE_WEAPONS].m_Id);
@@ -879,6 +880,7 @@ void CHud::RenderHealthAndAmmo(const CNetObj_Character *pCharacter)
 		TextRender()->Text(0, x+7, y+2, 8, aBuf, -1);
 		TextRender()->TextColor(1, 1, 1, 1);
 	}
+#endif
 }
 
 void CHud::RenderSpectatorHud()
