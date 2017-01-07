@@ -282,10 +282,6 @@ void CMenus::UiDoListboxStart(const void *pID, const CUIRect *pRect, float RowHe
 		Footer.VSplitLeft(10.0f, 0, &Footer);
 		UI()->DoLabel(&Footer, pBottomText, Header.h*ms_FontmodHeight, 0);
 	}
-	else
-	{
-		View.h += ms_ListheaderHeight;
-	}
 
 	// background
 	RenderTools()->DrawUIRect(&View, vec4(0,0,0,0.15f), 0, 0);
