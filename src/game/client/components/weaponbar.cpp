@@ -7,6 +7,7 @@
 
 #include <game/gamecore.h>
 #include <game/weapons.h>
+#include <game/buildables.h>
 #include <game/client/ui.h>
 #include <game/client/render.h>
 #include <game/client/customstuff.h>
@@ -15,6 +16,7 @@
 #include <game/client/components/sounds.h>
 #include <game/client/components/scoreboard.h>
 #include <game/client/components/picker.h>
+#include <game/client/components/controls.h>
 #include "weaponbar.h"
 
 /*
@@ -173,7 +175,7 @@ void CWeaponbar::OnRender()
 			m_pClient->m_pScoreboard->Show(false);  //Console()->ExecuteLine("-scoreboard");
 		m_ScoreboardShown = false;
 		TextRender()->TextColor(0.3f, 0.3f, 0.3f, 1);
-		TextRender()->Text(0, Screen.w * 0.05f, Screen.h * 0.1f, 16, Localize("scores"), -1);
+		TextRender()->Text(0, Screen.w * 0.08f, Screen.h * 0.1f, 16, Localize("scores"), -1);
 		TextRender()->TextColor(1, 1, 1, 1);
 	}
 
@@ -199,7 +201,24 @@ void CWeaponbar::OnRender()
 		TextRender()->TextColor(1, 1, 1, 1);
 	}
 
-	// TODO: build tools
+	if (CustomStuff()->m_LocalKits >= 1)
+	{
+		Graphics()->TextureSet(g_pData->m_aImages[IMAGE_BUILDINGS].m_Id);
+		Graphics()->QuadsBegin();
+
+		RenderTools()->SelectSprite(SPRITE_KIT_BARREL);
+		RenderTools()->DrawSprite(Screen.w - Screen.h * 0.15f * 4 + 32, Screen.h * 0.2f - 5, 64);
+
+		if (CustomStuff()->m_LocalKits >= 2)
+		{
+			RenderTools()->SelectSprite(SPRITE_KIT_TURRET);
+			RenderTools()->DrawSprite(Screen.w - Screen.h * 0.15f * 2 + 32, Screen.h * 0.2f, 64);
+			RenderTools()->SelectSprite(SPRITE_KIT_FLAMETRAP);
+			RenderTools()->DrawSprite(Screen.w - Screen.h * 0.15f * 3 + 32 + 7, Screen.h * 0.2f + 1, 64);
+		}
+
+		Graphics()->QuadsEnd();
+	}
 }
 
 void CWeaponbar::OnConsoleInit()
@@ -226,14 +245,46 @@ void CWeaponbar::ConDropMine(IConsole::IResult *pResult, void *pUserData)
 void CWeaponbar::ConBuildTurret(IConsole::IResult *pResult, void *pUserData)
 {
 	CWeaponbar * bar = (CWeaponbar *)pUserData;
+	bar->m_pClient->m_pControls->m_SelectedBuilding = BUILDABLE_TURRET + 1;
+	bar->BuildProcess(pResult->GetInteger(0));
 }
 
 void CWeaponbar::ConBuildFlamer(IConsole::IResult *pResult, void *pUserData)
 {
 	CWeaponbar * bar = (CWeaponbar *)pUserData;
+	bar->m_pClient->m_pControls->m_SelectedBuilding = BUILDABLE_FLAMETRAP + 1;
+	bar->BuildProcess(pResult->GetInteger(0));
 }
 
 void CWeaponbar::ConBuildBarrel(IConsole::IResult *pResult, void *pUserData)
 {
 	CWeaponbar * bar = (CWeaponbar *)pUserData;
+	bar->m_pClient->m_pControls->m_SelectedBuilding = BUILDABLE_BARREL + 1;
+	bar->BuildProcess(pResult->GetInteger(0));
+}
+
+void CWeaponbar::BuildProcess(int keypress)
+{
+	if (!m_pClient->BuildingEnabled())
+		return;
+
+	if (keypress)
+	{
+		if (!m_pClient->m_pControls->m_BuildMode)
+		{
+			m_pClient->m_pControls->m_BuildReleased = true;
+			m_pClient->m_pControls->m_Build = 1;
+		}
+	}
+	else if (m_pClient->m_pControls->m_BuildMode)
+	{
+		m_pClient->m_pControls->m_BuildReleased = true;
+		m_pClient->m_pControls->m_Build = 1;
+
+		CNetMsg_Cl_UseKit Msg;
+		Msg.m_Kit = m_pClient->m_pControls->m_SelectedBuilding - 1;
+		Msg.m_X = CustomStuff()->m_BuildPos.x;
+		Msg.m_Y = CustomStuff()->m_BuildPos.y+18;
+		Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
+	}
 }

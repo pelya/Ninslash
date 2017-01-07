@@ -347,7 +347,7 @@ int CControls::SnapInput(int *pData)
 			m_BuildMode = !m_BuildMode;
 			m_BuildReleased = false;
 			
-			m_SelectedBuilding = -1;
+			//m_SelectedBuilding = -1;
 			
 			if (!m_BuildMode)
 				m_InputData.m_WantedWeapon = m_LastWeapon;

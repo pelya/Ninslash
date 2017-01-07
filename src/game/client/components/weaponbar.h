@@ -19,6 +19,8 @@ class CWeaponbar : public CComponent
 	static void ConBuildFlamer(IConsole::IResult *pResult, void *pUserData);
 	static void ConBuildBarrel(IConsole::IResult *pResult, void *pUserData);
 
+	void BuildProcess(int keypress);
+
 public:
 	CWeaponbar();
 
