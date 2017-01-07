@@ -284,7 +284,7 @@ void CMenus::UiDoListboxStart(const void *pID, const CUIRect *pRect, float RowHe
 	}
 	else
 	{
-		View.h += Footer.h;
+		View.h += ms_ListheaderHeight;
 	}
 
 	// background
