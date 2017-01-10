@@ -17,6 +17,7 @@
 #include <game/client/components/scoreboard.h>
 #include <game/client/components/picker.h>
 #include <game/client/components/controls.h>
+#include <game/client/components/chat.h>
 #include "weaponbar.h"
 
 /*
@@ -163,11 +164,17 @@ void CWeaponbar::OnRender()
 
 	Graphics()->QuadsEnd();
 
-	if (m_Touching && m_Pos.x < Screen.w * 0.25f)
+	char chatText[1024] = "";
+
+	if (m_Touching && m_Pos.x < Screen.w * 0.12f)
 	{
 		if (!m_ScoreboardShown)
 			m_pClient->m_pScoreboard->Show(true); //Console()->ExecuteLine("+scoreboard");
 		m_ScoreboardShown = true;
+	}
+	else if (m_Touching && m_Pos.x < Screen.w * 0.25f)
+	{
+		UI()->AndroidGetTextInput(chatText, sizeof(chatText));
 	}
 	else
 	{
@@ -176,7 +183,13 @@ void CWeaponbar::OnRender()
 		m_ScoreboardShown = false;
 		TextRender()->TextColor(0.3f, 0.3f, 0.3f, 1);
 		TextRender()->Text(0, Screen.w * 0.08f, Screen.h * 0.1f, 16, Localize("scores"), -1);
+		TextRender()->Text(0, Screen.w * 0.3f, Screen.h * 0.1f, 16, Localize("chat"), -1);
 		TextRender()->TextColor(1, 1, 1, 1);
+	}
+
+	if (UI()->AndroidTextInputShown() && UI()->AndroidGetTextInput(chatText, sizeof(chatText)) && chatText[0] != 0)
+	{
+		m_pClient->m_pChat->Say(0, chatText);
 	}
 
 	// Draw mines

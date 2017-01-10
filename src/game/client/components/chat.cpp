@@ -431,6 +431,21 @@ void CChat::AddLine(int ClientID, int Team, const char *pLine)
 		char aBuf[1024];
 		str_format(aBuf, sizeof(aBuf), "%s%s", m_aLines[m_CurrentLine].m_aName, m_aLines[m_CurrentLine].m_aText);
 		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, m_aLines[m_CurrentLine].m_Team?"teamchat":"chat", aBuf);
+		for (int i = 0; i < MAX_LINES_ANDROID - 1; i++)
+		{
+			str_copy(m_aLinesAndroid[i], m_aLinesAndroid[i + 1], sizeof(m_aLinesAndroid[i]));
+		}
+		str_copy(m_aLinesAndroid[MAX_LINES_ANDROID - 1], aBuf, sizeof(m_aLinesAndroid[0]));
+		char aBuf2[(sizeof(m_aLinesAndroid[0]) + 2) * MAX_LINES_ANDROID] = "";
+		for (int i = 0; i < MAX_LINES_ANDROID; i++)
+		{
+			if (aBuf2[0] != 0)
+			{
+				str_append(aBuf2, "\n", sizeof(aBuf2));
+			}
+			str_append(aBuf2, m_aLinesAndroid[i], sizeof(aBuf2));
+		}
+		UI()->AndroidTextInputHintMessage(aBuf2);
 	}
 
 	// play sound
