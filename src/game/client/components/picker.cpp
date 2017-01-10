@@ -17,6 +17,10 @@
 #include <game/client/components/sounds.h>
 #include "picker.h"
 
+#if defined(__ANDROID__)
+#include <SDL_joystick.h>
+#endif
+
 CPicker::CPicker()
 {
 	OnReset();
@@ -337,7 +341,7 @@ void CPicker::DrawKit()
 	
 	for (int i = 0; i < NUM_KITS; i++)
 	{
-		float Angle = -pi/2.0f + 2*pi*i/NUM_KITS;
+		float Angle = -pi/2.0f + pi*i/2;
 		if (Angle > pi)
 			Angle -= 2*pi;
 
@@ -421,6 +425,16 @@ void CPicker::OnRender()
 	}
 
 	m_WasActive = true;
+
+#if defined(__ANDROID__)
+	enum { RIGHT_JOYSTICK_X = 2, RIGHT_JOYSTICK_Y = 3, GAMEPAD_DEAD_ZONE = 65536 / 8 };
+	int AimX = SDL_JoystickGetAxis(m_pClient->m_pControls->m_Gamepad, RIGHT_JOYSTICK_X);
+	int AimY = SDL_JoystickGetAxis(m_pClient->m_pControls->m_Gamepad, RIGHT_JOYSTICK_Y);
+	if( abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE )
+	{
+		m_SelectorMouse = vec2(AimX, AimY);
+	}
+#endif
 
 	if (length(m_SelectorMouse) > 170.0f)
 		m_SelectorMouse = normalize(m_SelectorMouse) * 170.0f;

@@ -538,6 +538,7 @@ void CControls::GamepadInput()
 			m_InputDirectionRight = 1;
 		if( RunX <= GAMEPAD_DEAD_ZONE && OldRunX > GAMEPAD_DEAD_ZONE )
 			m_InputDirectionRight = 0;
+		m_InputData.m_Down = (RunY > 16000);
 		OldRunX = RunX;
 		OldRunY = RunY;
 	}

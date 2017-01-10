@@ -64,6 +64,10 @@
 #include "components/spectator.h"
 #include "components/voting.h"
 
+#if defined(__ANDROID__)
+#include <SDL_joystick.h>
+#endif
+
 CGameClient g_GameClient;
 
 inline vec2 RandomDir() { return normalize(vec2(frandom()-0.5f, frandom()-0.5f)); }
@@ -385,6 +389,32 @@ void CGameClient::DispatchInput()
 				break;
 		}
 	}
+
+#if defined(__ANDROID__)
+	enum { RIGHT_JOYSTICK_X = 2, RIGHT_JOYSTICK_Y = 3, GAMEPAD_DEAD_ZONE = 65536 / 8 };
+	static float gamepadMouseX = -1, gamepadMouseY = -1;
+	int AimX = SDL_JoystickGetAxis(m_pControls->m_Gamepad, RIGHT_JOYSTICK_X);
+	int AimY = SDL_JoystickGetAxis(m_pControls->m_Gamepad, RIGHT_JOYSTICK_Y);
+	if (abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE)
+	{
+		if (gamepadMouseX < 0)
+		{
+			gamepadMouseX = m_pGraphics->ScreenWidth() / 2;
+			gamepadMouseY = m_pGraphics->ScreenHeight() / 2;
+		}
+		gamepadMouseX += AimX / 4096;
+		gamepadMouseY += AimY / 4096;
+		gamepadMouseX = max(gamepadMouseX, 0.0f);
+		gamepadMouseX = min(gamepadMouseX, (float)m_pGraphics->ScreenWidth());
+		gamepadMouseY = max(gamepadMouseY, 0.0f);
+		gamepadMouseY = min(gamepadMouseY, (float)m_pGraphics->ScreenHeight());
+		for(int h = 0; h < m_Input.m_Num; h++)
+		{
+			if(m_Input.m_paComponents[h]->OnMouseMove(gamepadMouseX, gamepadMouseY))
+				break;
+		}
+	}
+#endif
 
 	// handle key presses
 	for(int i = 0; i < Input()->NumEvents(); i++)

@@ -140,7 +140,7 @@ void CBinds::SetDefaults()
 	Bind(KEY_8, "+weapon9");
 
 	Bind(KEY_MOUSE_WHEEL_UP, "+prevweapon");
-	Bind(KEY_MOUSE_WHEEL_DOWN, "+nextweapon");
+	Bind(KEY_LCTRL, "+nextweapon");
 
 	Bind(KEY_T, "chat all");
 	Bind(KEY_Y, "chat team");
