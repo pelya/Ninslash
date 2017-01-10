@@ -107,8 +107,8 @@ void CChat::OnConsoleInit()
 	Console()->Register("+show_chat", "", CFGFLAG_CLIENT, ConShowChat, this, "Show chat");
 }
 
-static char *ListOfRemoteCommands = NULL;
-static void PrintRemoteCommands(const char *Cmd, void *Data)
+char *CChat::ListOfRemoteCommands = NULL;
+void CChat::PrintRemoteCommands(const char *Cmd, void *Data)
 {
 	CChat *Chat = (CChat *)Data;
 	char *Str = (char *)mem_alloc(str_length(ListOfRemoteCommands) + str_length(Cmd) + 10, 1);

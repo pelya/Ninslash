@@ -164,9 +164,10 @@ void CWeaponbar::OnRender()
 
 	Graphics()->QuadsEnd();
 
-	char chatText[1024] = "";
+	char ChatText[1024] = "";
+	static bool s_AndroidGetTextActive = false;
 
-	if (m_Touching && m_Pos.x < Screen.w * 0.12f)
+	if (m_Touching && m_Pos.x < Screen.w * 0.15f)
 	{
 		if (!m_ScoreboardShown)
 			m_pClient->m_pScoreboard->Show(true); //Console()->ExecuteLine("+scoreboard");
@@ -174,7 +175,9 @@ void CWeaponbar::OnRender()
 	}
 	else if (m_Touching && m_Pos.x < Screen.w * 0.25f)
 	{
-		UI()->AndroidGetTextInput(chatText, sizeof(chatText));
+		UI()->AndroidGetTextInput(ChatText, sizeof(ChatText));
+		s_AndroidGetTextActive = true;
+		m_CanDrop = false;
 	}
 	else
 	{
@@ -183,13 +186,44 @@ void CWeaponbar::OnRender()
 		m_ScoreboardShown = false;
 		TextRender()->TextColor(0.3f, 0.3f, 0.3f, 1);
 		TextRender()->Text(0, Screen.w * 0.08f, Screen.h * 0.1f, 16, Localize("scores"), -1);
-		TextRender()->Text(0, Screen.w * 0.3f, Screen.h * 0.1f, 16, Localize("chat"), -1);
+		TextRender()->Text(0, Screen.w * 0.23f, Screen.h * 0.1f, 16, Localize("chat"), -1);
 		TextRender()->TextColor(1, 1, 1, 1);
 	}
 
-	if (UI()->AndroidTextInputShown() && UI()->AndroidGetTextInput(chatText, sizeof(chatText)) && chatText[0] != 0)
+	if (s_AndroidGetTextActive && UI()->AndroidGetTextInput(ChatText, sizeof(ChatText)))
 	{
-		m_pClient->m_pChat->Say(0, chatText);
+		s_AndroidGetTextActive = false;
+		if(ChatText[0] == '!')
+		{
+			if(m_pClient->Client()->RconAuthed())
+			{
+				if(str_comp_num(ChatText, "!help", str_length("!help")) == 0)
+				{
+					CChat::ListOfRemoteCommands = (char *)mem_alloc(10, 1);
+					strcpy(CChat::ListOfRemoteCommands, "");
+					m_pClient->Console()->PossibleCommands(str_length(ChatText) > str_length("!help") + 1 ? ChatText + str_length("!help") + 1 : "",
+															CFGFLAG_SERVER, true, CChat::PrintRemoteCommands, m_pClient->m_pChat);
+					if (CChat::ListOfRemoteCommands[0])
+						m_pClient->m_pChat->AddLine(-1, 0, CChat::ListOfRemoteCommands);
+					mem_free(CChat::ListOfRemoteCommands);
+				}
+				else
+				{
+					m_pClient->Client()->Rcon(ChatText + 1);
+				}
+			}
+			else
+			{
+				int idx = 1;
+				if(str_comp_num(ChatText, "!password ", str_length("!password ")) == 0)
+					idx = str_length("!password ");
+				m_pClient->Client()->RconAuth("", ChatText + idx);
+			}
+		}
+		else if (ChatText[0] != 0)
+		{
+			m_pClient->m_pChat->Say(0, ChatText);
+		}
 	}
 
 	// Draw mines

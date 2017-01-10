@@ -202,6 +202,7 @@ int CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrS
 	static int s_AtIndex = 0;
 	static bool s_DoScroll = false;
 	static float s_ScrollStart = 0.0f;
+	static bool s_AndroidGetTextActive = false;
 
 	FontSize *= UI()->Scale();
 
@@ -284,11 +285,15 @@ int CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrS
 		{
 			ReturnValue = true;
 			s_AtIndex = 0;
-			if (UI()->AndroidGetTextInput(pStr, StrSize))
-			{
-				UI()->SetActiveItem(0);
-			}
+			UI()->AndroidGetTextInput(pStr, StrSize);
+			s_AndroidGetTextActive = true;
 		}
+	}
+	if (s_AndroidGetTextActive && UI()->AndroidGetTextInput(pStr, StrSize))
+	{
+		s_AndroidGetTextActive = false;
+		UI()->SetActiveItem(0);
+		s_AtIndex = 0;
 	}
 
 	CUIRect Textbox = *pRect;

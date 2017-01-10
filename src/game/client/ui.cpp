@@ -180,15 +180,15 @@ bool CUI::AndroidGetTextInput(char *text, int textLength)
 	static char textBuf[1024];
 	if (!SDL_IsScreenKeyboardShown(NULL))
 	{
-		str_copy(textBuf, text, min((int) sizeof(textBuf), textLength));
+		str_copy(textBuf, text, sizeof(textBuf));
 	}
 	if (SDL_ANDROID_GetScreenKeyboardTextInputAsync(textBuf, sizeof(textBuf)) == SDL_ANDROID_TEXTINPUT_ASYNC_FINISHED)
 	{
-		str_copy(text, textBuf, min((int) sizeof(textBuf), textLength));
+		str_copy(text, textBuf, textLength);
 		return true;
 	}
-	return false;
 #endif
+	return false;
 }
 
 bool CUI::AndroidTextInputShown()
