@@ -19,6 +19,10 @@
 #include "binds.h"
 #include "scoreboard.h"
 
+#if defined(__ANDROID__)
+#include <SDL_joystick.h>
+#endif
+
 #define RAD 0.017453292519943295769236907684886f
 
 CHud::CHud()
@@ -345,9 +349,9 @@ void CHud::RenderVoting()
 	if(!m_pClient->m_pVoting->IsVoting() || Client()->State() == IClient::STATE_DEMOPLAYBACK)
 		return;
 
-	static const float TextX = 130;
+	static const float TextX = m_Width / 8;
 	static const float TextY = 1;
-	static const float TextW = 200;
+	static const float TextW = m_Width / 4;
 	static const float TextH = 42;
 
 	Graphics()->TextureSet(-1);
@@ -408,6 +412,15 @@ void CHud::RenderVoting()
 			if( mx > TextX+TextW/2+20 && mx < TextX+TextW/2+20+TextW/2-10 )
 				m_pClient->m_pVoting->Vote(-1);
 		}
+	}
+
+	enum { LEFT_JOYSTICK_X = 0, LEFT_JOYSTICK_Y = 1 };
+	int TouchX = SDL_JoystickGetAxis(m_pClient->m_pControls->m_TouchJoy, LEFT_JOYSTICK_X);
+	int TouchY = SDL_JoystickGetAxis(m_pClient->m_pControls->m_TouchJoy, LEFT_JOYSTICK_Y);
+
+	if( TouchY < -20000 )
+	{
+		m_pClient->m_pVoting->Vote(TouchX < 0);
 	}
 #endif
 }
