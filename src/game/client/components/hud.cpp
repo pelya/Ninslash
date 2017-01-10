@@ -349,9 +349,9 @@ void CHud::RenderVoting()
 	if(!m_pClient->m_pVoting->IsVoting() || Client()->State() == IClient::STATE_DEMOPLAYBACK)
 		return;
 
-	static const float TextX = m_Width / 8;
+	static const float TextX = m_Width / 16;
 	static const float TextY = 1;
-	static const float TextW = m_Width / 4;
+	static const float TextW = m_Width / 2 - m_Width / 8;
 	static const float TextH = 42;
 
 	Graphics()->TextureSet(-1);

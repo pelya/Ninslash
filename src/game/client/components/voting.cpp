@@ -115,6 +115,7 @@ void CVoting::Vote(int v)
 {
 	CNetMsg_Cl_Vote Msg = {v};
 	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
+	m_Voted = 1;
 }
 
 CVoting::CVoting()

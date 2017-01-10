@@ -51,7 +51,7 @@ public:
 	void Vote(int v); // -1 = no, 1 = yes
 
 	int SecondsLeft() { return (m_Closetime - time_get())/time_freq(); }
-	bool IsVoting() { return m_Closetime != 0; }
+	bool IsVoting() { if (m_Closetime == 0) m_Voted = 0; return m_Closetime != 0 && !m_Voted; }
 	int TakenChoice() const { return m_Voted; }
 	const char *VoteDescription() const { return m_aDescription; }
 	const char *VoteReason() const { return m_aReason; }
