@@ -100,6 +100,7 @@ public:
 	void AndroidShowTextInput(const char *text);
 	void AndroidTextInputHintMessage(const char *hintText);
 	void AndroidBlockAndGetTextInput(char *text, int textLength, const char *hintText);
+	bool AndroidGetTextInput(char *text, int textLength);
 	bool AndroidTextInputShown();
 };
 

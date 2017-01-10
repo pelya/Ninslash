@@ -1,5 +1,5 @@
 
-
+#include <base/math.h>
 #include <base/system.h>
 
 #include <engine/shared/config.h>
@@ -171,6 +171,23 @@ void CUI::AndroidBlockAndGetTextInput(char *text, int textLength, const char *hi
 #if defined(__ANDROID__)
 	SDL_ANDROID_SetScreenKeyboardHintMesage(hintText);
 	SDL_ANDROID_GetScreenKeyboardTextInput(text, textLength);
+#endif
+}
+
+bool CUI::AndroidGetTextInput(char *text, int textLength)
+{
+#if defined(__ANDROID__)
+	static char textBuf[1024];
+	if (!SDL_IsScreenKeyboardShown(NULL))
+	{
+		str_copy(textBuf, text, min((int) sizeof(textBuf), textLength));
+	}
+	if (SDL_ANDROID_GetScreenKeyboardTextInputAsync(textBuf, sizeof(textBuf)) == SDL_ANDROID_TEXTINPUT_ASYNC_FINISHED)
+	{
+		str_copy(text, textBuf, min((int) sizeof(textBuf), textLength));
+		return true;
+	}
+	return false;
 #endif
 }
 

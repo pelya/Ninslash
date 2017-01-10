@@ -284,7 +284,10 @@ int CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrS
 		{
 			ReturnValue = true;
 			s_AtIndex = 0;
-			UI()->AndroidBlockAndGetTextInput(pStr, StrSize, "");
+			if (UI()->AndroidGetTextInput(pStr, StrSize))
+			{
+				UI()->SetActiveItem(0);
+			}
 		}
 	}
 
@@ -333,6 +336,7 @@ int CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrS
 	}
 	UI()->ClipEnable(pRect);
 	Textbox.x -= *Offset;
+	Textbox.y += Textbox.h / 2 - FontSize / 2;
 
 	UI()->DoLabel(&Textbox, pDisplayStr, FontSize, -1);
 
