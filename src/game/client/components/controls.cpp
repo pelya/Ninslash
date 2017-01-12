@@ -682,13 +682,14 @@ void CControls::TouchscreenInput()
 			{
 				m_TouchJoyRightJumpPressed = true;
 			}
-			m_TouchJoyAimAnchor = AimPos;
+			if( m_TouchJoyAimTapTime + time_freq() / 2 < CurTime )
+			{
+				m_TouchJoyAimAnchor = AimPos; // Keep shooting if user taps Jump button quickly
+			}
 		}
 		else
 		{
 			m_TouchJoyRightJumpPressed = false;
-			if( m_TouchJoyAimTapTime + time_freq() / 4 > CurTime && distance(AimPos, m_TouchJoyAimAnchor) < TOUCHJOY_DEAD_ZONE )
-				m_TouchJoyRightJumpPressed = true;
 		}
 		m_TouchJoyAimPressed = AimPressed;
 		m_TouchJoyAimTapTime = CurTime;
