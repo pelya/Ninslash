@@ -12,6 +12,7 @@
 
 class CPicker;
 class CWeaponbar;
+class CTutorial;
 
 class CGameClient : public IGameClient
 {
@@ -53,6 +54,7 @@ class CGameClient : public IGameClient
 	class CSkelebank *m_pSkelebank;
 	class CPicker *m_pPicker;
 	class CWeaponbar *m_pWeaponbar;
+	class CTutorial *m_pTutorial;
 
 	CLayers m_Layers;
 	class CCollision m_Collision;

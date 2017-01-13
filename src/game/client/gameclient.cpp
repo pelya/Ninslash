@@ -38,6 +38,7 @@
 #include "components/effects.h"
 #include "components/picker.h"
 #include "components/weaponbar.h"
+#include "components/tutorial.h"
 #include "components/flow.h"
 #include "components/hud.h"
 #include "components/items.h"
@@ -99,6 +100,7 @@ static CScoreboard gs_Scoreboard;
 static CSounds gs_Sounds;
 static CPicker gs_Picker;
 static CWeaponbar gs_Weaponbar;
+static CTutorial gs_Tutorial;
 static CDamageInd gsDamageInd;
 static CVoting gs_Voting;
 static CSpectator gs_Spectator;
@@ -229,6 +231,7 @@ void CGameClient::OnConsoleInit()
 	m_All.Add(&gs_Spectator);
 	m_All.Add(&gs_Picker);
 	m_All.Add(&gs_Weaponbar);
+	m_All.Add(&gs_Tutorial);
 	m_All.Add(&gs_KillMessages);
 	m_All.Add(m_pChat);
 	m_All.Add(&gs_Broadcast);
@@ -279,6 +282,7 @@ void CGameClient::OnConsoleInit()
 	m_pCustomStuff = new CCustomStuff();
 	m_pPicker = &gs_Picker;
 	m_pWeaponbar = &gs_Weaponbar;
+	m_pTutorial = &gs_Tutorial;
 	
 	// let all the other components register their console commands
 	for(int i = 0; i < m_All.m_Num; i++)
