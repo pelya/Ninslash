@@ -611,7 +611,7 @@ int CMenus::RenderMenubar(CUIRect r)
 		Box.VSplitLeft(10.0f, 0, &Box);
 		Box.VSplitLeft(100.0f, &Button, &Box);
 		static int s_ServerButton=0;
-		if(DoButton_MenuTab(&s_ServerButton, Localize("Server"), m_ActivePage==PAGE_SERVER, &Button, CUI::CORNER_T))
+		if(DoButton_MenuTab(&s_ServerButton, Localize("Create"), m_ActivePage==PAGE_SERVER, &Button, CUI::CORNER_T))
 		{
 			NewPage = PAGE_SERVER;
 			m_DoubleClickIndex = -1;
