@@ -26,7 +26,7 @@ public:
 
 	bool m_TouchJoyRunPressed;
 	ivec2 m_TouchJoyRunAnchor;
-	//ivec2 m_TouchJoyRunLastPos;
+	ivec2 m_TouchJoyRunLastPos;
 	int64 m_TouchJoyRunTapTime;
 
 	bool m_TouchJoyAimPressed;
@@ -35,6 +35,7 @@ public:
 	int64 m_TouchJoyAimTapTime;
 	bool m_TouchJoyFirePressed;
 
+	bool m_TouchJoyLeftJumpPressed;
 	bool m_TouchJoyRightJumpPressed;
 
 	bool m_TouchJoyWeaponbarPressed;

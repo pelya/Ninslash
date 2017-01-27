@@ -85,12 +85,13 @@ void CControls::OnReset()
 	m_TouchJoyRunPressed = false;
 	m_TouchJoyRunTapTime = 0;
 	m_TouchJoyRunAnchor = ivec2(0,0);
-	//m_TouchJoyRunLastPos = ivec2(0,0);
+	m_TouchJoyRunLastPos = ivec2(0,0);
 	m_TouchJoyAimPressed = false;
 	m_TouchJoyAimAnchor = ivec2(0,0);
-	m_TouchJoyAimLastPos = ivec2(20000,20000);
+	m_TouchJoyAimLastPos = ivec2(200000,200000);
 	m_TouchJoyAimTapTime = 0;
 	m_TouchJoyFirePressed = false;
+	m_TouchJoyLeftJumpPressed = false;
 	m_TouchJoyRightJumpPressed = false;
 	m_TouchJoyWeaponbarPressed = false;
 	m_WeaponIdxOutOfAmmo = -1;
@@ -595,24 +596,34 @@ void CControls::TouchscreenInput()
 	int64 CurTime = time_get();
 
 	// Get input from the left joystick
-	int RunX = SDL_JoystickGetAxis(m_TouchJoy, LEFT_JOYSTICK_X);
-	int RunY = SDL_JoystickGetAxis(m_TouchJoy, LEFT_JOYSTICK_Y);
-	bool RunPressed = (RunX != 0 || RunY != 0);
+	ivec2 RunPos = ivec2(SDL_JoystickGetAxis(m_TouchJoy, LEFT_JOYSTICK_X), SDL_JoystickGetAxis(m_TouchJoy, LEFT_JOYSTICK_Y));
+	bool RunPressed = (RunPos.x != 0 || RunPos.y != 0);
 	// Get input from the right joystick
 	ivec2 AimPos = ivec2(SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_X), SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_Y));
 	bool AimPressed = (AimPos.x != 0 || AimPos.y != 0);
-	bool oldTouchJoyRightJump = m_TouchJoyRightJumpPressed;
+	bool oldTouchJoyJump = (m_TouchJoyRightJumpPressed || m_TouchJoyLeftJumpPressed);
 
 	// Process left joystick
+	if( !RunPressed )
+		RunPos = m_TouchJoyRunLastPos;
+
 	if( m_TouchJoyRunPressed != RunPressed )
 	{
 		if( RunPressed )
 		{
-			// Tap to jetpack, and do not reset the anchor coordinates, if tapped under 500ms
-			m_TouchJoyRunAnchor = ivec2(RunX, RunY);
+			// Tap to jump, and do not reset the anchor coordinates, if tapped under 500ms
+			if( m_TouchJoyRunTapTime + time_freq() / 2 > CurTime && distance(RunPos, m_TouchJoyRunLastPos) < TOUCHJOY_DEAD_ZONE * 2 )
+			{
+				m_TouchJoyLeftJumpPressed = true;
+			}
+			else
+			{
+				m_TouchJoyRunAnchor = RunPos;
+			}
 		}
 		else
 		{
+			m_TouchJoyLeftJumpPressed = false;
 			m_InputData.m_Hook = 0;
 		}
 		m_TouchJoyRunTapTime = CurTime;
@@ -621,9 +632,9 @@ void CControls::TouchscreenInput()
 
 	if( RunPressed )
 	{
-		m_InputDirectionLeft = (RunX - m_TouchJoyRunAnchor.x < -TOUCHJOY_DEAD_ZONE);
-		m_InputDirectionRight = (RunX - m_TouchJoyRunAnchor.x > TOUCHJOY_DEAD_ZONE);
-		m_InputData.m_Down = (RunY - m_TouchJoyRunAnchor.y > TOUCHJOY_DEAD_ZONE * 3);
+		m_InputDirectionLeft = (RunPos.x - m_TouchJoyRunAnchor.x < -TOUCHJOY_DEAD_ZONE);
+		m_InputDirectionRight = (RunPos.x - m_TouchJoyRunAnchor.x > TOUCHJOY_DEAD_ZONE);
+		m_InputData.m_Down = (RunPos.y - m_TouchJoyRunAnchor.y > TOUCHJOY_DEAD_ZONE * 3);
 		// Activate run-assist jetpack if we slide finger up
 		/*
 		if( RunY - m_TouchJoyRunAnchor.y < -TOUCHJOY_DEAD_ZONE * 3 )
@@ -632,7 +643,7 @@ void CControls::TouchscreenInput()
 			m_InputData.m_Hook = 0;
 		*/
 		// Activate run-assist jetpack if we slide finger even more
-		if( m_TouchJoyRunAnchor.x - RunX < -TOUCHJOY_DEAD_ZONE * 4 || m_TouchJoyRunAnchor.x - RunX > TOUCHJOY_DEAD_ZONE * 4 )
+		if( m_TouchJoyRunAnchor.x - RunPos.x < -TOUCHJOY_DEAD_ZONE * 4 || m_TouchJoyRunAnchor.x - RunPos.x > TOUCHJOY_DEAD_ZONE * 4 )
 			m_InputData.m_Hook = 1;
 		else
 			m_InputData.m_Hook = 0;
@@ -651,10 +662,13 @@ void CControls::TouchscreenInput()
 			}
 		}
 		// Move the anchor if we move the finger too much
-		if( m_TouchJoyRunAnchor.x - RunX < -TOUCHJOY_DEAD_ZONE * 5 )
-			m_TouchJoyRunAnchor.x = RunX - TOUCHJOY_DEAD_ZONE * 5;
-		if( m_TouchJoyRunAnchor.x - RunX > TOUCHJOY_DEAD_ZONE * 5 )
-			m_TouchJoyRunAnchor.x = RunX + TOUCHJOY_DEAD_ZONE * 5;
+		if( m_TouchJoyRunAnchor.x - RunPos.x < -TOUCHJOY_DEAD_ZONE * 5 )
+			m_TouchJoyRunAnchor.x = RunPos.x - TOUCHJOY_DEAD_ZONE * 5;
+		if( m_TouchJoyRunAnchor.x - RunPos.x > TOUCHJOY_DEAD_ZONE * 5 )
+			m_TouchJoyRunAnchor.x = RunPos.x + TOUCHJOY_DEAD_ZONE * 5;
+
+		if( m_TouchJoyRunTapTime + time_freq() * 11 / 10 < CurTime )
+			m_TouchJoyLeftJumpPressed = false; // Disengage jetpack in 1 second after use
 	}
 
 	//dbg_msg("controls", "");
@@ -668,17 +682,13 @@ void CControls::TouchscreenInput()
 
 	// Process right joystick
 	if( !AimPressed )
-	{
 		AimPos = m_TouchJoyAimLastPos;
-	}
 
 	if( AimPressed != m_TouchJoyAimPressed )
 	{
-		SDL_Rect joypos;
-		SDL_ANDROID_GetScreenKeyboardButtonPos( SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2, &joypos );
 		if( AimPressed )
 		{
-			if( distance(AimPos, m_TouchJoyAimLastPos) < TOUCHJOY_DEAD_ZONE * 2 )
+			if( distance(AimPos, m_TouchJoyAimLastPos) < TOUCHJOY_DEAD_ZONE * 4 )
 			{
 				m_TouchJoyRightJumpPressed = true;
 			}
@@ -709,8 +719,8 @@ void CControls::TouchscreenInput()
 			m_TouchJoyRightJumpPressed = false;
 	}
 
-	if( m_TouchJoyRightJumpPressed != oldTouchJoyRightJump )
-		m_InputData.m_Jump = m_TouchJoyRightJumpPressed;
+	if( (m_TouchJoyRightJumpPressed || m_TouchJoyLeftJumpPressed) != oldTouchJoyJump )
+		m_InputData.m_Jump = (m_TouchJoyRightJumpPressed || m_TouchJoyLeftJumpPressed);
 
 	bool FirePressed = AimPressed && distance(AimPos, m_TouchJoyAimAnchor) > TOUCHJOY_AIM_DEAD_ZONE;
 
@@ -723,5 +733,8 @@ void CControls::TouchscreenInput()
 
 	if (AimPressed)
 		m_TouchJoyAimLastPos = AimPos;
+
+	if (RunPressed)
+		m_TouchJoyRunLastPos = RunPos;
 }
 #endif
