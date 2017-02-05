@@ -591,6 +591,8 @@ void CControls::TouchscreenInput()
 	enum {
 		TOUCHJOY_DEAD_ZONE = 65536 / 20,
 		TOUCHJOY_AIM_DEAD_ZONE = 65536 / 10,
+		TOUCHJOY_TAP_TIME = 350,
+		TOUCHJOY_JETPACK_TIME = 1100,
 	};
 
 	int64 CurTime = time_get();
@@ -612,7 +614,7 @@ void CControls::TouchscreenInput()
 		if( RunPressed )
 		{
 			// Tap to jump, and do not reset the anchor coordinates, if tapped under 500ms
-			if( m_TouchJoyRunTapTime + time_freq() / 2 > CurTime && distance(RunPos, m_TouchJoyRunLastPos) < TOUCHJOY_DEAD_ZONE * 2 )
+			if( m_TouchJoyRunTapTime + time_freq() * TOUCHJOY_TAP_TIME / 1000 > CurTime && distance(RunPos, m_TouchJoyRunLastPos) < TOUCHJOY_DEAD_ZONE * 2 )
 			{
 				m_TouchJoyLeftJumpPressed = true;
 			}
@@ -667,7 +669,7 @@ void CControls::TouchscreenInput()
 		if( m_TouchJoyRunAnchor.x - RunPos.x > TOUCHJOY_DEAD_ZONE * 5 )
 			m_TouchJoyRunAnchor.x = RunPos.x + TOUCHJOY_DEAD_ZONE * 5;
 
-		if( m_TouchJoyRunTapTime + time_freq() * 11 / 10 < CurTime )
+		if( m_TouchJoyRunTapTime + time_freq() * TOUCHJOY_JETPACK_TIME / 1000 < CurTime )
 			m_TouchJoyLeftJumpPressed = false; // Disengage jetpack in 1 second after use
 	}
 
@@ -688,18 +690,26 @@ void CControls::TouchscreenInput()
 	{
 		if( AimPressed )
 		{
-			if( distance(AimPos, m_TouchJoyAimLastPos) < TOUCHJOY_DEAD_ZONE * 4 )
+			if( distance(AimPos, m_TouchJoyAimLastPos) < TOUCHJOY_DEAD_ZONE * 3 )
 			{
 				m_TouchJoyRightJumpPressed = true;
+				if( m_TouchJoyAimTapTime + time_freq() * TOUCHJOY_TAP_TIME / 1000 < CurTime )
+				{
+					m_TouchJoyAimAnchor = AimPos; // Keep shooting if user taps Jump button quickly
+				}
 			}
-			if( m_TouchJoyAimTapTime + time_freq() / 2 < CurTime )
+			else
 			{
-				m_TouchJoyAimAnchor = AimPos; // Keep shooting if user taps Jump button quickly
+				m_TouchJoyAimAnchor = AimPos;
 			}
 		}
 		else
 		{
 			m_TouchJoyRightJumpPressed = false;
+			if( m_TouchJoyAimTapTime + time_freq() * TOUCHJOY_TAP_TIME / 1000 > CurTime && distance(AimPos, m_TouchJoyAimAnchor) < TOUCHJOY_DEAD_ZONE )
+			{
+				m_TouchJoyRightJumpPressed = true; // Tapping anywhere quickly will also produce a jump
+			}
 		}
 		m_TouchJoyAimPressed = AimPressed;
 		m_TouchJoyAimTapTime = CurTime;
@@ -710,7 +720,7 @@ void CControls::TouchscreenInput()
 		if (distance(AimPos, m_TouchJoyAimAnchor) > TOUCHJOY_DEAD_ZONE / 3)
 			m_MousePos = vec2(AimPos.x - m_TouchJoyAimAnchor.x, AimPos.y - m_TouchJoyAimAnchor.y) / 30;
 		ClampMousePos();
-		if( m_TouchJoyAimTapTime + time_freq() * 11 / 10 < CurTime )
+		if( m_TouchJoyAimTapTime + time_freq() * TOUCHJOY_JETPACK_TIME / 1000 < CurTime )
 			m_TouchJoyRightJumpPressed = false; // Disengage jetpack in 1 second after use
 	}
 	else
