@@ -20,28 +20,13 @@
 #include <game/client/components/chat.h>
 #include "weaponbar.h"
 
-/*
-const int CWeaponbar::WeaponOrder[] =
-{
-	0, //WEAPON_TOOL=0,
-	1, //WEAPON_HAMMER,
-	3, //WEAPON_SHOTGUN,
-	4, //WEAPON_RIFLE,
-	5, //WEAPON_LASER,
-	6, //WEAPON_ELECTRIC,
-	7, //WEAPON_GRENADE,
-	8, //WEAPON_FLAMER,
-	2, //WEAPON_CHAINSAW,
-};
-*/
-
 const int CWeaponbar::WeaponOrder[] =
 {
 	WEAPON_TOOL,
 	WEAPON_HAMMER,
 	WEAPON_CHAINSAW,
-	WEAPON_SHOTGUN,
 	WEAPON_RIFLE,
+	WEAPON_SHOTGUN,
 	WEAPON_LASER,
 	WEAPON_ELECTRIC,
 	WEAPON_GRENADE,
