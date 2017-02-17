@@ -72,7 +72,7 @@ static void StartServer(const char *type, const char *map, int bots, int buildin
 	char aBuf[4096];
 	str_format(aBuf, sizeof(aBuf),
 		"sv_port 8303\n"
-		"sv_name \"%s\"\n"
+		"sv_name \"%s %s\"\n"
 		"sv_gametype %s\n"
 		"sv_map %s\n"
 		"sv_maprotation %s\n"
@@ -80,7 +80,7 @@ static void StartServer(const char *type, const char *map, int bots, int buildin
 		"sv_enablebuilding %d\n"
 		"sv_randomweapons %d\n"
 		"sv_scorelimit 0\n"
-		, type, type, map, map, bots + 1, buildings, randomweapons);
+		, type, g_Config.m_PlayerName, type, map, map, bots + 1, buildings, randomweapons);
 
 	FILE *ff = fopen("server.cfg", "wb");
 	if( !ff )
