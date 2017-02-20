@@ -687,13 +687,12 @@ int CMenus::RenderMenubar(CUIRect r)
 void CMenus::RenderLoading()
 {
 	// TODO: not supported right now due to separate render thread
-
 	static int64 LastLoadRender = 0;
 	float Percent = m_LoadCurrent++/(float)m_LoadTotal;
 
 	// make sure that we don't render for each little thing we load
 	// because that will slow down loading if we have vsync
-	if(time_get()-LastLoadRender < time_freq()/60)
+	if(time_get()-LastLoadRender < time_freq()/60 && LastLoadRender != 0)
 		return;
 
 	LastLoadRender = time_get();
@@ -702,6 +701,9 @@ void CMenus::RenderLoading()
 	vec3 Rgb = HslToRgb(vec3(g_Config.m_UiColorHue/255.0f, g_Config.m_UiColorSat/255.0f, g_Config.m_UiColorLht/255.0f));
 	ms_GuiColor = vec4(Rgb.r, Rgb.g, Rgb.b, g_Config.m_UiColorAlpha/255.0f);
 
+#if 1
+	Graphics()->Clear(Percent * Rgb.r, 0.3f + Percent * Rgb.g * 0.5f, 0.3f + Percent * Rgb.b * 0.5f);
+#else
 	CUIRect Screen = *UI()->Screen();
 	Graphics()->MapScreen(Screen.x, Screen.y, Screen.w, Screen.h);
 
@@ -735,7 +737,7 @@ void CMenus::RenderLoading()
 	Graphics()->SetColor(1,1,1,0.75f);
 	RenderTools()->DrawRoundRect(x+40, y+h-75, (w-80)*Percent, 25, 5.0f);
 	Graphics()->QuadsEnd();
-
+#endif
 	Graphics()->Swap();
 }
 
