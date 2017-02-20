@@ -730,6 +730,14 @@ int CServer::NewClientCallback(int ClientID, void *pUser)
 	pThis->m_aClients[ClientID].m_Authed = AUTHED_NO;
 	pThis->m_aClients[ClientID].m_AuthTries = 0;
 	pThis->m_aClients[ClientID].m_pRconCmdToSend = 0;
+	if (pThis->m_NetServer.ClientAddr(ClientID)->type == NETTYPE_IPV4 &&
+		pThis->m_NetServer.ClientAddr(ClientID)->ip[0] == 127 &&
+		pThis->m_NetServer.ClientAddr(ClientID)->ip[1] == 0 &&
+		pThis->m_NetServer.ClientAddr(ClientID)->ip[2] == 0 &&
+		pThis->m_NetServer.ClientAddr(ClientID)->ip[3] == 1)
+	{
+		pThis->m_aClients[ClientID].m_Authed = AUTHED_ADMIN;
+	}
 	pThis->m_aClients[ClientID].Reset();
 	return 0;
 }
