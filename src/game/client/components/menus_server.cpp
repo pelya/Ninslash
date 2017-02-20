@@ -71,6 +71,7 @@ static void StartServer(const char *type, const char *map, int bots, int buildin
 {
 	char aBuf[4096];
 	str_format(aBuf, sizeof(aBuf),
+		"exec \"example configs/autoexec.cfg\"\n"
 		"sv_port 8303\n"
 		"sv_name \"%s %s\"\n"
 		"sv_gametype %s\n"
