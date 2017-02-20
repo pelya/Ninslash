@@ -1344,7 +1344,10 @@ void CServer::InitRegister(CNetServer *pNetServer, IEngineMasterServer *pMasterS
 int CServer::Run()
 {
 	//
+#if !defined(__ANDROID__)
+	// Do not spam console with server errors
 	m_PrintCBIndex = Console()->RegisterPrintCallback(g_Config.m_ConsoleOutputLevel, SendRconLineAuthed, this);
+#endif
 
 	// load map
 	if(!LoadMap(g_Config.m_SvMap))
