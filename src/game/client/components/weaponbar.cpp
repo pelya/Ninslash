@@ -77,7 +77,7 @@ void CWeaponbar::OnFingerRelease()
 
 void CWeaponbar::OnRender()
 {
-	if(m_pClient->m_Snap.m_SpecInfo.m_Active)
+	if(m_pClient->m_Snap.m_pGameInfoObj)
 	{
 		m_Touching = false;
 		return;
