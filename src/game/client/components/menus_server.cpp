@@ -40,7 +40,8 @@ static int MapScan(const char *pName, int IsDir, int DirType, void *pUser)
 {
 	sorted_array<string> *maplist = (sorted_array<string> *)pUser;
 	int l = str_length(pName);
-	if(l < 4 || IsDir || str_comp(pName+l-4, ".map") != 0)
+	// Hide Invasion maps
+	if( l < 4 || IsDir || str_comp(pName+l-4, ".map") != 0 || str_comp_num(pName, "inv", 3) == 0 )
 		return 0;
 	maplist->add(string(pName, l - 4));
 	return 0;
@@ -67,7 +68,7 @@ static void StopServer()
 #endif
 }
 
-static void StartServer(const char *type, const char *map, int bots, int buildings, int randomweapons)
+static void StartServer(const char *type, const char *map, int bots, int buildings, int randomweapons, int survivalmode = 0, const char *maprotation = NULL)
 {
 	char aBuf[4096];
 	str_format(aBuf, sizeof(aBuf),
@@ -81,7 +82,8 @@ static void StartServer(const char *type, const char *map, int bots, int buildin
 		"sv_enablebuilding %d\n"
 		"sv_randomweapons %d\n"
 		"sv_scorelimit 0\n"
-		, type, g_Config.m_PlayerName, type, map, map, bots + 1, buildings, randomweapons);
+		"sv_survivalmode %d\n"
+		, type, g_Config.m_PlayerName, type, map, maprotation ? maprotation : map, bots + 1, buildings, randomweapons, survivalmode);
 
 	FILE *ff = fopen("server.cfg", "wb");
 	if( !ff )
@@ -225,7 +227,8 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	static int s_StartInvasionServerButton = 0;
 	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartInvasionServerButton, Localize("Invasion"), 0, &Button) )
 	{
-		StartServer("inv", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
+		// sv_gametype coop; sv_survivalmode 1; sv_map inv1; sv_maprotation inv1 inv2 inv3 inv4, inv5, inv6, inv7, inv8, inv9, inv10, inv11, inv12, inv13, inv14, inv15, inv16, inv17, inv18, inv19, inv20, inv21;
+		StartServer("coop", "inv1", s_bots, s_buildings, s_randomweapons, 1, "inv1 inv2 inv3 inv4 inv5 inv6 inv7 inv8 inv9 inv10 inv11 inv12 inv13 inv14 inv15 inv16 inv17 inv18 inv19 inv20 inv21");
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
 		ServerStarting = true;
 	}
