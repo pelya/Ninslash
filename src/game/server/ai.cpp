@@ -59,6 +59,7 @@ void CAI::Reset()
 	m_Direction = vec2(-1, 0);
 	m_DisplayDirection = vec2(-1, 0);
 	
+	m_MoveReactTime = 0;
 	m_HookTick = 0;
 	m_HookReleaseTick = 0;
 	
@@ -578,6 +579,16 @@ bool CAI::MoveTowardsWaypoint(bool Freestyle)
 			
 			case MOVE_UPLEFT:
 			{
+				if (Player()->GetCharacter()->Wallrun())
+				{
+					m_Move = 0;
+					m_Jump = 0;
+					m_Hook = 0;
+					
+					if (!GameServer()->Collision()->IsTileSolid(m_Pos.x, m_Pos.y-48))
+						break;
+				}
+				
 				m_Jump = 1;
 				m_Move = -1;
 				
@@ -595,6 +606,16 @@ bool CAI::MoveTowardsWaypoint(bool Freestyle)
 				
 			case MOVE_UPRIGHT:
 			{
+				if (Player()->GetCharacter()->Wallrun())
+				{
+					m_Move = 0;
+					m_Jump = 0;
+					m_Hook = 0;
+					
+					if (!GameServer()->Collision()->IsTileSolid(m_Pos.x, m_Pos.y-48))
+						break;
+				}
+				
 				m_Jump = 1;
 				m_Move = 1;
 				
@@ -613,6 +634,16 @@ bool CAI::MoveTowardsWaypoint(bool Freestyle)
 				
 			case MOVE_UP:
 			{
+				if (Player()->GetCharacter()->Wallrun())
+				{
+					m_Move = 0;
+					m_Jump = 0;
+					m_Hook = 0;
+					
+					if (!GameServer()->Collision()->IsTileSolid(m_Pos.x, m_Pos.y-48))
+						break;
+				}
+				
 				if (Player()->GetCharacter()->IsGrounded())
 				{
 					if (Player()->GetCharacter()->GetCore().m_JetpackPower > 95)
@@ -723,6 +754,10 @@ bool CAI::MoveTowardsWaypoint(bool Freestyle)
 			m_Move = 1;
 	}
 	
+	
+	// jump over other characters sometimes
+	if (abs(Vel) > 1 && Player()->GetCharacter()->PlayerCollision() && frandom()*10 < 2)
+		m_Jump = true;
 	
 	vec2 Pos = Player()->GetCharacter()->GetCore().m_Pos;
 	
@@ -1044,7 +1079,7 @@ bool CAI::ShootAtClosestEnemy()
 				pClosestCharacter = pCharacter;
 				ClosestDistance = Distance;
 				
-				float t = m_DispersionTick*0.01f;
+				float t = m_DispersionTick*0.05f;
 				vec2 Dispersion = vec2( 11*cos(t)-6*cos(11.0f/6 * t),
 										11*sin(t)-6*sin(11.0f/6 * t));
 				
@@ -1219,10 +1254,12 @@ bool CAI::ShootAtClosestBuilding()
 
 void CAI::RandomlyStopShooting()
 {
+	if (Player()->GetCharacter()->m_ActiveCustomWeapon == W_SCYTHE)
+		return;
+	
 	if (frandom()*20 < 4 && m_Attack == 1)
 	{
 		m_Attack = 0;
-		
 		m_AttackTimer = max(0, 20-m_PowerLevel)/2;
 	}
 }
@@ -1295,6 +1332,9 @@ bool CAI::SeekRandomEnemy()
 			continue;
 		
 		if (pPlayer->GetTeam() == Player()->GetTeam() && GameServer()->m_pController->IsTeamplay())
+			continue;
+		
+		if (pPlayer->m_IsBot && GameServer()->m_pController->IsCoop())
 			continue;
 
 		CCharacter *pCharacter = pPlayer->GetCharacter();
