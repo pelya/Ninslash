@@ -219,6 +219,17 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 		ServerStarting = true;
 	}
 
+	MainView.VSplitLeft(800, 0, &Button);
+	Button.h = 50;
+	Button.w = 130;
+	static int s_StartInvasionServerButton = 0;
+	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartInvasionServerButton, Localize("Invasion"), 0, &Button) )
+	{
+		StartServer("inv", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
+		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
+		ServerStarting = true;
+	}
+
 	static int s_JoinServerButton = 0;
 	if(ServerStarted || (ServerRunning && DoButton_Menu(&s_JoinServerButton, Localize("Join server"), 0, &Button)))
 	{
