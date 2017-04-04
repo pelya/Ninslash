@@ -1,13 +1,16 @@
+#!/usr/bin/python
+
 # coding: utf-8
 from socket import *
 import struct
 import sys
 import threading
 import time
+import datetime
 
 
 
-NUM_MASTERSERVERS = 4
+NUM_MASTERSERVERS = 1
 MASTERSERVER_PORT = 8300
 
 TIMEOUT = 2
@@ -117,8 +120,10 @@ def get_server_info3(address):
 	try:
 		sock = socket(AF_INET, SOCK_DGRAM)
 		sock.settimeout(TIMEOUT);
+		sendtime = datetime.datetime.now()
 		sock.sendto(PACKET_GETINFO3, address)
 		data, addr = sock.recvfrom(1400)
+		recvtime = datetime.datetime.now()
 		sock.close()
 
 		data = data[14:] # skip header
@@ -136,6 +141,7 @@ def get_server_info3(address):
 		server_info["num_clients"] = int(slots[8])
 		server_info["max_clients"] = int(slots[9])
 		server_info["players"] = []
+		server_info["ping"] = (recvtime.second * 1000 + recvtime.microsecond / 1000) - (sendtime.second * 1000 + sendtime.microsecond / 1000)
 
 		for i in xrange(0, server_info["num_clients"]):
 			player = {}
@@ -225,11 +231,14 @@ def get_list2(address):
 
 master_servers = []
 
-for i in range(1, NUM_MASTERSERVERS+1):
-	m = Master_Server_Info(("master%d.teeworlds.com"%i, MASTERSERVER_PORT))
-	master_servers.append(m)
-	m.start()
-	time.sleep(0.001) # avoid issues
+m = Master_Server_Info(("vps301894.ovh.net", MASTERSERVER_PORT))
+master_servers.append(m)
+m.start()
+time.sleep(0.001) # avoid issues
+m = Master_Server_Info(("[2607:fcd0:100:1903::5da2:f18e]", MASTERSERVER_PORT))
+master_servers.append(m)
+m.start()
+time.sleep(0.001) # avoid issues
 
 servers = []
 
@@ -262,6 +271,7 @@ while len(servers_info) != 0:
 				num_clients += servers_info[0].info["num_clients"]
 			else:
 				num_clients += servers_info[0].info["num_players"]
+			print "Server " + str(servers_info[0].address) + " " + servers_info[0].info["name"] + " ping " + str(servers_info[0].info["ping"])
 
 		del servers_info[0]
 
