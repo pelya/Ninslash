@@ -212,8 +212,7 @@ void CControls::OnMessage(int Msg, void *pRawMsg)
 		CustomStuff()->m_LastWeaponPicked = false;
 		m_WeaponIdxOutOfAmmo = -1;
 		bool AutoswitchNoAmmo = !m_pClient->Weaponbar()->GetLastWeaponSelectedManually() &&
-								aCustomWeapon[CustomStuff()->m_LocalWeapon % NUM_CUSTOMWEAPONS].m_MaxAmmo == 0;
-		printf("AutoswitchNoAmmo %d manual %d maxammo %d\n", AutoswitchNoAmmo, m_pClient->Weaponbar()->GetLastWeaponSelectedManually(), aCustomWeapon[CustomStuff()->m_LocalWeapon % NUM_CUSTOMWEAPONS].m_MaxAmmo);
+								aCustomWeapon[m_pClient->m_Snap.m_pLocalCharacter->m_Weapon % NUM_CUSTOMWEAPONS].m_MaxAmmo == 0;
 		if(g_Config.m_ClAutoswitchWeapons || (g_Config.m_ClAutoswitchWeaponsOutOfAmmo && AutoswitchNoAmmo))
 		{
 			/* old way using weapon groups
@@ -743,7 +742,18 @@ void CControls::TouchscreenInput()
 	if( (m_TouchJoyRightJumpPressed || m_TouchJoyLeftJumpPressed) != oldTouchJoyJump )
 		m_InputData.m_Jump = (m_TouchJoyRightJumpPressed || m_TouchJoyLeftJumpPressed);
 
-	bool FirePressed = AimPressed && distance(AimPos, m_TouchJoyAimAnchor) > TOUCHJOY_AIM_DEAD_ZONE;
+	bool FirePressed = false;
+	if (AimPressed)
+	{
+		if (distance(AimPos, m_TouchJoyAimAnchor) > TOUCHJOY_AIM_DEAD_ZONE)
+			FirePressed = true;
+		if (m_pClient->m_Snap.m_pLocalCharacter->m_Weapon == WEAPON_CHAINSAW &&
+			distance(AimPos, m_TouchJoyAimAnchor) * 2 > TOUCHJOY_AIM_DEAD_ZONE)
+			FirePressed = true;
+		if (m_pClient->m_Snap.m_pLocalCharacter->m_Weapon == WEAPON_HAMMER ||
+			m_pClient->m_Snap.m_pLocalCharacter->m_Weapon == WEAPON_SCYTHE)
+			FirePressed = true;
+	}
 
 	if (FirePressed != m_TouchJoyFirePressed)
 	{
