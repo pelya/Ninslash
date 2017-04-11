@@ -211,7 +211,9 @@ void CControls::OnMessage(int Msg, void *pRawMsg)
 		CustomStuff()->m_WeaponpickWeapon = pMsg->m_Weapon;
 		CustomStuff()->m_LastWeaponPicked = false;
 		m_WeaponIdxOutOfAmmo = -1;
-		bool AutoswitchNoAmmo = !m_pClient->Weaponbar()->GetLastWeaponSelectedManually() &&
+		bool AutoswitchNoAmmo = false;
+		if (m_pClient->m_Snap.m_pLocalCharacter)
+			AutoswitchNoAmmo = !m_pClient->Weaponbar()->GetLastWeaponSelectedManually() &&
 								aCustomWeapon[m_pClient->m_Snap.m_pLocalCharacter->m_Weapon % NUM_CUSTOMWEAPONS].m_MaxAmmo == 0;
 		if(g_Config.m_ClAutoswitchWeapons || (g_Config.m_ClAutoswitchWeaponsOutOfAmmo && AutoswitchNoAmmo))
 		{
@@ -747,12 +749,15 @@ void CControls::TouchscreenInput()
 	{
 		if (distance(AimPos, m_TouchJoyAimAnchor) > TOUCHJOY_AIM_DEAD_ZONE)
 			FirePressed = true;
-		if (m_pClient->m_Snap.m_pLocalCharacter->m_Weapon == WEAPON_CHAINSAW &&
-			distance(AimPos, m_TouchJoyAimAnchor) * 2 > TOUCHJOY_AIM_DEAD_ZONE)
-			FirePressed = true;
-		if (m_pClient->m_Snap.m_pLocalCharacter->m_Weapon == WEAPON_HAMMER ||
-			m_pClient->m_Snap.m_pLocalCharacter->m_Weapon == WEAPON_SCYTHE)
-			FirePressed = true;
+		if (m_pClient->m_Snap.m_pLocalCharacter)
+		{
+			if (m_pClient->m_Snap.m_pLocalCharacter->m_Weapon == WEAPON_CHAINSAW &&
+				distance(AimPos, m_TouchJoyAimAnchor) * 2 > TOUCHJOY_AIM_DEAD_ZONE)
+				FirePressed = true;
+			if (m_pClient->m_Snap.m_pLocalCharacter->m_Weapon == WEAPON_HAMMER ||
+				m_pClient->m_Snap.m_pLocalCharacter->m_Weapon == WEAPON_SCYTHE)
+				FirePressed = true;
+		}
 	}
 
 	if (FirePressed != m_TouchJoyFirePressed)
