@@ -641,10 +641,19 @@ void CControls::TouchscreenInput()
 			m_InputData.m_Hook = 0;
 		*/
 		// Activate run-assist jetpack if we slide finger even more
-		if( m_TouchJoyRunAnchor.x - RunPos.x < -TOUCHJOY_DEAD_ZONE * 4 || m_TouchJoyRunAnchor.x - RunPos.x > TOUCHJOY_DEAD_ZONE * 4 )
-			m_InputData.m_Hook = 1;
-		else
-			m_InputData.m_Hook = 0;
+		m_InputData.m_Hook = 0;
+		if (g_Config.m_ClHandJetpackMidAir)
+		{
+			if( m_TouchJoyRunAnchor.x - RunPos.x < -TOUCHJOY_DEAD_ZONE * 4 || m_TouchJoyRunAnchor.x - RunPos.x > TOUCHJOY_DEAD_ZONE * 4 )
+				m_InputData.m_Hook = 1;
+		}
+		else if (Client()->State() == IClient::STATE_ONLINE && !AimPressed && (m_InputDirectionLeft || m_InputDirectionRight))
+		{
+			bool Grounded = m_pClient->Collision()->CheckPoint(m_pClient->m_LocalCharacterPos.x - 14, m_pClient->m_LocalCharacterPos.y + 16) ||
+							m_pClient->Collision()->CheckPoint(m_pClient->m_LocalCharacterPos.x + 14, m_pClient->m_LocalCharacterPos.y + 16);
+			if ( Grounded )
+				m_InputData.m_Hook = 1;
+		}
 		// Change your facing direction if not aiming
 		if( !AimPressed )
 		{
