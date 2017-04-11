@@ -588,7 +588,6 @@ void CControls::TouchscreenInput()
 		TOUCHJOY_DEAD_ZONE = 65536 / 20,
 		TOUCHJOY_AIM_DEAD_ZONE = 65536 / 10,
 		TOUCHJOY_TAP_TIME = 350,
-		TOUCHJOY_JETPACK_TIME = 1100,
 	};
 
 	int64 CurTime = time_get();
@@ -600,6 +599,12 @@ void CControls::TouchscreenInput()
 	ivec2 AimPos = ivec2(SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_X), SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_Y));
 	bool AimPressed = (AimPos.x != 0 || AimPos.y != 0);
 	bool oldTouchJoyJump = (m_TouchJoyRightJumpPressed || m_TouchJoyLeftJumpPressed);
+	bool Grounded = true;
+	if (Client()->State() == IClient::STATE_ONLINE)
+	{
+		Grounded = m_pClient->Collision()->CheckPoint(m_pClient->m_LocalCharacterPos.x - 14, m_pClient->m_LocalCharacterPos.y + 16) ||
+					m_pClient->Collision()->CheckPoint(m_pClient->m_LocalCharacterPos.x + 14, m_pClient->m_LocalCharacterPos.y + 16);
+	}
 
 	// Process left joystick
 	if( !RunPressed )
@@ -647,10 +652,8 @@ void CControls::TouchscreenInput()
 			if( m_TouchJoyRunAnchor.x - RunPos.x < -TOUCHJOY_DEAD_ZONE * 4 || m_TouchJoyRunAnchor.x - RunPos.x > TOUCHJOY_DEAD_ZONE * 4 )
 				m_InputData.m_Hook = 1;
 		}
-		else if (Client()->State() == IClient::STATE_ONLINE && !AimPressed && (m_InputDirectionLeft || m_InputDirectionRight))
+		else if (!AimPressed && (m_InputDirectionLeft || m_InputDirectionRight))
 		{
-			bool Grounded = m_pClient->Collision()->CheckPoint(m_pClient->m_LocalCharacterPos.x - 14, m_pClient->m_LocalCharacterPos.y + 16) ||
-							m_pClient->Collision()->CheckPoint(m_pClient->m_LocalCharacterPos.x + 14, m_pClient->m_LocalCharacterPos.y + 16);
 			if ( Grounded )
 				m_InputData.m_Hook = 1;
 		}
@@ -674,8 +677,8 @@ void CControls::TouchscreenInput()
 		if( m_TouchJoyRunAnchor.x - RunPos.x > TOUCHJOY_DEAD_ZONE * 5 )
 			m_TouchJoyRunAnchor.x = RunPos.x + TOUCHJOY_DEAD_ZONE * 5;
 
-		if( m_TouchJoyRunTapTime + time_freq() * TOUCHJOY_JETPACK_TIME / 1000 < CurTime )
-			m_TouchJoyLeftJumpPressed = false; // Disengage jetpack in 1 second after use
+		if( Grounded && m_TouchJoyRunTapTime + time_freq() / 10 < CurTime )
+			m_TouchJoyLeftJumpPressed = false; // Disengage jetpack if on ground
 	}
 
 	//dbg_msg("controls", "");
@@ -725,8 +728,8 @@ void CControls::TouchscreenInput()
 		if (distance(AimPos, m_TouchJoyAimAnchor) > TOUCHJOY_DEAD_ZONE / 3)
 			m_MousePos = vec2(AimPos.x - m_TouchJoyAimAnchor.x, AimPos.y - m_TouchJoyAimAnchor.y) / 30;
 		ClampMousePos();
-		if( m_TouchJoyAimTapTime + time_freq() * TOUCHJOY_JETPACK_TIME / 1000 < CurTime )
-			m_TouchJoyRightJumpPressed = false; // Disengage jetpack in 1 second after use
+		if( Grounded && m_TouchJoyAimTapTime + time_freq() / 10 < CurTime )
+			m_TouchJoyRightJumpPressed = false; // Disengage jetpack if on ground
 	}
 	else
 	{
