@@ -107,6 +107,7 @@ void CControls::OnPlayerDeath()
 {
 	m_LastData.m_WantedWeapon = m_InputData.m_WantedWeapon = 0;
 	m_WeaponIdxOutOfAmmo = -1;
+	m_pClient->Weaponbar()->ClearLastWeaponSelectedManually();
 }
 
 static void ConKeyInputState(IConsole::IResult *pResult, void *pUserData)
@@ -205,13 +206,15 @@ void CControls::OnMessage(int Msg, void *pRawMsg)
 	if(Msg == NETMSGTYPE_SV_WEAPONPICKUP)
 	{
 		CNetMsg_Sv_WeaponPickup *pMsg = (CNetMsg_Sv_WeaponPickup *)pRawMsg;
-		bool HaveOtherWeapons = (CustomStuff()->m_LocalWeapons & ~((1 << WEAPON_HAMMER) | (1 << WEAPON_TOOL)));
 		CustomStuff()->m_LocalWeapons |= 1 << (pMsg->m_Weapon);
 		CustomStuff()->m_WeaponpickTimer = 1.0f;
 		CustomStuff()->m_WeaponpickWeapon = pMsg->m_Weapon;
 		CustomStuff()->m_LastWeaponPicked = false;
 		m_WeaponIdxOutOfAmmo = -1;
-		if(g_Config.m_ClAutoswitchWeapons || (g_Config.m_ClAutoswitchWeaponsOutOfAmmo && !HaveOtherWeapons))
+		bool AutoswitchNoAmmo = !m_pClient->Weaponbar()->GetLastWeaponSelectedManually() &&
+								aCustomWeapon[CustomStuff()->m_LocalWeapon % NUM_CUSTOMWEAPONS].m_MaxAmmo == 0;
+		printf("AutoswitchNoAmmo %d manual %d maxammo %d\n", AutoswitchNoAmmo, m_pClient->Weaponbar()->GetLastWeaponSelectedManually(), aCustomWeapon[CustomStuff()->m_LocalWeapon % NUM_CUSTOMWEAPONS].m_MaxAmmo);
+		if(g_Config.m_ClAutoswitchWeapons || (g_Config.m_ClAutoswitchWeaponsOutOfAmmo && AutoswitchNoAmmo))
 		{
 			/* old way using weapon groups
 			char aBuf[32];
@@ -504,6 +507,7 @@ void CControls::AutoswitchWeaponsOutOfAmmo()
 			char aBuf[32];
 			str_format(aBuf, sizeof(aBuf), "weaponpick %d", CWeaponbar::WeaponOrder[w] - 1);
 			Console()->ExecuteLine(aBuf);
+			m_pClient->Weaponbar()->ClearLastWeaponSelectedManually();
 		}
 	}
 }

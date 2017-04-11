@@ -13,6 +13,7 @@ class CWeaponbar : public CComponent
 	bool m_CanDrop;
 	bool m_ScoreboardShown;
 	bool m_BlockTouchEvents;
+	bool m_LastWeaponSelectedManually;
 
 	static void ConDropMine(IConsole::IResult *pResult, void *pUserData);
 	static void ConBuildTurret(IConsole::IResult *pResult, void *pUserData);
@@ -32,7 +33,8 @@ public:
 	void OnFingerTouch(vec2 posNormalized);
 	void OnFingerRelease();
 
-	int ScreenToWeapon(float pos, float width) const;
+	bool GetLastWeaponSelectedManually() const;
+	void ClearLastWeaponSelectedManually();
 
 	static const int WeaponOrder[];
 };

@@ -49,6 +49,7 @@ void CWeaponbar::OnReset()
 	m_LastPicked = -1;
 	m_ScoreboardShown = false;
 	m_BlockTouchEvents = false;
+	m_LastWeaponSelectedManually = false;
 }
 
 void CWeaponbar::OnRelease()
@@ -140,6 +141,7 @@ void CWeaponbar::OnRender()
 				str_format(aBuf, sizeof(aBuf), "weaponpick %d", i - 1);
 				Console()->ExecuteLine(aBuf);
 				m_LastPicked = i;
+				m_LastWeaponSelectedManually = true;
 			}
 		}
 
@@ -320,4 +322,14 @@ void CWeaponbar::BuildProcess(int keypress)
 		Msg.m_Y = CustomStuff()->m_BuildPos.y+18;
 		Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
 	}
+}
+
+bool CWeaponbar::GetLastWeaponSelectedManually() const
+{
+	return m_LastWeaponSelectedManually;
+}
+
+void CWeaponbar::ClearLastWeaponSelectedManually()
+{
+	m_LastWeaponSelectedManually = false;
 }
