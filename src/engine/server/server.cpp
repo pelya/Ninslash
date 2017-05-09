@@ -25,6 +25,7 @@
 #include <mastersrv/mastersrv.h>
 
 #include <game/server/ai.h>
+#include <game/server/playerdata.h>
 
 
 #include "register.h"
@@ -282,12 +283,29 @@ CServer::CServer() : m_DemoRecorder(&m_SnapshotDelta)
 	m_CurrentMapSize = 0;
 
 	m_MapReload = 0;
+	m_MapGenerated = false;
 
 	m_RconClientID = IServer::RCON_CID_SERV;
 	m_RconAuthLevel = AUTHED_ADMIN;
 
+	for (int i = 0; i < MAX_CLIENTS; i++)
+		m_apPlayerData[i] = NULL;
+	
 	Init();
 }
+
+
+CPlayerData *CServer::PlayerData(int ClientID)
+{
+	if (ClientID < 0 | ClientID >= MAX_CLIENTS)
+		return NULL;
+	
+	if (!m_apPlayerData[ClientID])
+		m_apPlayerData[ClientID] = new CPlayerData();
+	
+	return m_apPlayerData[ClientID];
+}
+
 
 
 int CServer::TrySetClientName(int ClientID, const char *pName)
@@ -1288,15 +1306,16 @@ char *CServer::GetMapName()
 
 int CServer::LoadMap(const char *pMapName)
 {
+	if (str_comp(pMapName, "generated") != 0)
+		m_MapGenerated = false;
+	else if (g_Config.m_SvMapGen)
+		str_copy(g_Config.m_SvInvMap, m_aCurrentMap, sizeof(g_Config.m_SvInvMap));
+		
+	
 	KickBots();
 	
-	//DATAFILE *df;
 	char aBuf[512];
 	str_format(aBuf, sizeof(aBuf), "maps/%s.map", pMapName);
-
-	/*df = datafile_load(buf);
-	if(!df)
-		return 0;*/
 
 	// check for valid standard map
 	if(!m_MapChecker.ReadAndValidateMap(Storage(), aBuf, IStorage::TYPE_ALL))
@@ -1421,8 +1440,6 @@ int CServer::Run()
 				{
 					// new map loaded
 					GameServer()->OnShutdown();
-
-					
 					
 					for(int c = 0; c < MAX_CLIENTS; c++)
 					{
@@ -1431,7 +1448,9 @@ int CServer::Run()
 						if(m_aClients[c].m_State <= CClient::STATE_AUTH)
 							continue;
 
-						SendMap(c);
+						// don't send map generation template files
+						if (!g_Config.m_SvMapGen || str_comp(g_Config.m_SvGametype, "coop") != 0 || str_comp(g_Config.m_SvMap, "generated") == 0)
+							SendMap(c);
 						
 						m_aClients[c].Reset();
 						m_aClients[c].m_State = CClient::STATE_CONNECTING;
@@ -1441,6 +1460,7 @@ int CServer::Run()
 					m_CurrentGameTick = 0;
 					Kernel()->ReregisterInterface(GameServer());
 					GameServer()->OnInit();
+					
 					UpdateServerInfo();
 				}
 				else

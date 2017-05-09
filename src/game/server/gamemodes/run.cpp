@@ -11,11 +11,14 @@
 
 #include "run.h"
 
+#include <game/server/playerdata.h>
 #include <game/server/ai.h>
 #include <game/server/ai/robot1_ai.h>
 #include <game/server/ai/robot2_ai.h>
 #include <game/server/ai/alien1_ai.h>
 #include <game/server/ai/alien2_ai.h>
+#include <game/server/ai/bunny1_ai.h>
+#include <game/server/ai/bunny2_ai.h>
 
 
 
@@ -26,18 +29,27 @@ CGameControllerCoop::CGameControllerCoop(class CGameContext *pGameServer)
 	m_GameFlags = GAMEFLAG_COOP;
 	m_GameState = STATE_STARTING;
 	
-	for (int i = 0; i < NUM_ENEMIES; i++)
-	{
-		m_Enemies[i] = 0;
-		
-		for (int j = 0; j < MAX_ROBOTS; j++)
-			m_EnemySpawnPos[j + i*MAX_ROBOTS] = vec2(0, 0);
-	}
+	for (int i = 0; i < MAX_ENEMIES; i++)
+		m_aEnemySpawnPos[i] = vec2(0, 0);
 	
 	m_RoundOverTick = 0;
 	m_RoundWinTick = 0;
 	
 	m_RoundWin = false;
+	
+	// hordes of enemies
+	bool Defend = (g_Config.m_SvMapGenLevel > 1 && g_Config.m_SvMapGenLevel%5 == 0);
+	int e = 2 + log(float(1 + g_Config.m_SvMapGenLevel/3)) * 5;
+	e += rand()%(1+g_Config.m_SvMapGenLevel/4);
+
+	if (Defend)
+		e *= 2;
+	
+	m_EnemyCount = 0;
+	m_EnemiesLeft = e;
+	m_Deaths = m_EnemiesLeft;
+	m_NumEnemySpawnPos = 0;
+	m_SpawnPosRotation = 0;
 	
 	// force some settings
 	g_Config.m_SvRandomWeapons = 0;
@@ -62,18 +74,10 @@ bool CGameControllerCoop::OnEntity(int Index, vec2 Pos)
 {
 	if (IGameController::OnEntity(Index, Pos))
 		return true;
-	
-	int i = Index - ENTITY_ROBOT1;
 
-	if (i >= 0 && i < NUM_ENEMIES)
+	if (Index == ENTITY_ENEMYSPAWN && m_NumEnemySpawnPos < MAX_ENEMIES)
 	{
-		if (m_Enemies[i] < MAX_ROBOTS)
-		{
-			m_EnemySpawnPos[m_Enemies[i] + i*MAX_ROBOTS] = Pos;
-			m_Enemies[i]++;
-			m_Deaths = EnemiesLeft();
-		}
-		
+		m_aEnemySpawnPos[m_NumEnemySpawnPos++] = Pos;
 		return true;
 	}
 	
@@ -83,23 +87,15 @@ bool CGameControllerCoop::OnEntity(int Index, vec2 Pos)
 
 bool CGameControllerCoop::GetSpawnPos(int Team, vec2 *pOutPos)
 {
-	if (!pOutPos)
+	if (!pOutPos || !m_NumEnemySpawnPos)
 		return false;
 
-	for (int i = 0; i < NUM_ENEMIES; i++)
-	{
-		for (int j = 0; j < MAX_ROBOTS; j++)
-		{
-			if (m_EnemySpawnPos[j+i*MAX_ROBOTS].x != 0)
-			{
-				*pOutPos = m_EnemySpawnPos[j+i*MAX_ROBOTS];
-				m_EnemySpawnPos[j+i*MAX_ROBOTS] = vec2(0, 0);
-				return true;
-			}
-		}
-	}
+	m_SpawnPosRotation++;
+	m_SpawnPosRotation = m_SpawnPosRotation%m_NumEnemySpawnPos;
 	
-	return false;
+	//int i = rand()%m_NumEnemySpawnPos;
+	*pOutPos = m_aEnemySpawnPos[m_SpawnPosRotation];
+	return true;
 }
 
 
@@ -113,35 +109,61 @@ void CGameControllerCoop::OnCharacterSpawn(CCharacter *pChr, bool RequestAI)
 	{
 		bool Found = false;
 		
-		for (int i = 0; i < NUM_ENEMIES; i++)
+		if (m_EnemiesLeft > 0)
 		{
-			if (m_Enemies[i] > 0)
-			{
-				m_Enemies[i]--;
-				Found = true;
+			m_EnemiesLeft--;
+			Found = true;
+		
+			int i = ENEMY_ALIEN1;
 			
-				switch (i)
-				{
-				case ENEMY_ALIEN1:
-					pChr->GetPlayer()->m_pAI = new CAIalien1(GameServer(), pChr->GetPlayer());
-					break;
-					
-				case ENEMY_ALIEN2:
-					pChr->GetPlayer()->m_pAI = new CAIalien2(GameServer(), pChr->GetPlayer());
-					break;
-					
-				case ENEMY_ROBOT1:
-					pChr->GetPlayer()->m_pAI = new CAIrobot1(GameServer(), pChr->GetPlayer());
-					break;
-					
-				case ENEMY_ROBOT2:
-					pChr->GetPlayer()->m_pAI = new CAIrobot2(GameServer(), pChr->GetPlayer());
-					break;
-				};
+			if (g_Config.m_SvMapGenLevel > 10 && frandom() < 0.35f)
+				i = ENEMY_ROBOT1;
+			
+			if (g_Config.m_SvMapGenLevel > 20 && frandom() < 0.35f)
+				i = ENEMY_ROBOT2;
+			
+			if (m_EnemyCount > 12)
+			{
+				i = ENEMY_ALIEN2;
 				
-				if (Found)
-					break;
+				if (g_Config.m_SvMapGenLevel > 30 && frandom() < 0.35f)
+						i = ENEMY_BUNNY1;
+				if (g_Config.m_SvMapGenLevel > 35 && frandom() < 0.35f)
+						i = ENEMY_BUNNY2;
 			}
+			
+			switch (i)
+			{
+			case ENEMY_ALIEN1:
+				pChr->GetPlayer()->m_pAI = new CAIalien1(GameServer(), pChr->GetPlayer());
+				break;
+					
+			case ENEMY_ALIEN2:
+				pChr->GetPlayer()->m_pAI = new CAIalien2(GameServer(), pChr->GetPlayer());
+				break;
+					
+			case ENEMY_ROBOT1:
+				pChr->GetPlayer()->m_pAI = new CAIrobot1(GameServer(), pChr->GetPlayer());
+				break;
+					
+			case ENEMY_ROBOT2:
+				pChr->GetPlayer()->m_pAI = new CAIrobot2(GameServer(), pChr->GetPlayer());
+				break;
+				
+			case ENEMY_BUNNY1:
+				pChr->GetPlayer()->m_pAI = new CAIbunny1(GameServer(), pChr->GetPlayer());
+				break;
+				
+			case ENEMY_BUNNY2:
+				pChr->GetPlayer()->m_pAI = new CAIbunny2(GameServer(), pChr->GetPlayer());
+				break;
+				
+			default:
+				pChr->GetPlayer()->m_pAI = new CAIalien1(GameServer(), pChr->GetPlayer());
+				break;
+			};
+				
+			m_EnemyCount++;
 		}
 		
 		if (!Found)
@@ -149,6 +171,14 @@ void CGameControllerCoop::OnCharacterSpawn(CCharacter *pChr, bool RequestAI)
 			pChr->GetPlayer()->m_pAI = new CAIalien1(GameServer(), pChr->GetPlayer());
 			pChr->GetPlayer()->m_ToBeKicked = true;
 		}
+	}
+	else
+	{
+		/*
+		CPlayerData *pData = GameServer()->Server()->PlayerData(pChr->GetPlayer()->GetCID());
+		pChr->GiveCustomWeapon(pData->m_Weapon);
+		pChr->SetCustomWeapon(pData->m_Weapon);
+		*/
 	}
 }
 
@@ -159,12 +189,17 @@ int CGameControllerCoop::OnCharacterDeath(class CCharacter *pVictim, class CPlay
 
 	//GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "inv", "OnCharacterDeath");
 		
+	if (Weapon != WEAPON_GAME)
+		GameServer()->Server()->PlayerData(pVictim->GetPlayer()->GetCID())->Die();
+	else if (!pVictim->m_IsBot)
+		pVictim->SaveData();
+		
 	if (pVictim->m_IsBot && !pVictim->GetPlayer()->m_ToBeKicked)
 	{
 		if (--m_Deaths <= 0)
 			TriggerEscape();
 				
-		if (EnemiesLeft() <= 0)
+		if (m_EnemiesLeft <= 0)
 			pVictim->GetPlayer()->m_ToBeKicked = true;
 	}
 	
@@ -217,7 +252,7 @@ void CGameControllerCoop::Tick()
 			GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "inv", aBuf);
 			
 			m_GameState = STATE_GAME;
-			for (int i = 0; i < EnemiesLeft() && GameServer()->m_pController->CountBots() < 12; i++)
+			for (int i = 0; i < m_EnemiesLeft && GameServer()->m_pController->CountBots() < 12; i++)
 				GameServer()->AddBot();
 		}
 		// reset to first map if there's no players for 60 seconds
@@ -230,7 +265,21 @@ void CGameControllerCoop::Tick()
 	{
 		// lose => restart
 		if (m_RoundOverTick && m_RoundOverTick < Server()->Tick() - Server()->TickSpeed()*2.0f)
-			GameServer()->ReloadMap();
+		{
+			if (++g_Config.m_SvInvFails >= 3)
+			{
+				g_Config.m_SvInvFails = 0;
+				
+				if (--g_Config.m_SvMapGenLevel < 1)
+					g_Config.m_SvMapGenLevel = 1;
+				
+				int l = g_Config.m_SvMapGenLevel;
+				FirstMap();
+				g_Config.m_SvMapGenLevel = l;
+			}
+			else
+				GameServer()->ReloadMap();
+		}
 	}
 	
 	GameServer()->UpdateAI();
@@ -252,6 +301,8 @@ void CGameControllerCoop::Tick()
 		{
 			m_RoundWin = false;
 			m_RoundWinTick = 0;
+			g_Config.m_SvMapGenLevel++;
+			g_Config.m_SvInvFails = 0;
 			EndRound();
 		}
 	}

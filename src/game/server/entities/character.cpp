@@ -18,6 +18,8 @@
 #include <game/weapons.h>
 #include <game/buildables.h>
 
+#include <game/server/playerdata.h>
+
 inline vec2 RandomDir() { return normalize(vec2(frandom()-0.5f, frandom()-0.5f)); }
 
 
@@ -124,7 +126,6 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	m_EmoteStop = -1;
 	m_LastAction = -1;
 	m_LastNoAmmoSound = -1;
-	m_ActiveWeapon = WEAPON_HAMMER;
 	m_LastWeapon = WEAPON_HAMMER;
 	m_PrevWeapon = WEAPON_HAMMER;
 	m_QueuedCustomWeapon = -1;
@@ -186,7 +187,20 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 }
 
 
+void CCharacter::SaveData()
+{
+	CPlayerData *pData = GameServer()->Server()->PlayerData(GetPlayer()->GetCID());
 
+	pData->m_Weapon = GetActiveWeapon();
+	
+	for (int i = 0; i < NUM_WEAPONS; i++)
+	{
+		if (GotWeapon(i))
+			pData->m_aAmmo[i] = m_aWeapon[i].m_Ammo;
+		else
+			pData->m_aAmmo[i] = -1;
+	}
+}
 
 	
 bool CCharacter::SetLandmine()
@@ -301,7 +315,7 @@ void CCharacter::DropWeapon()
 			}
 		}
 		
-		if (pNear)
+		if (m_ActiveCustomWeapon != W_SCYTHE && pNear)
 		{
 			vec2 p = pNear->m_Pos;
 			GameServer()->m_World.DestroyEntity(pNear);
@@ -333,12 +347,15 @@ void CCharacter::DropWeapon()
 				}
 			}
 			
-			if (pTurret &&
+			if (m_ActiveCustomWeapon != W_SCYTHE && pTurret &&
 				(GameServer()->m_pController->IsCoop() || (GameServer()->m_pController->IsTeamplay() && pTurret->m_Team == GetPlayer()->GetTeam()) ||
 				(!GameServer()->m_pController->IsTeamplay() && pTurret->m_OwnerPlayer == GetPlayer()->GetCID())))
 			{
 				// drop the old weapon
-				float AmmoFill = float(pTurret->m_Ammo) / aCustomWeapon[pTurret->m_Weapon].m_MaxAmmo;
+				float AmmoFill = 0;
+				if (aCustomWeapon[pTurret->m_Weapon].m_MaxAmmo)
+					AmmoFill = float(pTurret->m_Ammo) / aCustomWeapon[pTurret->m_Weapon].m_MaxAmmo;
+				
 				GameServer()->m_pController->DropPickup(pTurret->m_Pos+vec2(0, -40), POWERUP_WEAPON, vec2(0, -3), pTurret->m_Weapon, AmmoFill);
 
 				if (pTurret->m_Weapon == m_ActiveCustomWeapon && m_aWeapon[m_ActiveCustomWeapon].m_Ammo > 0)
@@ -356,7 +373,10 @@ void CCharacter::DropWeapon()
 			else
 			{
 				// otherwise throw weapon away
-				float AmmoFill = float(m_aWeapon[m_ActiveCustomWeapon].m_Ammo) / aCustomWeapon[m_ActiveCustomWeapon].m_MaxAmmo;
+				float AmmoFill = 0;
+				if (aCustomWeapon[m_ActiveCustomWeapon].m_MaxAmmo > 0)
+					AmmoFill = float(m_aWeapon[m_ActiveCustomWeapon].m_Ammo) / aCustomWeapon[m_ActiveCustomWeapon].m_MaxAmmo;
+				
 				GameServer()->m_pController->DropPickup(m_Pos+vec2(0, -16), POWERUP_WEAPON, m_Core.m_Vel/1.7f + Direction*8 + vec2(0, -3), m_ActiveCustomWeapon, AmmoFill);
 				m_SkipPickups = 20;
 			}
@@ -1036,9 +1056,40 @@ void CCharacter::AutoWeaponChange()
 
 void CCharacter::GiveStartWeapon()
 {
-	if (GameServer()->m_pController->IsCoop() && m_IsBot)
-		return;
 
+
+	if (GameServer()->m_pController->IsCoop())
+	{
+		if (m_IsBot)
+			return;
+		
+		GiveCustomWeapon(W_TOOL);
+		GiveCustomWeapon(W_HAMMER);
+		//SetCustomWeapon(W_HAMMER);
+		
+		// load saved weapons
+		CPlayerData *pData = GameServer()->Server()->PlayerData(GetPlayer()->GetCID());
+		
+		for (int i = 0; i < NUM_WEAPONS; i++)
+			if (pData->m_aAmmo[i] >= 0)
+			{
+				//float AmmoFill = 0;
+				//if (aCustomWeapon[i].m_MaxAmmo > 0)
+				//	AmmoFill = float(pData->m_aAmmo[i]) / float(aCustomWeapon[i].m_MaxAmmo);
+				
+				GiveCustomWeapon(i, 0);
+				m_aWeapon[i].m_Ammo = pData->m_aAmmo[i];
+			}
+			
+		if (pData->m_Weapon > 0)
+			SetCustomWeapon(pData->m_Weapon);
+		else
+			SetCustomWeapon(W_HAMMER);
+		
+		return;
+	}
+	
+	
 	int LockedWeapon = GameServer()->m_pController->GetLockedWeapon(this);
 	if (LockedWeapon != -1)
 	{
@@ -1434,6 +1485,13 @@ void CCharacter::Tick()
 	
 	m_Recoil *= 0.5f;
 	
+	if (m_Core.m_KickDamage >= 0 && m_Core.m_KickDamage < MAX_CLIENTS)
+	{
+		TakeDamage(vec2(0, 0), 20, m_Core.m_KickDamage, WEAPON_WORLD, vec2(0, 0), DAMAGETYPE_NORMAL);
+		GameServer()->CreateSound(m_Pos, SOUND_KICKHIT);
+	}
+	
+	m_Core.m_ClientID = GetPlayer()->GetCID();
 	m_Core.Tick(true);
 	
 	// anti head stuck
@@ -1450,6 +1508,12 @@ void CCharacter::Tick()
 	
 	if (m_Core.m_FluidDamage)
 		TakeDamage(normalize(m_Core.m_Vel), 2, -1, WEAPON_WORLD, vec2(0, 0), DAMAGETYPE_FLUID);
+
+	if (m_Core.m_KickDamage >= 0 && m_Core.m_KickDamage < MAX_CLIENTS)
+	{
+		TakeDamage(vec2(0, 0), 20, m_Core.m_KickDamage, WEAPON_WORLD, vec2(0, 0), DAMAGETYPE_NORMAL);
+		GameServer()->CreateSound(m_Pos, SOUND_KICKHIT);
+	}
 
 	
 	if (m_CryTimer > 0)
@@ -1916,17 +1980,20 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon, vec2 Pos,
 
 
 	// do damage Hit sound
-	if(From >= 0 && From != m_pPlayer->GetCID() && GameServer()->m_apPlayers[From])
+	if (Type != DAMAGETYPE_FLAME)
 	{
-		GameServer()->m_apPlayers[From]->m_InterestPoints += Dmg * 5;
-		
-		int Mask = CmaskOne(From);
-		for(int i = 0; i < MAX_CLIENTS; i++)
+		if(From >= 0 && From != m_pPlayer->GetCID() && GameServer()->m_apPlayers[From])
 		{
-			if(GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS && GameServer()->m_apPlayers[i]->m_SpectatorID == From)
-				Mask |= CmaskOne(i);
+			GameServer()->m_apPlayers[From]->m_InterestPoints += Dmg * 5;
+			
+			int Mask = CmaskOne(From);
+			for(int i = 0; i < MAX_CLIENTS; i++)
+			{
+				if(GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS && GameServer()->m_apPlayers[i]->m_SpectatorID == From)
+					Mask |= CmaskOne(i);
+			}
+			GameServer()->CreateSound(GameServer()->m_apPlayers[From]->m_ViewPos, SOUND_HIT, Mask);
 		}
-		GameServer()->CreateSound(GameServer()->m_apPlayers[From]->m_ViewPos, SOUND_HIT, Mask);
 	}
 
 	// check for death

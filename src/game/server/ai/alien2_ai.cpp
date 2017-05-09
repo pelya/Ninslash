@@ -14,6 +14,7 @@ CAIalien2::CAIalien2(CGameContext *pGameServer, CPlayer *pPlayer)
 	m_SkipMoveUpdate = 0;
 	Player()->SetCustomSkin(5);
 	m_StartPos = vec2(0, 0);
+	m_ShockTimer = 0;
 }
 
 
@@ -41,6 +42,15 @@ void CAIalien2::OnCharacterSpawn(CCharacter *pChr)
 		pChr->GiveCustomWeapon(WEAPON_FLAMER);
 	
 	pChr->SetHealth(50);
+	
+	m_ShockTimer = 10;
+}
+
+
+void CAIalien2::ReceiveDamage(int CID, int Dmg)
+{
+	m_ShockTimer = 10;
+	m_Attack = 0;
 }
 
 
@@ -48,10 +58,17 @@ void CAIalien2::DoBehavior()
 {
 	m_Attack = 0;	
 	
+	if (m_ShockTimer > 0 && m_ShockTimer--)
+	{
+		m_ReactionTime = 1 + frandom()*3;
+		return;
+	}
+	
 	HeadToMovingDirection();
 	SeekClosestEnemyInSight();
 
 	bool Jump = false;
+	bool Shooting = false;
 	
 	// if we see a player
 	if (m_EnemiesInSight > 0)
@@ -60,6 +77,7 @@ void CAIalien2::DoBehavior()
 		
 		if (ShootAtClosestEnemy())
 		{
+			Shooting = true;
 		}
 		else
 		{
@@ -92,10 +110,12 @@ void CAIalien2::DoBehavior()
 	}
 
 
-	if (abs(m_Pos.x - m_TargetPos.x) < 40 && abs(m_Pos.y - m_TargetPos.y) < 40)
+	if ((Shooting && Player()->GetCharacter()->IsGrounded()) || (abs(m_Pos.x - m_TargetPos.x) < 40 && abs(m_Pos.y - m_TargetPos.y) < 40))
 	{
 		// stand still
 		m_Move = 0;
+		m_Jump = 0;
+		m_Hook = 0;
 	}
 	else
 	{
@@ -116,6 +136,14 @@ void CAIalien2::DoBehavior()
 	Player()->GetCharacter()->m_SkipPickups = 999;
 
 	RandomlyStopShooting();
+	
+	if (m_ShockTimer > 0 && m_ShockTimer--)
+	{
+		m_Attack = 0;
+		m_Move = 0;
+		m_Hook = 0;
+		m_Jump = 0;
+	}
 	
 	// next reaction in
 	m_ReactionTime = 1 + frandom()*3;

@@ -955,7 +955,10 @@ void IGameController::CycleMap()
 	// handle maprotation
 	const char *pMapRotation = g_Config.m_SvMaprotation;
 	const char *pCurrentMap = g_Config.m_SvMap;
-
+	
+	if (strcmp(g_Config.m_SvMap, "generated") == 0)
+		pCurrentMap = g_Config.m_SvInvMap;
+	
 	int CurrentMapLen = str_length(pCurrentMap);
 	const char *pNextMap = pMapRotation;
 	while(*pNextMap)
@@ -1009,6 +1012,9 @@ void IGameController::CycleMap()
 
 void IGameController::FirstMap()
 {
+	g_Config.m_SvMapGenLevel = 1;
+	g_Config.m_SvInvFails = 0;
+	
 	if(m_aMapWish[0] != 0)
 	{
 		char aBuf[256];
@@ -1369,6 +1375,13 @@ void IGameController::ResetSurvivalRound()
 	m_ClearBroadcastTick = Server()->Tick() + Server()->TickSpeed()*2;
 	m_SurvivalStartTick = Server()->Tick();
 	m_SurvivalStatus = 0;
+	
+	// reset pickups
+	CPickup *apEnts[4000];
+	int Num = GameServer()->m_World.FindEntities(vec2(0, 0), 0.0f, (CEntity**)apEnts, 4000, CGameWorld::ENTTYPE_PICKUP);
+
+	for (int i = 0; i < Num; ++i)
+		apEnts[i]->SurvivalReset();
 }
 
 void IGameController::KillEveryone()

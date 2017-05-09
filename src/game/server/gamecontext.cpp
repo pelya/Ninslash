@@ -5,6 +5,7 @@
 #include <new>
 #include <base/math.h>
 #include <engine/shared/config.h>
+#include <engine/shared/datafile.h> // MapGen
 #include <engine/map.h>
 #include <engine/console.h>
 #include "gamecontext.h"
@@ -23,6 +24,8 @@
 #include <game/server/entities/building.h>
 #include <game/server/entities/turret.h>
 #include <game/server/entities/monster.h>
+
+#include <game/server/playerdata.h>
 
 #include <game/server/ai_protocol.h>
 #include <game/server/ai.h>
@@ -1595,6 +1598,18 @@ void CGameContext::OnClientEnter(int ClientID)
 	str_format(aBuf, sizeof(aBuf), "team_join player='%d:%s' team=%d", ClientID, Server()->ClientName(ClientID), m_apPlayers[ClientID]->GetTeam());
 	Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
 
+	if (m_pController->IsCoop() && g_Config.m_SvMapGen)
+	{
+		char aBuf[256];
+		if (!g_Config.m_SvInvFails)
+			str_format(aBuf, sizeof(aBuf), "Level %d", g_Config.m_SvMapGenLevel);
+		else if (g_Config.m_SvInvFails == 1)
+			str_format(aBuf, sizeof(aBuf), "Level %d - Second try", g_Config.m_SvMapGenLevel);
+		else
+			str_format(aBuf, sizeof(aBuf), "Level %d - Last chance", g_Config.m_SvMapGenLevel);
+		SendBroadcast(aBuf, ClientID);
+	}
+	
 	m_VoteUpdate = true;
 }
 
@@ -1647,6 +1662,8 @@ void CGameContext::OnClientDrop(int ClientID, const char *pReason)
 		if(m_apPlayers[i] && m_apPlayers[i]->m_SpectatorID == ClientID)
 			m_apPlayers[i]->m_SpectatorID = SPEC_FREEVIEW;
 	}
+	
+	Server()->PlayerData(ClientID)->Die();
 }
 
 void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
@@ -2582,9 +2599,7 @@ void CGameContext::ConForceVote(IConsole::IResult *pResult, void *pUserData)
 
 void CGameContext::ReloadMap()
 {
-	
-		Console()->ExecuteLine("reload");	
-	
+	Console()->ExecuteLine("reload");
 }
 
 
@@ -2668,6 +2683,7 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 {
 	m_pServer = Kernel()->RequestInterface<IServer>();
 	m_pConsole = Kernel()->RequestInterface<IConsole>();
+	m_pStorage = Kernel()->RequestInterface<IStorage>(); // MapGen
 	m_World.SetGameServer(this);
 	m_Events.SetGameServer(this);
 
@@ -2679,6 +2695,7 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 
 	m_Layers.Init(Kernel());
 	m_Collision.Init(&m_Layers);
+	m_MapGen.Init(&m_Layers, &m_Collision, m_pStorage); // MapGen
 
 	// reset everything here
 	//world = new GAMEWORLD;
@@ -2699,6 +2716,16 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 		m_pController = new CGameControllerCoop(this);
 	else
 		m_pController = new CGameControllerDM(this);
+
+	// MapGen
+	if (str_comp(g_Config.m_SvGametype, "coop") == 0 && g_Config.m_SvMapGen && !m_pServer->m_MapGenerated)
+	{
+		m_MapGen.FillMap();
+		SaveMap("");
+		
+		str_copy(g_Config.m_SvMap, "generated", sizeof(g_Config.m_SvMap));
+		m_pServer->m_MapGenerated = true;
+	}
 
 	// setup core world
 	//for(int i = 0; i < MAX_CLIENTS; i++)
@@ -2754,6 +2781,10 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 void CGameContext::OnShutdown()
 {
 	KickBots();
+	for (int i = 0; i < MAX_CLIENTS; i++)
+		if (m_apPlayers[i])
+			m_apPlayers[i]->SaveData();
+	
 	delete m_pController;
 	m_pController = 0;
 	Clear();
@@ -3047,4 +3078,46 @@ vec2 CGameContext::GetFarHumanSpawnPos(bool AllowVision)
 }
 
 
+// MapGen
+void CGameContext::SaveMap(const char *path)
+{
+    IMap *pMap = Layers()->Map();
+    if (!pMap)
+        return;
+
+    CDataFileWriter fileWrite;
+    char aMapFile[512];
+	//str_format(aMapFile, sizeof(aMapFile), "maps/%s_%d.map", Server()->GetMapName(), g_Config.m_SvMapGenSeed);
+	str_format(aMapFile, sizeof(aMapFile), "maps/generated.map");
+	
+	/*
+    if (path[0] == 0)
+    {
+    	// FIXME: Do this for not write&read in the same file... and yeah, is ugly :/
+    	char aMapFileCopy[512];
+    	str_format(aMapFileCopy, sizeof(aMapFileCopy), "maps/%s__.map", Server()->GetMapName());
+    	if (fileWrite.SaveMap(Storage(), pMap->GetFileReader(), aMapFileCopy))
+    	{
+    		// Really hackish :(
+    		//IOHANDLE *pTempFile = pMap->GetFileReader()->GetFile();
+    		//io_close(*pTempFile);
+    		Storage()->RemoveFile(aMapFile, IStorage::TYPE_SAVE);
+    		Storage()->RenameFile(aMapFileCopy, aMapFile, IStorage::TYPE_SAVE);
+
+			//char aMapsPath[512];
+			//Storage()->GetCompletePath(IStorage::TYPE_SAVE, "worlds", aMapsPath, sizeof(aMapsPath));
+			//str_format(aMapFileCopy, sizeof(aMapFileCopy), "%s%s/%s.map", aMapsPath, Server()->GetMapName(), Server()->GetMapName());
+			//*pTempFile = io_open(aMapFileCopy, IOFLAG_READ);
+    	}
+    }
+    else
+    	fileWrite.SaveMap(Storage(), pMap->GetFileReader(), aMapFile);
+		*/
+		
+    fileWrite.SaveMap(Storage(), pMap->GetFileReader(), aMapFile);
+
+    char aBuf[128];
+    str_format(aBuf, sizeof(aBuf), "Map saved in '%s'!", aMapFile);
+    Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
+}
 

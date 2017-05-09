@@ -21,6 +21,7 @@ CParticles::CParticles()
 	m_RenderGeneral.m_pParts = this;
 	m_RenderTriangles.m_pParts = this;
 	m_RenderFlames.m_pParts = this;
+	m_RenderFlame1.m_pParts = this;
 	m_RenderSmoke1.m_pParts = this;
 	m_RenderMine1.m_pParts = this;
 	m_RenderMine2.m_pParts = this;
@@ -362,6 +363,29 @@ void CParticles::RenderGroup(int Group)
 			RenderTools()->RenderWalker(p+vec2(0, 62), -1, a/3, 1, 0, 0);
 		}
 	}
+	else if (Group == GROUP_FLAME1)
+	{
+		Graphics()->BlendNormal();
+		Graphics()->TextureSet(g_pData->m_aImages[IMAGE_FLAME1].m_Id);
+		Graphics()->QuadsBegin();
+
+		int i = m_aFirstPart[Group];
+		while(i != -1)
+		{
+			float a = m_aParticles[i].m_Life / m_aParticles[i].m_LifeSpan;
+			vec2 p = m_aParticles[i].m_Pos;
+
+			float Size = mix(m_aParticles[i].m_StartSize, m_aParticles[i].m_EndSize*1.0f, a);
+			RenderTools()->SelectSprite(m_aParticles[i].m_Spr + a*m_aParticles[i].m_Frames);
+			Graphics()->QuadsSetRotation(m_aParticles[i].m_Rot);
+			Graphics()->SetColor(m_aParticles[i].m_Color.r, m_aParticles[i].m_Color.g, m_aParticles[i].m_Color.b, 1);
+			IGraphics::CQuadItem QuadItem(p.x, p.y, Size, Size/2);
+			Graphics()->QuadsDraw(&QuadItem, 1);
+
+			i = m_aParticles[i].m_NextPart;
+		}
+		Graphics()->QuadsEnd();
+	}
 	else if (Group == GROUP_LAZERLOAD)
 	{
 		Graphics()->BlendNormal();
@@ -635,8 +659,9 @@ void CParticles::RenderGroup(int Group)
 		{
 			float a = m_aParticles[i].m_Life / m_aParticles[i].m_LifeSpan;
 			vec2 p = m_aParticles[i].m_Pos;
+			float alpha = min(1.0f, (1.0f-a)*1.5f);
 
-			float Size = mix(m_aParticles[i].m_StartSize, m_aParticles[i].m_EndSize*1.0f, a);
+			float Size = mix(m_aParticles[i].m_StartSize, m_aParticles[i].m_EndSize*1.0f, alpha);
 			RenderTools()->SelectSprite(m_aParticles[i].m_Spr);
 			Graphics()->QuadsSetRotation(m_aParticles[i].m_Rot);
 			Graphics()->SetColor(m_aParticles[i].m_Color.r, m_aParticles[i].m_Color.g, m_aParticles[i].m_Color.b, 1-a);
@@ -645,11 +670,12 @@ void CParticles::RenderGroup(int Group)
 			
 			RenderTools()->SelectSprite(m_aParticles[i].m_Spr+1);
 			
+				
 			switch (m_aParticles[i].m_Special)
 			{
-				case 1: Graphics()->SetColor(0, 1, 0, 1-a); break;
-				case 2: Graphics()->SetColor(0, 0, 0, 1-a); break;
-				default: Graphics()->SetColor(1, 0, 0, 1-a); break;
+				case 1: Graphics()->SetColor(0, 1, 0, 1-alpha); break;
+				case 2: Graphics()->SetColor(0, 0, 0, 1-alpha); break;
+				default: Graphics()->SetColor(1, 0, 0, 1-alpha); break;
 			};
 			
 			//Graphics()->SetColor(1, 1, 1, 1-a);
