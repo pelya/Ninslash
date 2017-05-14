@@ -212,6 +212,9 @@ int CSound::Init()
 	if(!g_Config.m_SndEnable)
 		return 0;
 
+	if (g_Config.m_SndBufferSize <= 512)
+		g_Config.m_SndBufferSize = 4800;
+
 	if(SDL_InitSubSystem(SDL_INIT_AUDIO) < 0)
 	{
 		dbg_msg("gfx", "unable to init SDL audio: %s", SDL_GetError());
