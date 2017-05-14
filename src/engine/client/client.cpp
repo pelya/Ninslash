@@ -1937,6 +1937,7 @@ void CClient::Run()
 				LoadData();
 				GameClient()->OnInit();
 				gs_TextureBlob = -1;
+				gs_DpadTexture = -1;
 			}
 		}
 

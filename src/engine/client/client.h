@@ -4,6 +4,7 @@
 #define ENGINE_CLIENT_CLIENT_H
 
 extern int gs_TextureBlob;
+extern int gs_DpadTexture;
 
 class CGraph
 {

@@ -589,10 +589,13 @@ void CControls::TouchscreenInput()
 	WeaponBarInput();
 
 	enum {
-		TOUCHJOY_DEAD_ZONE = 65536 / 20,
+		TOUCHJOY_RUN_SWIPE_DEAD_ZONE = 65536 / 20,
 		TOUCHJOY_AIM_DEAD_ZONE = 65536 / 10,
+		TOUCHJOY_JUMP_DEAD_ZONE = TOUCHJOY_RUN_SWIPE_DEAD_ZONE,
 		TOUCHJOY_TAP_TIME = 350,
 	};
+
+	const int TOUCHJOY_DEAD_ZONE = g_Config.m_ClTouchscreenFixedDpad ? 0 : TOUCHJOY_RUN_SWIPE_DEAD_ZONE;
 
 	int64 CurTime = time_get();
 
@@ -622,13 +625,17 @@ void CControls::TouchscreenInput()
 		if (RunPressed)
 		{
 			// Tap to jump, and do not reset the anchor coordinates, if tapped under 500ms
-			if (m_TouchJoyRunTapTime + time_freq() * TOUCHJOY_TAP_TIME / 1000 > CurTime && distance(RunPos, m_TouchJoyRunLastPos) < TOUCHJOY_DEAD_ZONE * 2)
+			if (m_TouchJoyRunTapTime + time_freq() * TOUCHJOY_TAP_TIME / 1000 > CurTime &&
+				distance(RunPos, m_TouchJoyRunLastPos) < TOUCHJOY_DEAD_ZONE * 2 &&
+				!g_Config.m_ClTouchscreenFixedDpad)
 			{
 				m_TouchJoyLeftJumpPressed = true;
 			}
 			else
 			{
 				m_TouchJoyRunAnchor = RunPos;
+				if (g_Config.m_ClTouchscreenFixedDpad)
+					m_TouchJoyRunAnchor = ivec2(-8192, 16384);
 			}
 		}
 		else
@@ -645,13 +652,6 @@ void CControls::TouchscreenInput()
 		m_InputDirectionLeft = (RunPos.x - m_TouchJoyRunAnchor.x < -TOUCHJOY_DEAD_ZONE);
 		m_InputDirectionRight = (RunPos.x - m_TouchJoyRunAnchor.x > TOUCHJOY_DEAD_ZONE);
 		m_InputData.m_Down = (RunPos.y - m_TouchJoyRunAnchor.y > TOUCHJOY_DEAD_ZONE * 3);
-		// Activate run-assist jetpack if we slide finger up
-		/*
-		if( RunY - m_TouchJoyRunAnchor.y < -TOUCHJOY_DEAD_ZONE * 3 )
-			m_InputData.m_Hook = 1;
-		else
-			m_InputData.m_Hook = 0;
-		*/
 		// Activate run-assist jetpack if we slide finger even more
 		m_InputData.m_Hook = 0;
 		if (g_Config.m_ClHandJetpackMidAir)
@@ -679,10 +679,13 @@ void CControls::TouchscreenInput()
 			}
 		}
 		// Move the anchor if we move the finger too much
-		if (m_TouchJoyRunAnchor.x - RunPos.x < -TOUCHJOY_DEAD_ZONE * 5)
-			m_TouchJoyRunAnchor.x = RunPos.x - TOUCHJOY_DEAD_ZONE * 5;
-		if (m_TouchJoyRunAnchor.x - RunPos.x > TOUCHJOY_DEAD_ZONE * 5)
-			m_TouchJoyRunAnchor.x = RunPos.x + TOUCHJOY_DEAD_ZONE * 5;
+		if (!g_Config.m_ClTouchscreenFixedDpad)
+		{
+			if (m_TouchJoyRunAnchor.x - RunPos.x < -TOUCHJOY_DEAD_ZONE * 5)
+				m_TouchJoyRunAnchor.x = RunPos.x - TOUCHJOY_DEAD_ZONE * 5;
+			if (m_TouchJoyRunAnchor.x - RunPos.x > TOUCHJOY_DEAD_ZONE * 5)
+				m_TouchJoyRunAnchor.x = RunPos.x + TOUCHJOY_DEAD_ZONE * 5;
+		}
 
 		if ((Grounded || JetpackFuel <= 0) && m_TouchJoyRunTapTime + time_freq() / 10 < CurTime)
 			m_TouchJoyLeftJumpPressed = false; // Disengage jetpack if on ground
@@ -705,7 +708,7 @@ void CControls::TouchscreenInput()
 	{
 		if (AimPressed)
 		{
-			if (distance(AimPos, m_TouchJoyAimLastPos) < TOUCHJOY_DEAD_ZONE * 3)
+			if (distance(AimPos, m_TouchJoyAimLastPos) < TOUCHJOY_JUMP_DEAD_ZONE * 3)
 			{
 				m_TouchJoyRightJumpPressed = true;
 				if (m_TouchJoyAimTapTime + time_freq() * TOUCHJOY_TAP_TIME / 1000 < CurTime)
@@ -721,7 +724,7 @@ void CControls::TouchscreenInput()
 		else
 		{
 			m_TouchJoyRightJumpPressed = false;
-			if (m_TouchJoyAimTapTime + time_freq() * TOUCHJOY_TAP_TIME / 1000 > CurTime && distance(AimPos, m_TouchJoyAimAnchor) < TOUCHJOY_DEAD_ZONE)
+			if (m_TouchJoyAimTapTime + time_freq() * TOUCHJOY_TAP_TIME / 1000 > CurTime && distance(AimPos, m_TouchJoyAimAnchor) < TOUCHJOY_JUMP_DEAD_ZONE)
 			{
 				m_TouchJoyRightJumpPressed = true; // Tapping anywhere quickly will also produce a jump
 			}
@@ -732,7 +735,7 @@ void CControls::TouchscreenInput()
 
 	if (AimPressed)
 	{
-		if (distance(AimPos, m_TouchJoyAimAnchor) > TOUCHJOY_DEAD_ZONE / 3)
+		if (distance(AimPos, m_TouchJoyAimAnchor) > TOUCHJOY_JUMP_DEAD_ZONE / 3)
 			m_MousePos = vec2(AimPos.x - m_TouchJoyAimAnchor.x, AimPos.y - m_TouchJoyAimAnchor.y) / 30;
 		ClampMousePos();
 		if ((Grounded || JetpackFuel <= 0) && m_TouchJoyAimTapTime + time_freq() / 10 < CurTime)

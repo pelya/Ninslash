@@ -1,5 +1,6 @@
 #include <engine/graphics.h>
 #include <engine/textrender.h>
+#include <engine/storage.h>
 #include <engine/shared/config.h>
 
 #include <game/generated/protocol.h>
@@ -31,8 +32,14 @@ CHud::CHud()
 	m_AverageFPS = 1.0f;
 }
 
+int gs_DpadTexture = -1;
+
 void CHud::OnReset()
 {
+#if defined(__ANDROID__)
+	if (gs_DpadTexture == -1)
+		gs_DpadTexture = Graphics()->LoadTexture("dpad.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
+#endif
 }
 
 void CScoreboard::RenderGameTimer()
@@ -942,6 +949,18 @@ void CHud::RenderTouchscreenButtons()
 		//RenderTools()->SelectSprite(SPRITE_GUIBUTTON_ON); // Debug
 		//IGraphics::CQuadItem QuadItem2(Screen.x / 2, Screen.y / 2, Screen.y * 0.1f, Screen.y * 0.1f);
 		//Graphics()->QuadsDrawTL(&QuadItem2, 1);
+		Graphics()->QuadsEnd();
+	}
+
+	if (g_Config.m_ClTouchscreenFixedDpad)
+	{
+		vec2 Screen = vec2(Graphics()->ScreenWidth(), Graphics()->ScreenHeight());
+		Graphics()->MapScreen(0, 0, Screen.x, Screen.y);
+		Graphics()->TextureSet(gs_DpadTexture);
+		Graphics()->QuadsBegin();
+		Graphics()->SetColor(1.0f, 1.0f, 1.0f, 0.4f);
+		IGraphics::CQuadItem QuadItem = IGraphics::CQuadItem(Screen.x * (3.0f / 16.0f), Screen.y * (1.0f - 0.8f * 0.25f), Screen.y * 0.15f, Screen.y * 0.15f);
+		Graphics()->QuadsDraw(&QuadItem, 1);
 		Graphics()->QuadsEnd();
 	}
 #endif

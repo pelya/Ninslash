@@ -101,6 +101,12 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 		if(DoButton_CheckBox(&g_Config.m_ClHandJetpackMidAir, Localize("Use hand jetpack mid-air"), g_Config.m_ClHandJetpackMidAir, &Button))
 			g_Config.m_ClHandJetpackMidAir ^= 1;
 
+		// fixed dpad for touchscreen
+		Left.HSplitTop(5.0f, 0, &Left);
+		Left.HSplitTop(20.0f, &Button, &Left);
+		if(DoButton_CheckBox(&g_Config.m_ClTouchscreenFixedDpad, Localize("Fixed joystick for touchscreen"), g_Config.m_ClTouchscreenFixedDpad, &Button))
+			g_Config.m_ClTouchscreenFixedDpad ^= 1;
+
 		// show hud
 		Right.HSplitTop(5.0f, 0, &Right);
 		Right.HSplitTop(20.0f, &Button, &Right);
