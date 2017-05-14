@@ -213,7 +213,7 @@ int CSound::Init()
 		return 0;
 
 	if (g_Config.m_SndBufferSize <= 512)
-		g_Config.m_SndBufferSize = 4800;
+		g_Config.m_SndBufferSize = 2400; // 0.5 ms
 
 	if(SDL_InitSubSystem(SDL_INIT_AUDIO) < 0)
 	{
