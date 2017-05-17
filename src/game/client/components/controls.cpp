@@ -637,7 +637,7 @@ void CControls::TouchscreenInput()
 				if (g_Config.m_ClTouchscreenFixedDpad)
 					m_TouchJoyRunAnchor = ivec2(-8192, 16384);
 			}
-			if (!m_pClient->m_Snap.m_pLocalCharacter)
+			if (!m_pClient->m_Snap.m_pLocalCharacter || (m_pClient->m_Snap.m_pGameInfoObj && m_pClient->m_Snap.m_pGameInfoObj->m_GameStateFlags&GAMESTATEFLAG_GAMEOVER))
 			{
 				// Spectating
 				Console()->ExecuteLine("spectate_next");

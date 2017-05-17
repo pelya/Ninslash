@@ -227,8 +227,7 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	static int s_StartInvasionServerButton = 0;
 	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartInvasionServerButton, Localize("Invasion"), 0, &Button) )
 	{
-		// sv_gametype coop; sv_survivalmode 1; sv_map inv1; sv_maprotation inv1 inv2 inv3 inv4, inv5, inv6, inv7, inv8, inv9, inv10, inv11, inv12, inv13, inv14, inv15, inv16, inv17, inv18, inv19, inv20, inv21;
-		StartServer("coop", "inv1", s_bots, s_buildings, s_randomweapons, 1, "inv1 inv2 inv3 inv4 inv5 inv6 inv7 inv8 inv9 inv10 inv11 inv12 inv13 inv14 inv15 inv16 inv17 inv18 inv19 inv20 inv21");
+		StartServer("coop", "generate1", s_bots, s_buildings, s_randomweapons, 1, "generate1, generate2, generate3, generate4, generate5, generate6");
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
 		ServerStarting = true;
 	}
