@@ -429,6 +429,7 @@ void CCommandProcessorFragment_OpenGL::Cmd_LoadShaders(const CCommandBuffer::SCo
 	m_aShader[SHADER_DEFAULT] = LoadShader("data/shaders/basic.vert", "data/shaders/default.frag");
 	m_aShader[SHADER_ELECTRIC] = LoadShader("data/shaders/basic.vert", "data/shaders/electric.frag");
 	m_aShader[SHADER_DEATHRAY] = LoadShader("data/shaders/basic.vert", "data/shaders/deathray.frag");
+	m_aShader[SHADER_COLORSWAP] = LoadShader("data/shaders/basic.vert", "data/shaders/colorswap.frag");
 	m_aShader[SHADER_SPAWN] = LoadShader("data/shaders/basic.vert", "data/shaders/spawn.frag");
 	m_aShader[SHADER_DAMAGE] = LoadShader("data/shaders/basic.vert", "data/shaders/damage.frag");
 	m_aShader[SHADER_SHIELD] = LoadShader("data/shaders/basic.vert", "data/shaders/shield.frag");
@@ -491,6 +492,10 @@ void CCommandProcessorFragment_OpenGL::Cmd_ShaderBegin(const CCommandBuffer::SCo
 	m_VertexAttribLocation = pShader->getAttribLocation("in_position");
 	m_TexcoordAttribLocation = pShader->getAttribLocation("in_texCoord");
 	m_ColorAttribLocation = pShader->getAttribLocation("in_color");
+	
+	location = pShader->getUniformLocation("colorswap");
+	if (location >= 0)
+		glUniform1fARB(location, GLfloat(pCommand->m_ColorSwap));
 	
 	location = pShader->getUniformLocation("screenwidth");
 	if (location >= 0)
