@@ -14,7 +14,7 @@ MACRO_CONFIG_INT(ClNameplatesSize, cl_nameplates_size, 40, 0, 100, CFGFLAG_CLIEN
 MACRO_CONFIG_INT(ClAutoswitchWeapons, cl_autoswitch_weapons, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Auto switch weapon on pickup")
 MACRO_CONFIG_INT(ClAutoswitchWeaponsOutOfAmmo, cl_autoswitch_weapons_out_of_ammo, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Auto switch weapon when out of ammo")
 MACRO_CONFIG_INT(ClHandJetpackMidAir, cl_hand_jetpack_mid_air, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Use hand jetpack mid-air")
-MACRO_CONFIG_INT(ClTouchscreenFixedDpad, cl_toucscreen_fixed_dpad, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Fixed joystick for touchscreen")
+MACRO_CONFIG_INT(ClTouchscreenFixedDpad, cl_toucscreen_fixed_dpad, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Fixed joystick for touchscreen")
 
 MACRO_CONFIG_INT(ClShowhud, cl_showhud, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show ingame HUD")
 MACRO_CONFIG_INT(ClShowChatFriends, cl_show_chat_friends, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show only chat messages from friends")
