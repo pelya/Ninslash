@@ -12,14 +12,10 @@ varying lowp vec4 frag_color;
 
 void main (void)
 {
-	lowp vec4 t = texture2D(texture, frag_texCoord);
-	highp float StepY = screenPos.w;
-	mediump float SumGreen = (texture2D(texture, frag_texCoord + vec2(0, +StepY)).g + t.g)/2.0;
+	lowp float r = texture2D(texture, frag_texCoord.st).r;
+	lowp float g = texture2D(texture, frag_texCoord.st).g;
+	lowp float b = texture2D(texture, frag_texCoord.st).b;
+	lowp float a = texture2D(texture, frag_texCoord.st).a;
 	
-	mediump float g = SumGreen * 0.7;
-	
-	// get alpha
-	float a = step(0.7, t.g);
-	
-	gl_FragColor = vec4(0, g * frag_color.g, 0, a * frag_color.a);
+	gl_FragColor = vec4(b, g, r, a) * frag_color;
 }
