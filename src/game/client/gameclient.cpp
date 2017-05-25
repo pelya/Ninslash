@@ -374,6 +374,12 @@ void CGameClient::OnInit()
 	RenderTools()->m_pSkelebank = Skelebank();
 	
 	Graphics()->LoadShaders();
+
+	if (Client()->State() == IClient::STATE_ONLINE)
+	{
+		m_pFluid->Generate();
+		m_pCBelt->Generate();
+	}
 	
 	if (g_Config.m_GfxMultiBuffering)
 	{
