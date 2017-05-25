@@ -34,12 +34,16 @@ CHud::CHud()
 
 int gs_DpadTexture = -1;
 
-void CHud::OnReset()
+void CHud::OnInit()
 {
 #if defined(__ANDROID__)
 	if (gs_DpadTexture == -1)
 		gs_DpadTexture = Graphics()->LoadTexture("dpad.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
 #endif
+}
+
+void CHud::OnReset()
+{
 }
 
 void CScoreboard::RenderGameTimer()

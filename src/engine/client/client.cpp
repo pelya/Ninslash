@@ -1932,12 +1932,12 @@ void CClient::Run()
 			}
 			if( Input()->VideoRestartNeeded() )
 			{
+				gs_TextureBlob = -1;
+				gs_DpadTexture = -1;
 				m_pGraphics->Shutdown();
 				m_pGraphics->Init();
 				LoadData();
 				GameClient()->OnInit();
-				gs_TextureBlob = -1;
-				gs_DpadTexture = -1;
 			}
 		}
 

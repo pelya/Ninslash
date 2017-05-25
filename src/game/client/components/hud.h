@@ -30,6 +30,7 @@ class CHud : public CComponent
 public:
 	CHud();
 
+	virtual void OnInit();
 	virtual void OnReset();
 	virtual void OnRender();
 };
