@@ -107,6 +107,30 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 		if(DoButton_CheckBox(&g_Config.m_ClTouchscreenFixedDpad, Localize("Fixed joystick for touchscreen"), g_Config.m_ClTouchscreenFixedDpad, &Button))
 			g_Config.m_ClTouchscreenFixedDpad ^= 1;
 
+		// fixed dpad for touchscreen
+		Left.HSplitTop(5.0f, 0, &Left);
+		Left.HSplitTop(20.0f, &Button, &Left);
+		if(DoButton_CheckBox(&g_Config.m_ClTouchscreenFireButton, Localize("Fire button for touchscreen"), g_Config.m_ClTouchscreenFireButton, &Button))
+			g_Config.m_ClTouchscreenFireButton ^= 1;
+
+		// jump button for touchscreen
+		Left.HSplitTop(5.0f, 0, &Left);
+		Left.HSplitTop(20.0f, &Button, &Left);
+		if(DoButton_CheckBox(&g_Config.m_ClTouchscreenJumpButton, Localize("Jump button for touchscreen"), g_Config.m_ClTouchscreenJumpButton, &Button))
+			g_Config.m_ClTouchscreenJumpButton ^= 1;
+
+		// tap to jump for touchscreen
+		Left.HSplitTop(5.0f, 0, &Left);
+		Left.HSplitTop(20.0f, &Button, &Left);
+		if(DoButton_CheckBox(&g_Config.m_ClTouchscreenTapToJumpLeftSide, Localize("Tap to jump on the left side of touchscreen"), g_Config.m_ClTouchscreenTapToJumpLeftSide, &Button))
+			g_Config.m_ClTouchscreenTapToJumpLeftSide ^= 1;
+
+		// tap to jump for touchscreen
+		Left.HSplitTop(5.0f, 0, &Left);
+		Left.HSplitTop(20.0f, &Button, &Left);
+		if(DoButton_CheckBox(&g_Config.m_ClTouchscreenTapToJumpRightSide, Localize("Tap to jump on the right side of touchscreen"), g_Config.m_ClTouchscreenTapToJumpRightSide, &Button))
+			g_Config.m_ClTouchscreenTapToJumpRightSide ^= 1;
+
 		// show hud
 		Right.HSplitTop(5.0f, 0, &Right);
 		Right.HSplitTop(20.0f, &Button, &Right);
