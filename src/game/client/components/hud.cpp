@@ -970,15 +970,15 @@ void CHud::RenderSpectatorHud()
 void CHud::RenderTouchscreenButtons()
 {
 #if defined(__ANDROID__)
-	if( !m_pClient->m_pControls->m_TouchJoyAimPressed )
+	if (!m_pClient->m_pControls->m_TouchJoyAimPressed || g_Config.m_ClTouchscreenJumpButton)
 	{
 		vec2 Screen = vec2(Graphics()->ScreenWidth(), Graphics()->ScreenHeight());
 		Graphics()->MapScreen(0, 0, Screen.x, Screen.y);
 		Graphics()->TextureSet(gs_JumpButtonTexture);
 		Graphics()->QuadsBegin();
 		Graphics()->SetColor(1.0f, 1.0f, 1.0f, 0.4f);
-		IGraphics::CQuadItem QuadItem(Screen.x * (0.5f + 0.5f * (m_pClient->m_pControls->m_TouchJoyAimLastPos.x + 32767) / 65536.0f),
-										Screen.y * (0.2f + 0.8f * (m_pClient->m_pControls->m_TouchJoyAimLastPos.y + 32767) / 65536.0f),
+		IGraphics::CQuadItem QuadItem(Screen.x * (0.5f + 0.5f * (m_pClient->m_pControls->m_TouchJoyJumpButtonPos.x + 32767) / 65536.0f),
+										Screen.y * (0.2f + 0.8f * (m_pClient->m_pControls->m_TouchJoyJumpButtonPos.y + 32767) / 65536.0f),
 										Screen.y * 0.1f, Screen.y * 0.1f);
 		Graphics()->QuadsDraw(&QuadItem, 1);
 		Graphics()->QuadsEnd();

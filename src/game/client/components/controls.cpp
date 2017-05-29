@@ -90,10 +90,12 @@ void CControls::OnReset()
 	m_TouchJoyAimPressed = false;
 	m_TouchJoyAimAnchor = ivec2(0,0);
 	m_TouchJoyAimLastPos = ivec2(200000,200000);
+	m_TouchJoyJumpButtonPos = ivec2(200000,200000);
 	m_TouchJoyAimTapTime = 0;
 	m_TouchJoyFirePressed = false;
 	m_TouchJoyLeftJumpPressed = false;
 	m_TouchJoyRightJumpPressed = false;
+	m_TouchJoyJumpButtonPressed = false;
 	m_TouchJoyWeaponbarPressed = false;
 	m_WeaponIdxOutOfAmmo = -1;
 	m_OldMouseX = m_OldMouseY = 0.0f;
@@ -593,6 +595,7 @@ void CControls::TouchscreenInput()
 		TOUCHJOY_AIM_DEAD_ZONE = 65536 / 10,
 		TOUCHJOY_JUMP_DEAD_ZONE = TOUCHJOY_RUN_SWIPE_DEAD_ZONE,
 		TOUCHJOY_TAP_TIME = 350,
+		TOUCHJOY_JUMP_BUTTON_X = 16384,
 	};
 
 	const int TOUCHJOY_DEAD_ZONE = g_Config.m_ClTouchscreenFixedDpad ? 0 : TOUCHJOY_RUN_SWIPE_DEAD_ZONE;
@@ -605,7 +608,7 @@ void CControls::TouchscreenInput()
 	// Get input from the right joystick
 	ivec2 AimPos = ivec2(SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_X), SDL_JoystickGetAxis(m_TouchJoy, RIGHT_JOYSTICK_Y));
 	bool AimPressed = (AimPos.x != 0 || AimPos.y != 0);
-	bool oldTouchJoyJump = (m_TouchJoyRightJumpPressed || m_TouchJoyLeftJumpPressed);
+	bool oldTouchJoyJump = (m_TouchJoyRightJumpPressed || m_TouchJoyLeftJumpPressed || m_TouchJoyJumpButtonPressed);
 	bool Grounded = true;
 	int JetpackFuel = 10;
 	if (Client()->State() == IClient::STATE_ONLINE)
@@ -707,7 +710,16 @@ void CControls::TouchscreenInput()
 
 	// Process right joystick
 	if (!AimPressed)
+	{
 		AimPos = m_TouchJoyAimLastPos;
+		m_TouchJoyJumpButtonPressed = false;
+	}
+
+	if (g_Config.m_ClTouchscreenJumpButton && AimPressed && !m_TouchJoyAimPressed && AimPos.x > TOUCHJOY_JUMP_BUTTON_X)
+		m_TouchJoyJumpButtonPressed = true;
+
+	if (m_TouchJoyJumpButtonPressed)
+		AimPressed = false;
 
 	if (AimPressed != m_TouchJoyAimPressed)
 	{
@@ -729,7 +741,9 @@ void CControls::TouchscreenInput()
 		else
 		{
 			m_TouchJoyRightJumpPressed = false;
-			if (m_TouchJoyAimTapTime + time_freq() * TOUCHJOY_TAP_TIME / 1000 > CurTime && distance(AimPos, m_TouchJoyAimAnchor) < TOUCHJOY_JUMP_DEAD_ZONE)
+			if (m_TouchJoyAimTapTime + time_freq() * TOUCHJOY_TAP_TIME / 1000 > CurTime &&
+				distance(AimPos, m_TouchJoyAimAnchor) < TOUCHJOY_JUMP_DEAD_ZONE &&
+				g_Config.m_ClTouchscreenTapToJumpRightSide)
 			{
 				m_TouchJoyRightJumpPressed = true; // Tapping anywhere quickly will also produce a jump
 			}
@@ -752,8 +766,8 @@ void CControls::TouchscreenInput()
 			m_TouchJoyRightJumpPressed = false;
 	}
 
-	if( (m_TouchJoyRightJumpPressed || m_TouchJoyLeftJumpPressed) != oldTouchJoyJump )
-		m_InputData.m_Jump = (m_TouchJoyRightJumpPressed || m_TouchJoyLeftJumpPressed);
+	if ((m_TouchJoyRightJumpPressed || m_TouchJoyLeftJumpPressed || m_TouchJoyJumpButtonPressed) != oldTouchJoyJump)
+		m_InputData.m_Jump = (m_TouchJoyRightJumpPressed || m_TouchJoyLeftJumpPressed || m_TouchJoyJumpButtonPressed);
 
 	bool FirePressed = false;
 	if (AimPressed)
@@ -783,5 +797,10 @@ void CControls::TouchscreenInput()
 
 	if (RunPressed)
 		m_TouchJoyRunLastPos = RunPos;
+
+	if (g_Config.m_ClTouchscreenJumpButton)
+		m_TouchJoyJumpButtonPos = ivec2(32768 - TOUCHJOY_JUMP_BUTTON_X / 2,0);
+	else
+		m_TouchJoyJumpButtonPos = m_TouchJoyAimLastPos;
 }
 #endif
