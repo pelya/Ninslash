@@ -33,12 +33,18 @@ CHud::CHud()
 }
 
 int gs_DpadTexture = -1;
+int gs_JumpButtonTexture = -1;
+int gs_FireButtonTexture = -1;
 
 void CHud::OnInit()
 {
 #if defined(__ANDROID__)
 	if (gs_DpadTexture == -1)
-		gs_DpadTexture = Graphics()->LoadTexture("dpad.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
+		gs_DpadTexture = Graphics()->LoadTexture("dpad_button.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
+	if (gs_JumpButtonTexture == -1)
+		gs_JumpButtonTexture = Graphics()->LoadTexture("jump_button.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
+	if (gs_FireButtonTexture == -1)
+		gs_FireButtonTexture = Graphics()->LoadTexture("fire_button.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
 #endif
 }
 
@@ -968,17 +974,13 @@ void CHud::RenderTouchscreenButtons()
 	{
 		vec2 Screen = vec2(Graphics()->ScreenWidth(), Graphics()->ScreenHeight());
 		Graphics()->MapScreen(0, 0, Screen.x, Screen.y);
-		Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GUIBUTTONS].m_Id);
+		Graphics()->TextureSet(gs_JumpButtonTexture);
 		Graphics()->QuadsBegin();
-		Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
-		RenderTools()->SelectSprite(SPRITE_GUIBUTTON_HOVER);
+		Graphics()->SetColor(1.0f, 1.0f, 1.0f, 0.4f);
 		IGraphics::CQuadItem QuadItem(Screen.x * (0.5f + 0.5f * (m_pClient->m_pControls->m_TouchJoyAimLastPos.x + 32767) / 65536.0f),
 										Screen.y * (0.2f + 0.8f * (m_pClient->m_pControls->m_TouchJoyAimLastPos.y + 32767) / 65536.0f),
 										Screen.y * 0.1f, Screen.y * 0.1f);
 		Graphics()->QuadsDraw(&QuadItem, 1);
-		//RenderTools()->SelectSprite(SPRITE_GUIBUTTON_ON); // Debug
-		//IGraphics::CQuadItem QuadItem2(Screen.x / 2, Screen.y / 2, Screen.y * 0.1f, Screen.y * 0.1f);
-		//Graphics()->QuadsDrawTL(&QuadItem2, 1);
 		Graphics()->QuadsEnd();
 	}
 
