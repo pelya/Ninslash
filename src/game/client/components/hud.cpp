@@ -993,7 +993,7 @@ void CHud::RenderTouchscreenButtons()
 		Graphics()->SetColor(1.0f, 1.0f, 1.0f, 0.4f);
 		IGraphics::CQuadItem QuadItem(Screen.x * (0.5f + 0.5f * (m_pClient->m_pControls->m_TouchJoyFireButtonPos.x + 32768) / 65536.0f),
 										Screen.y * (0.2f + 0.8f * (m_pClient->m_pControls->m_TouchJoyFireButtonPos.y + 32768) / 65536.0f),
-										Screen.y * 0.2f, Screen.y * 0.2f);
+										Screen.y * 0.15f, Screen.y * 0.15f);
 		Graphics()->QuadsDraw(&QuadItem, 1);
 		Graphics()->QuadsEnd();
 	}
