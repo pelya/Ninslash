@@ -626,8 +626,8 @@ void CControls::TouchscreenInput()
 		{
 			// Tap to jump, and do not reset the anchor coordinates, if tapped under 500ms
 			if (m_TouchJoyRunTapTime + time_freq() * TOUCHJOY_TAP_TIME / 1000 > CurTime &&
-				distance(RunPos, m_TouchJoyRunLastPos) < TOUCHJOY_DEAD_ZONE * 2 &&
-				!g_Config.m_ClTouchscreenFixedDpad)
+				distance(RunPos, m_TouchJoyRunLastPos) < TOUCHJOY_JUMP_DEAD_ZONE * 2 &&
+				g_Config.m_ClTouchscreenTapToJumpLeftSide)
 			{
 				m_TouchJoyLeftJumpPressed = true;
 			}
@@ -713,7 +713,7 @@ void CControls::TouchscreenInput()
 	{
 		if (AimPressed)
 		{
-			if (distance(AimPos, m_TouchJoyAimLastPos) < TOUCHJOY_JUMP_DEAD_ZONE * 3)
+			if (distance(AimPos, m_TouchJoyAimLastPos) < TOUCHJOY_JUMP_DEAD_ZONE * 3 && g_Config.m_ClTouchscreenTapToJumpRightSide)
 			{
 				m_TouchJoyRightJumpPressed = true;
 				if (m_TouchJoyAimTapTime + time_freq() * TOUCHJOY_TAP_TIME / 1000 < CurTime)
