@@ -33,6 +33,7 @@ public:
 	ivec2 m_TouchJoyAimAnchor;
 	ivec2 m_TouchJoyAimLastPos;
 	ivec2 m_TouchJoyJumpButtonPos;
+	ivec2 m_TouchJoyFireButtonPos;
 	int64 m_TouchJoyAimTapTime;
 	bool m_TouchJoyFirePressed;
 

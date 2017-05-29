@@ -592,13 +592,15 @@ void CControls::TouchscreenInput()
 
 	enum {
 		TOUCHJOY_RUN_SWIPE_DEAD_ZONE = 65536 / 20,
-		TOUCHJOY_AIM_DEAD_ZONE = 65536 / 10,
 		TOUCHJOY_JUMP_DEAD_ZONE = TOUCHJOY_RUN_SWIPE_DEAD_ZONE,
 		TOUCHJOY_TAP_TIME = 350,
-		TOUCHJOY_JUMP_BUTTON_X = 16384,
+		TOUCHJOY_JUMP_BUTTON_X = 16384 + 4096,
+		TOUCHJOY_FIRE_BUTTON_X = 0,
+		TOUCHJOY_FIRE_BUTTON_Y = 8192,
 	};
 
 	const int TOUCHJOY_DEAD_ZONE = g_Config.m_ClTouchscreenFixedDpad ? 0 : TOUCHJOY_RUN_SWIPE_DEAD_ZONE;
+	const int TOUCHJOY_AIM_DEAD_ZONE = g_Config.m_ClTouchscreenFireButton ? 0 : 65536 / 10;
 
 	int64 CurTime = time_get();
 
@@ -655,6 +657,20 @@ void CControls::TouchscreenInput()
 		m_TouchJoyRunPressed = RunPressed;
 	}
 
+	// Process jump button
+	if (!AimPressed)
+	{
+		AimPos = m_TouchJoyAimLastPos;
+		m_TouchJoyJumpButtonPressed = false;
+	}
+
+	if (g_Config.m_ClTouchscreenJumpButton && AimPressed && !m_TouchJoyAimPressed && AimPos.x > TOUCHJOY_JUMP_BUTTON_X)
+		m_TouchJoyJumpButtonPressed = true;
+
+	if (m_TouchJoyJumpButtonPressed)
+		AimPressed = false;
+
+	// Process left joystick again
 	if (RunPressed)
 	{
 		m_InputDirectionLeft = (RunPos.x - m_TouchJoyRunAnchor.x < -TOUCHJOY_DEAD_ZONE);
@@ -709,18 +725,6 @@ void CControls::TouchscreenInput()
 	}
 
 	// Process right joystick
-	if (!AimPressed)
-	{
-		AimPos = m_TouchJoyAimLastPos;
-		m_TouchJoyJumpButtonPressed = false;
-	}
-
-	if (g_Config.m_ClTouchscreenJumpButton && AimPressed && !m_TouchJoyAimPressed && AimPos.x > TOUCHJOY_JUMP_BUTTON_X)
-		m_TouchJoyJumpButtonPressed = true;
-
-	if (m_TouchJoyJumpButtonPressed)
-		AimPressed = false;
-
 	if (AimPressed != m_TouchJoyAimPressed)
 	{
 		if (AimPressed)
@@ -752,10 +756,13 @@ void CControls::TouchscreenInput()
 		m_TouchJoyAimTapTime = CurTime;
 	}
 
+	m_TouchJoyFireButtonPos = ivec2(TOUCHJOY_FIRE_BUTTON_X, TOUCHJOY_FIRE_BUTTON_Y);
+	ivec2 AimAnchor = g_Config.m_ClTouchscreenFireButton ? m_TouchJoyFireButtonPos : m_TouchJoyAimAnchor;
+
 	if (AimPressed)
 	{
-		if (distance(AimPos, m_TouchJoyAimAnchor) > TOUCHJOY_JUMP_DEAD_ZONE / 3)
-			m_MousePos = vec2(AimPos.x - m_TouchJoyAimAnchor.x, AimPos.y - m_TouchJoyAimAnchor.y) / 30;
+		if (distance(AimPos, AimAnchor) > TOUCHJOY_JUMP_DEAD_ZONE / 3)
+			m_MousePos = vec2(AimPos.x - AimAnchor.x, AimPos.y - AimAnchor.y) / 30;
 		ClampMousePos();
 		if ((Grounded || JetpackFuel <= 0) && m_TouchJoyAimTapTime + time_freq() / 10 < CurTime)
 			m_TouchJoyRightJumpPressed = false; // Disengage jetpack if on ground
@@ -772,12 +779,12 @@ void CControls::TouchscreenInput()
 	bool FirePressed = false;
 	if (AimPressed)
 	{
-		if (distance(AimPos, m_TouchJoyAimAnchor) > TOUCHJOY_AIM_DEAD_ZONE)
+		if (distance(AimPos, AimAnchor) > TOUCHJOY_AIM_DEAD_ZONE)
 			FirePressed = true;
 		if (m_pClient->m_Snap.m_pLocalCharacter)
 		{
 			if (m_pClient->m_Snap.m_pLocalCharacter->m_Weapon == WEAPON_CHAINSAW &&
-				distance(AimPos, m_TouchJoyAimAnchor) * 2 > TOUCHJOY_AIM_DEAD_ZONE)
+				distance(AimPos, AimAnchor) * 2 > TOUCHJOY_AIM_DEAD_ZONE)
 				FirePressed = true;
 			if (m_pClient->m_Snap.m_pLocalCharacter->m_Weapon == WEAPON_HAMMER ||
 				m_pClient->m_Snap.m_pLocalCharacter->m_Weapon == WEAPON_SCYTHE)
@@ -799,7 +806,7 @@ void CControls::TouchscreenInput()
 		m_TouchJoyRunLastPos = RunPos;
 
 	if (g_Config.m_ClTouchscreenJumpButton)
-		m_TouchJoyJumpButtonPos = ivec2(32768 - TOUCHJOY_JUMP_BUTTON_X / 2,0);
+		m_TouchJoyJumpButtonPos = ivec2(TOUCHJOY_JUMP_BUTTON_X + (32767 - TOUCHJOY_JUMP_BUTTON_X) / 2,0);
 	else
 		m_TouchJoyJumpButtonPos = m_TouchJoyAimLastPos;
 }

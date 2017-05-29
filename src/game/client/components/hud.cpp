@@ -977,9 +977,23 @@ void CHud::RenderTouchscreenButtons()
 		Graphics()->TextureSet(gs_JumpButtonTexture);
 		Graphics()->QuadsBegin();
 		Graphics()->SetColor(1.0f, 1.0f, 1.0f, 0.4f);
-		IGraphics::CQuadItem QuadItem(Screen.x * (0.5f + 0.5f * (m_pClient->m_pControls->m_TouchJoyJumpButtonPos.x + 32767) / 65536.0f),
-										Screen.y * (0.2f + 0.8f * (m_pClient->m_pControls->m_TouchJoyJumpButtonPos.y + 32767) / 65536.0f),
+		IGraphics::CQuadItem QuadItem(Screen.x * (0.5f + 0.5f * (m_pClient->m_pControls->m_TouchJoyJumpButtonPos.x + 32768) / 65536.0f),
+										Screen.y * (0.2f + 0.8f * (m_pClient->m_pControls->m_TouchJoyJumpButtonPos.y + 32768) / 65536.0f),
 										Screen.y * 0.1f, Screen.y * 0.1f);
+		Graphics()->QuadsDraw(&QuadItem, 1);
+		Graphics()->QuadsEnd();
+	}
+
+	if (g_Config.m_ClTouchscreenFireButton)
+	{
+		vec2 Screen = vec2(Graphics()->ScreenWidth(), Graphics()->ScreenHeight());
+		Graphics()->MapScreen(0, 0, Screen.x, Screen.y);
+		Graphics()->TextureSet(gs_FireButtonTexture);
+		Graphics()->QuadsBegin();
+		Graphics()->SetColor(1.0f, 1.0f, 1.0f, 0.4f);
+		IGraphics::CQuadItem QuadItem(Screen.x * (0.5f + 0.5f * (m_pClient->m_pControls->m_TouchJoyFireButtonPos.x + 32768) / 65536.0f),
+										Screen.y * (0.2f + 0.8f * (m_pClient->m_pControls->m_TouchJoyFireButtonPos.y + 32768) / 65536.0f),
+										Screen.y * 0.2f, Screen.y * 0.2f);
 		Graphics()->QuadsDraw(&QuadItem, 1);
 		Graphics()->QuadsEnd();
 	}
@@ -991,7 +1005,8 @@ void CHud::RenderTouchscreenButtons()
 		Graphics()->TextureSet(gs_DpadTexture);
 		Graphics()->QuadsBegin();
 		Graphics()->SetColor(1.0f, 1.0f, 1.0f, 0.4f);
-		IGraphics::CQuadItem QuadItem = IGraphics::CQuadItem(Screen.x * (2.0f / 16.0f), Screen.y * (1.0f - 0.8f / 6.0f), Screen.y * 0.15f, Screen.y * 0.15f);
+		IGraphics::CQuadItem QuadItem(Screen.x * (2.0f / 16.0f), Screen.y * (1.0f - 0.8f / 6.0f),
+										Screen.y * 0.15f, Screen.y * 0.15f);
 		Graphics()->QuadsDraw(&QuadItem, 1);
 		Graphics()->QuadsEnd();
 	}

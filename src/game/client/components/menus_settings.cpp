@@ -107,7 +107,7 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 		if(DoButton_CheckBox(&g_Config.m_ClTouchscreenFixedDpad, Localize("Fixed joystick for touchscreen"), g_Config.m_ClTouchscreenFixedDpad, &Button))
 			g_Config.m_ClTouchscreenFixedDpad ^= 1;
 
-		// fixed dpad for touchscreen
+		// fixed fire button for touchscreen
 		Left.HSplitTop(5.0f, 0, &Left);
 		Left.HSplitTop(20.0f, &Button, &Left);
 		if(DoButton_CheckBox(&g_Config.m_ClTouchscreenFireButton, Localize("Fire button for touchscreen"), g_Config.m_ClTouchscreenFireButton, &Button))
@@ -1456,8 +1456,8 @@ void CMenus::RenderSettings(CUIRect MainView)
 	CUIRect Button;
 
 	const char *aTabs[] = {
-		Localize("Language"),
 		Localize("General"),
+		Localize("Language"),
 		Localize("Player"),
 		Localize("Customize"),
 		Localize("Controls"),
@@ -1477,9 +1477,9 @@ void CMenus::RenderSettings(CUIRect MainView)
 
 	MainView.Margin(10.0f, &MainView);
 
-	if(s_SettingsPage == 0)
+	if(s_SettingsPage == 1)
 		RenderLanguageSelection(MainView);
-	else if(s_SettingsPage == 1)
+	else if(s_SettingsPage == 0)
 		RenderSettingsGeneral(MainView);
 	else if(s_SettingsPage == 2)
 		RenderSettingsPlayer(MainView);
