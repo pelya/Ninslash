@@ -989,7 +989,7 @@ void CHud::RenderTouchscreenButtons()
 		Graphics()->TextureSet(gs_DpadTexture);
 		Graphics()->QuadsBegin();
 		Graphics()->SetColor(1.0f, 1.0f, 1.0f, 0.4f);
-		IGraphics::CQuadItem QuadItem = IGraphics::CQuadItem(Screen.x * (3.0f / 16.0f), Screen.y * (1.0f - 0.8f * 0.25f), Screen.y * 0.15f, Screen.y * 0.15f);
+		IGraphics::CQuadItem QuadItem = IGraphics::CQuadItem(Screen.x * (2.0f / 16.0f), Screen.y * (1.0f - 0.8f / 6.0f), Screen.y * 0.15f, Screen.y * 0.15f);
 		Graphics()->QuadsDraw(&QuadItem, 1);
 		Graphics()->QuadsEnd();
 	}
