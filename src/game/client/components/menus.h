@@ -112,7 +112,8 @@ class CMenus : public CComponent
 
 	enum
 	{
-		PAGE_NEWS=1,
+		PAGE_FRONT=1,
+		PAGE_NEWS,
 		PAGE_GAME,
 		PAGE_PLAYERS,
 		PAGE_SERVER_INFO,
@@ -123,6 +124,7 @@ class CMenus : public CComponent
 		PAGE_SERVER,
 		PAGE_DEMOS,
 		PAGE_SETTINGS,
+		PAGE_CUSTOMIZE,
 		PAGE_SYSTEM,
 	};
 
@@ -281,6 +283,8 @@ class CMenus : public CComponent
 	void RenderSettingsGamepad(CUIRect MainView);
 	void RenderSettingsCustom(CUIRect MainView);
 	void RenderSettings(CUIRect MainView);
+	void RenderCustomize(CUIRect MainView);
+	void RenderFront(CUIRect MainView);
 
 	void SetActive(bool Active);
 	

@@ -323,6 +323,7 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
 				Button.y += ms_ListitemAdditionalHeight / 2;
 				if(	str_comp(pItem->m_aGameType, "DM") == 0 ||
 					str_comp(pItem->m_aGameType, "TDM") == 0 ||
+					str_comp(pItem->m_aGameType, "DEF") == 0 ||
 					str_comp(pItem->m_aGameType, "INF") == 0 ||
 					str_comp(pItem->m_aGameType, "INV") == 0 ||
 					str_comp(pItem->m_aGameType, "GUN") == 0 ||
