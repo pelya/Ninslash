@@ -846,7 +846,7 @@ void CMenus::PopupMessage(const char *pTopic, const char *pBody, const char *pBu
 }
 
 
-static int gs_TextureLogo = -1;
+int gs_TextureLogo = -1;
 
 
 void CMenus::RenderFront(CUIRect MainView)
@@ -867,7 +867,7 @@ void CMenus::RenderFront(CUIRect MainView)
 	Graphics()->QuadsBegin();
 	Graphics()->SetColor(1, 1, 1, 1);
 	
-	IGraphics::CQuadItem QuadItem((Screen.w-s.x)/2, 130, s.x, s.y);
+	IGraphics::CQuadItem QuadItem((Screen.w-s.x)/2, 80, s.x, s.y);
 	Graphics()->QuadsDrawTL(&QuadItem, 1);
 	Graphics()->QuadsEnd();
 	
@@ -883,7 +883,7 @@ void CMenus::RenderFront(CUIRect MainView)
 	CUIRect Temp, TabBar;
 	MainView.VSplitLeft(350, &MainView, &TabBar);
 	TabBar.VSplitRight(350, &TabBar, NULL);
-	TabBar.HSplitTop(220, NULL, &TabBar);
+	TabBar.HSplitTop(100, NULL, &TabBar);
 	
 	
 	MainView.HSplitTop(10.0f, 0, &MainView);
@@ -892,7 +892,7 @@ void CMenus::RenderFront(CUIRect MainView)
 	
 	
 	TabBar.HSplitTop(10, &Button, &TabBar);
-	TabBar.HSplitTop(30, &Button, &TabBar);
+	TabBar.HSplitTop(80, &Button, &TabBar);
 	static int s_PlayButton=0;
 	if(DoButton_Menu(&s_PlayButton, Localize("Play"), 0, &Button) || m_EnterPressed)
 	{
@@ -901,25 +901,27 @@ void CMenus::RenderFront(CUIRect MainView)
 	}
 	
 	TabBar.HSplitTop(10, &Button, &TabBar);
-	TabBar.HSplitTop(30, &Button, &TabBar);
+	TabBar.HSplitTop(80, &Button, &TabBar);
 	static int s_CustomizeButton=0;
 	if(DoButton_Menu(&s_CustomizeButton, Localize("Customize"), 0, &Button))
 		g_Config.m_UiPage = PAGE_CUSTOMIZE;
 	
+#if !defined(__ANDROID__)
 	TabBar.HSplitTop(10, &Button, &TabBar);
-	TabBar.HSplitTop(30, &Button, &TabBar);
+	TabBar.HSplitTop(80, &Button, &TabBar);
 	static int s_EditorButton=0;
 	if(DoButton_Menu(&s_EditorButton, Localize("Editor"), 0, &Button))
 		g_Config.m_ClEditor = g_Config.m_ClEditor^1;
-	
+#endif
+
 	TabBar.HSplitTop(10, &Button, &TabBar);
-	TabBar.HSplitTop(30, &Button, &TabBar);
+	TabBar.HSplitTop(80, &Button, &TabBar);
 	static int s_SettingsButton=0;
 	if(DoButton_Menu(&s_SettingsButton, Localize("Settings"), 0, &Button))
 		g_Config.m_UiPage = PAGE_SETTINGS;
 	
 	TabBar.HSplitTop(10, &Button, &TabBar);
-	TabBar.HSplitTop(30, &Button, &TabBar);
+	TabBar.HSplitTop(80, &Button, &TabBar);
 	static int s_QuitButton=0;
 	if(DoButton_Menu(&s_QuitButton, Localize("Quit"), 0, &Button))
 		m_Popup = POPUP_QUIT;
@@ -986,7 +988,7 @@ int CMenus::Render()
 		}
 		else if(g_Config.m_UiPage == PAGE_CUSTOMIZE)
 		{
-			RenderCustomize(MainView);
+			RenderCustomize(Screen);
 			return 0;
 		}
 		
@@ -1169,7 +1171,7 @@ int CMenus::Render()
 				m_Popup = POPUP_NONE;
 
 			static int s_ButtonTryAgain = 0;
-			if(DoButton_Menu(&s_ButtonTryAgain, Localize("Yes"), 0, &Yes) || m_EnterPressed)
+			if(DoButton_Menu(&s_ButtonTryAgain, Localize("Yes"), 0, &Yes) || m_EnterPressed || true) // Just quit
 				Client()->Quit();
 		}
 		else if(m_Popup == POPUP_PASSWORD)

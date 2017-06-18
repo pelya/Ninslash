@@ -1936,6 +1936,7 @@ void CClient::Run()
 				gs_DpadTexture = -1;
 				gs_JumpButtonTexture = -1;
 				gs_FireButtonTexture = -1;
+				gs_TextureLogo = -1;
 				m_pGraphics->Shutdown();
 				m_pGraphics->Init();
 				LoadData();

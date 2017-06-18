@@ -1459,7 +1459,7 @@ void CMenus::RenderCustomize(CUIRect MainView)
 
 	// back to menu button
 	CUIRect BackButton;
-	MainView.HSplitTop(30, &BackButton, &MainView);
+	MainView.HSplitTop(80, &BackButton, &MainView);
 	
 	BackButton.VSplitLeft(300, NULL, &BackButton);
 	BackButton.VSplitRight(300, &BackButton, NULL);
@@ -1489,7 +1489,7 @@ void CMenus::RenderCustomize(CUIRect MainView)
 	UI()->DoLabelScaled(&L, Localize("Change color of"), 14.0f, -1);
 	
 	LeftView.HSplitTop(20.0f, 0, &ColorRect);
-	ColorRect.HSplitTop(20.0f, &ColorRect, 0);
+	ColorRect.HSplitTop(60.0f, &ColorRect, 0);
 	
 	for(int i = 0; i < NumColors; i++)
 	{
@@ -1526,7 +1526,7 @@ void CMenus::RenderCustomize(CUIRect MainView)
 		Localize("Lht.")};
 	static int s_aColorSlider[3] = {0};
 
-	LeftView.HSplitTop(20.0f, 0, &Slider);
+	LeftView.HSplitTop(160.0f, 0, &Slider);
 	LeftView.VSplitRight(150, &Slider, 0);
 
 	int PrevColor = *pColors;
@@ -1535,9 +1535,10 @@ void CMenus::RenderCustomize(CUIRect MainView)
 	int Color = 0;
 	for(int s = 0; s < 3; s++)
 	{
-		Slider.HSplitTop(20.0f, &Label, &Slider);
+		Slider.HSplitTop(60.0f, &Label, &Slider);
 		Label.VSplitLeft(100.0f, &Label, &Button);
 		Button.HMargin(2.0f, &Button);
+		Label.HSplitTop(20.0f, 0, &Label);
 
 		float k = ((PrevColor>>((2-s)*8))&0xff) / 255.0f;
 		k = DoScrollbarH(&s_aColorSlider[s], &Button, k);
@@ -1568,7 +1569,7 @@ void CMenus::RenderCustomize(CUIRect MainView)
 		Info.m_ColorSkin = m_pClient->m_pSkins->GetColorV4(g_Config.m_PlayerColorSkin);
 		Info.m_Size = UI()->Scale()*50.0f;
 		
-		RenderTools()->RenderStaticPlayer(&Info, vec2(200, 400));
+		RenderTools()->RenderStaticPlayer(&Info, vec2(200, 500));
 	}
 	
 	
@@ -1585,7 +1586,7 @@ void CMenus::RenderCustomize(CUIRect MainView)
 	
 	
 	MainView.HSplitTop(20.0f, 0, &SkinSelect);
-	SkinSelect.HSplitTop(20.0f, &SkinSelect, 0);
+	SkinSelect.HSplitTop(60.0f, &SkinSelect, 0);
 	
 	for(int i = 0; i < NumSkinTypes; i++)
 	{
@@ -1597,7 +1598,7 @@ void CMenus::RenderCustomize(CUIRect MainView)
 
 	
 	MainView.HSplitTop(5.0f, 0, &MainView);
-	MainView.HSplitTop(20.5f, &Label, &MainView);
+	MainView.HSplitTop(60.5f, &Label, &MainView);
 
 	// eye selector
 	if (s_SkinType == 1)

@@ -7,6 +7,7 @@ extern int gs_TextureBlob;
 extern int gs_DpadTexture;
 extern int gs_JumpButtonTexture;
 extern int gs_FireButtonTexture;
+extern int gs_TextureLogo;
 
 class CGraph
 {
