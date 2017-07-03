@@ -906,14 +906,6 @@ void CMenus::RenderFront(CUIRect MainView)
 	if(DoButton_Menu(&s_CustomizeButton, Localize("Customize"), 0, &Button))
 		g_Config.m_UiPage = PAGE_CUSTOMIZE;
 	
-#if !defined(__ANDROID__)
-	TabBar.HSplitTop(10, &Button, &TabBar);
-	TabBar.HSplitTop(80, &Button, &TabBar);
-	static int s_EditorButton=0;
-	if(DoButton_Menu(&s_EditorButton, Localize("Editor"), 0, &Button))
-		g_Config.m_ClEditor = g_Config.m_ClEditor^1;
-#endif
-
 	TabBar.HSplitTop(10, &Button, &TabBar);
 	TabBar.HSplitTop(80, &Button, &TabBar);
 	static int s_SettingsButton=0;
@@ -925,6 +917,12 @@ void CMenus::RenderFront(CUIRect MainView)
 	static int s_QuitButton=0;
 	if(DoButton_Menu(&s_QuitButton, Localize("Quit"), 0, &Button))
 		m_Popup = POPUP_QUIT;
+
+	Screen.HSplitTop(15, &TabBar, 0);
+	TabBar.VSplitLeft(40, &Button, 0);
+	static int s_EditorButton=0;
+	if(DoButton_Menu(&s_EditorButton, Localize("Editor"), 0, &Button))
+		g_Config.m_ClEditor = g_Config.m_ClEditor^1;
 }
 
 
