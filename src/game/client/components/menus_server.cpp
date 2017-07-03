@@ -161,7 +161,7 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 
 	MainView.VSplitLeft(50, 0, &Button);
 	Button.h = 50;
-	Button.w = 130;
+	Button.w = 150;
 	static int s_StopServerButton = 0;
 	if( ServerRunning && DoButton_Menu(&s_StopServerButton, Localize("Stop server"), 0, &Button))
 	{
@@ -169,50 +169,52 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 		LastUpdateTime = time_get() / time_freq() - 2;
 	}
 
+	Button.h = 50;
+	Button.w = 94;
 	static int s_StartDmServerButton = 0;
-	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartDmServerButton, Localize("DM server"), 0, &Button))
+	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartDmServerButton, Localize("DM"), 0, &Button))
 	{
 		StartServer("dm", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
 		ServerStarting = true;
 	}
 
-	MainView.VSplitLeft(200, 0, &Button);
+	MainView.VSplitLeft(150, 0, &Button);
 	Button.h = 50;
-	Button.w = 130;
+	Button.w = 94;
 	static int s_StartTdmServerButton = 0;
-	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartTdmServerButton, Localize("TDM server"), 0, &Button) )
+	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartTdmServerButton, Localize("Team DM"), 0, &Button) )
 	{
 		StartServer("tdm", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
 		ServerStarting = true;
 	}
 
-	MainView.VSplitLeft(350, 0, &Button);
+	MainView.VSplitLeft(250, 0, &Button);
 	Button.h = 50;
-	Button.w = 130;
+	Button.w = 94;
 	static int s_StartInfServerButton = 0;
-	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartInfServerButton, Localize("INF server"), 0, &Button) )
+	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartInfServerButton, Localize("Infection"), 0, &Button) )
 	{
 		StartServer("inf", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
 		ServerStarting = true;
 	}
 
-	MainView.VSplitLeft(500, 0, &Button);
+	MainView.VSplitLeft(350, 0, &Button);
 	Button.h = 50;
-	Button.w = 130;
+	Button.w = 94;
 	static int s_StartCtfServerButton = 0;
-	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartCtfServerButton, Localize("CTF server"), 0, &Button) )
+	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartCtfServerButton, Localize("CTF"), 0, &Button) )
 	{
 		StartServer("ctf", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
 		ServerStarting = true;
 	}
 
-	MainView.VSplitLeft(650, 0, &Button);
+	MainView.VSplitLeft(450, 0, &Button);
 	Button.h = 50;
-	Button.w = 130;
+	Button.w = 94;
 	static int s_StartGunGameServerButton = 0;
 	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartGunGameServerButton, Localize("GunGame"), 0, &Button) )
 	{
@@ -221,9 +223,9 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 		ServerStarting = true;
 	}
 
-	MainView.VSplitLeft(800, 0, &Button);
+	MainView.VSplitLeft(550, 0, &Button);
 	Button.h = 50;
-	Button.w = 130;
+	Button.w = 94;
 	static int s_StartInvasionServerButton = 0;
 	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartInvasionServerButton, Localize("Invasion"), 0, &Button) )
 	{
@@ -232,7 +234,20 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 		ServerStarting = true;
 	}
 
+	MainView.VSplitLeft(650, 0, &Button);
+	Button.h = 50;
+	Button.w = 94;
+	static int s_StartDefenceServerButton = 0;
+	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartDefenceServerButton, Localize("Defence"), 0, &Button) )
+	{
+		StartServer("base", "defend3", s_bots, s_buildings, s_randomweapons, 0, "defend1, defend2, defend3, defend4");
+		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
+		ServerStarting = true;
+	}
+
 	static int s_JoinServerButton = 0;
+	Button.h = 50;
+	Button.w = 150;
 	if(ServerStarted || (ServerRunning && DoButton_Menu(&s_JoinServerButton, Localize("Join server"), 0, &Button)))
 	{
 		strcpy(g_Config.m_UiServerAddress, "127.0.0.1");
