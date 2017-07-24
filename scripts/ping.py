@@ -228,36 +228,15 @@ def get_list2(address):
 	return servers
 
 
-
-master_servers = []
-
-m = Master_Server_Info(("vps301894.ovh.net", MASTERSERVER_PORT))
-master_servers.append(m)
-m.start()
-time.sleep(0.001) # avoid issues
-m = Master_Server_Info(("[2607:fcd0:100:1903::5da2:f18e]", MASTERSERVER_PORT))
-master_servers.append(m)
-m.start()
-time.sleep(0.001) # avoid issues
-
-servers = []
-
-while len(master_servers) != 0:
-	if master_servers[0].finished == True:
-		if master_servers[0].servers:
-			servers += master_servers[0].servers
-		del master_servers[0]
-	time.sleep(0.001) # be nice
-
 servers_info = []
+address="127.0.0.1:8303"
+if len(sys.argv) > 1:
+	address=sys.argv[1]
 
-print str(len(servers)) + " servers"
-
-for server in servers:
-	s = Server_Info(server[0], server[1])
-	servers_info.append(s)
-	s.start()
-	time.sleep(0.01) # avoid issues
+s = Server_Info(address, SERVERTYPE_NORMAL)
+servers_info.append(s)
+s.start()
+time.sleep(0.01) # avoid issues
 
 num_players = 0
 num_clients = 0
@@ -274,9 +253,12 @@ while len(servers_info) != 0:
 			print ("Server " + str(servers_info[0].address) + " " + servers_info[0].info["name"] +
 					" ping " + str(servers_info[0].info["ping"]) +
 					" players " + str(servers_info[0].info["num_players"]) + "/" + str(servers_info[0].info["max_players"]))
+		else:
+			print ("No response from server " + str(servers_info[0].address))
+			sys.exit(1)
 
 		del servers_info[0]
 
 	time.sleep(0.1) # be nice
 
-print str(num_players) + " players and " + str(num_clients-num_players) + " spectators"
+sys.exit(0)
