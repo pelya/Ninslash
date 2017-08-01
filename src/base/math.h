@@ -35,9 +35,6 @@ inline T mix(const T a, const T b, TB amount)
 	return a + (b-a)*amount;
 }
 
-#if defined(__ANDROID__) && !defined(rand)
-#define rand() ((int)lrand48()) /* Compatibility with Android 4.4, meh */
-#endif
 inline float frandom() { return rand()/(float)(RAND_MAX); }
 
 // float to fixed

@@ -4,6 +4,7 @@
 
 #include <stdlib.h> // qsort
 #include <stdarg.h>
+#include <time.h>
 
 #include <base/math.h>
 #include <base/system.h>
@@ -2295,6 +2296,7 @@ int main(int argc, const char **argv) // ignore_convention
 		}
 	}
 #endif
+	srand(time(NULL));
 
 	CClient *pClient = CreateClient();
 	IKernel *pKernel = IKernel::Create();

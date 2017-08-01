@@ -83,12 +83,42 @@ static void StartServer(const char *type, const char *map, int bots, int buildin
 		"sv_randomweapons %d\n"
 		"sv_scorelimit 0\n"
 		"sv_survivalmode %d\n"
+		"sv_mapgen 1\n"
 		, type, g_Config.m_PlayerName, type, map, maprotation ? maprotation : map, bots + 1, buildings, randomweapons, survivalmode);
+
+	static const char * votes =
+		"clear_votes\n"
+		"add_vote \"-               \" \"sv_null 0\"\n"
+		"add_vote \"Reload\" \"reload\"\n"
+		"add_vote \"Next map\" \"change_map\"\n"
+		"add_vote \"-  \" \"sv_null 0\"\n"
+		"add_vote \"Random start weapon ON\" \"sv_randomweapons 1\"\n"
+		"add_vote \"Random start weapon OFF\" \"sv_randomweapons 0\"\n"
+		"add_vote \"-   \" \"sv_null 0\"\n"
+		"add_vote \"Survival mode ON\" \"sv_survivalmode 1; sv_survivaltime 60; sv_survivalreward 5; sv_selfkillpenalty 0; reload;\"\n"
+		"add_vote \"Survival mode OFF\" \"sv_survivalmode 0; sv_selfkillpenalty 1; reload;\"\n"
+		"add_vote \"-    \" \"sv_null 0\"\n"
+		"add_vote \"Instagib ON\" \"sv_force_weapon 4; sv_one_hit_kill 1; reload;\"\n"
+		"add_vote \"Instagib OFF\" \"sv_force_weapon 0; sv_one_hit_kill 0; reload;\"\n"
+		"add_vote \"-     \" \"sv_null 0\"\n"
+		"add_vote \"Unlimited turbo ON\" \"sv_unlimited_turbo 1;\"\n"
+		"add_vote \"Unlimited turbo OFF\" sv_unlimited_turbo 0;\"\n"
+		"add_vote \"-        \" \"sv_null 0\"\n"
+		"add_vote \"No bots\" \"sv_preferredteamsize 0;\"\n"
+		"add_vote \"Max 2 bots\" \"sv_preferredteamsize 3;\"\n"
+		"add_vote \"Max 4 bots\" \"sv_preferredteamsize 5;\"\n"
+		"add_vote \"Max 6 bots\" \"sv_preferredteamsize 7;\"\n"
+		"add_vote \"Max 8 bots\" \"sv_preferredteamsize 9;\"\n"
+		"add_vote \"Max 10 bots\" \"sv_preferredteamsize 10;\"\n"
+		"add_vote \"Max 14 bots\" \"sv_preferredteamsize 15;\"\n"
+		"add_vote \"-         \" \"sv_null 0\"\n"
+		"reload\n";
 
 	FILE *ff = fopen("server.cfg", "wb");
 	if( !ff )
 		return;
 	fwrite(aBuf, str_length(aBuf), 1, ff);
+	fwrite(votes, str_length(votes), 1, ff);
 	fclose(ff);
 
 #if defined(WIN32)

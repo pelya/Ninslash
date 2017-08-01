@@ -1,3 +1,5 @@
+#include <time.h>
+
 #include <base/math.h>
 #include <base/system.h>
 
@@ -1800,6 +1802,7 @@ int main(int argc, const char **argv) // ignore_convention
 		}
 	}
 #endif
+	srand(time(NULL));
 
 	CServer *pServer = CreateServer();
 	IKernel *pKernel = IKernel::Create();

@@ -10,10 +10,6 @@
 
 #include <stdlib.h>
 
-#if defined(__ANDROID__) && !defined(rand)
-#define rand() lrand48() /* Compatibility with Android 4.4, meh */
-#endif
-
 #include "detect.h"
 
 #ifdef __cplusplus
