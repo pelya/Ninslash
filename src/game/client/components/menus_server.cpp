@@ -174,7 +174,8 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	static int s_StartDmServerButton = 0;
 	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartDmServerButton, Localize("DM"), 0, &Button))
 	{
-		StartServer("dm", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
+		//StartServer("dm", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
+		StartServer("dm", "generate", s_bots, s_buildings, s_randomweapons, 0, "generate");
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
 		ServerStarting = true;
 	}
@@ -185,7 +186,8 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	static int s_StartTdmServerButton = 0;
 	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartTdmServerButton, Localize("Team DM"), 0, &Button) )
 	{
-		StartServer("tdm", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
+		//StartServer("tdm", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
+		StartServer("tdm", "generate", s_bots, s_buildings, s_randomweapons, 0, "generate");
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
 		ServerStarting = true;
 	}
@@ -196,7 +198,8 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	static int s_StartInfServerButton = 0;
 	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartInfServerButton, Localize("Infection"), 0, &Button) )
 	{
-		StartServer("inf", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
+		//StartServer("inf", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
+		StartServer("inf", "generate", s_bots, s_buildings, s_randomweapons, 0, "generate");
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
 		ServerStarting = true;
 	}
@@ -207,7 +210,8 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	static int s_StartCtfServerButton = 0;
 	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartCtfServerButton, Localize("CTF"), 0, &Button) )
 	{
-		StartServer("ctf", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
+		//StartServer("ctf", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
+		StartServer("ctf", "generate", s_bots, s_buildings, s_randomweapons, 0, "generate");
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
 		ServerStarting = true;
 	}
@@ -218,7 +222,8 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	static int s_StartGunGameServerButton = 0;
 	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartGunGameServerButton, Localize("GunGame"), 0, &Button) )
 	{
-		StartServer("gun", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
+		//StartServer("gun", s_maplist[s_map].cstr(), s_bots, s_buildings, s_randomweapons);
+		StartServer("gun", "generate", s_bots, s_buildings, s_randomweapons, 0, "generate");
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
 		ServerStarting = true;
 	}
@@ -229,7 +234,7 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	static int s_StartInvasionServerButton = 0;
 	if( !ServerRunning && !ServerStarting && DoButton_Menu(&s_StartInvasionServerButton, Localize("Invasion"), 0, &Button) )
 	{
-		StartServer("coop", "generate1", s_bots, s_buildings, s_randomweapons, 1, "generate1, generate2, generate3, generate4, generate5, generate6");
+		StartServer("coop", "generate", s_bots, s_buildings, s_randomweapons, 1, "generate");
 		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
 		ServerStarting = true;
 	}
@@ -285,6 +290,7 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 
 	MainView.HSplitTop(60, 0, &MainView);
 
+#if 0 /* NON-GENERATED MAPS ARE BROKEN on armeabi-v7a server, only generated maps work okay */
 	static float s_ScrollValue = 0.0f;
 	UiDoListboxStart(&s_ScrollValue, &MainView, 50.0f, Localize("Map"), "", s_maplist.size(), 1, s_map, s_ScrollValue);
 
@@ -301,4 +307,5 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	}
 
 	s_map = UiDoListboxEnd(&s_ScrollValue, 0);
+#endif
 }
