@@ -15,6 +15,7 @@ void CSkelebank::Init(IStorage *pStorage)
 	m_lSkeletons.delete_all();
 	m_lAtlases.delete_all();
 
+	// mind the order!
 	AddSkeleton("data/anim/human.json", IStorage::STORAGETYPE_CLIENT);
 	AddAtlas("data/anim/human.atlas", IStorage::STORAGETYPE_CLIENT);
 
@@ -56,6 +57,12 @@ void CSkelebank::Init(IStorage *pStorage)
 
 	AddSkeleton("data/anim/teslacoil.json", IStorage::STORAGETYPE_CLIENT);
 	AddAtlas("data/anim/teslacoil.atlas", IStorage::STORAGETYPE_CLIENT);
+
+	AddSkeleton("data/anim/stardroid.json", IStorage::STORAGETYPE_CLIENT);
+	AddAtlas("data/anim/stardroid.atlas", IStorage::STORAGETYPE_CLIENT);
+
+	AddSkeleton("data/anim/crawler.json", IStorage::STORAGETYPE_CLIENT);
+	AddAtlas("data/anim/crawler.atlas", IStorage::STORAGETYPE_CLIENT);
 }
 
 CSkelebank::~CSkelebank()

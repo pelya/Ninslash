@@ -2,7 +2,7 @@
 
 #include "ai.h"
 #include "entities/character.h"
-#include "entities/monster.h"
+#include "entities/droid.h"
 #include "entities/building.h"
 #include "entities/staticlaser.h"
 #include "entities/flag.h"
@@ -19,6 +19,9 @@ CAI::CAI(CGameContext *pGameServer, CPlayer *pPlayer)
 	
 	m_pPath = 0;
 	m_pVisible = 0;
+
+	m_TriggerLevel = 0;
+	m_Triggered = false;
 	
 	m_Special = -1;
 	ResetEvents();
@@ -166,6 +169,17 @@ void CAI::OnEvent(int EventNum)
 }
 
 
+void CAI::Trigger(int TriggerLevel)
+{
+	
+	if (TriggerLevel >= m_TriggerLevel)
+	{
+		m_Triggered = true;
+		m_ReactionTime = 1;
+	}
+}
+
+
 void CAI::Zzz(int Time)
 {
 	if (!Player()->GetCharacter())
@@ -289,7 +303,17 @@ bool CAI::UpdateWaypoint()
 		
 		m_WayFound = false;
 		
-		if (GameServer()->Collision()->AStar(m_Pos, m_TargetPos))
+		vec2 To = m_TargetPos-m_Pos;
+		
+		if (length(To) > 200)
+			To = normalize(m_TargetPos-m_Pos)*200;
+		
+		To += m_Pos;
+		To.y -= 70;
+		
+		GameServer()->Collision()->IntersectLine(m_Pos, To, 0x0, &To);
+		
+		if (GameServer()->Collision()->AStar(To, m_TargetPos))
 		{	
 			if (m_pPath)
 			{
@@ -566,7 +590,12 @@ bool CAI::MoveTowardsWaypoint(bool Freestyle)
 					}
 				}
 				else
-					m_Move = 0;
+				{
+					if (m_WaypointPos.y < m_Pos.y)
+						m_Jump = 1;
+					else
+						m_Down = 1;
+				}
 				
 				if (Player()->GetCharacter()->IsGrounded() && m_EnemyInLine && abs(Player()->GetCharacter()->GetCore().m_Vel.x) > 9)
 					m_Down = 1;
@@ -595,7 +624,12 @@ bool CAI::MoveTowardsWaypoint(bool Freestyle)
 					}
 				}
 				else
-					m_Move = 0;
+				{
+					if (m_WaypointPos.y < m_Pos.y)
+						m_Jump = 1;
+					else
+						m_Down = 1;
+				}
 				
 				if (Player()->GetCharacter()->IsGrounded() && m_EnemyInLine && abs(Player()->GetCharacter()->GetCore().m_Vel.x) > 9)
 					m_Down = 1;
@@ -952,6 +986,7 @@ void CAI::Build()
 void CAI::ReceiveDamage(int CID, int Dmg)
 {
 	// mainly for witch
+	/*
 	if (!m_EventTriggerTick[EVENT_STARTLE])
 		TriggerEvent(EVENT_STARTLE);
 	
@@ -977,6 +1012,7 @@ void CAI::ReceiveDamage(int CID, int Dmg)
 			m_aAnger[i] *= 1.1f;
 		}
 	}
+	*/
 }
 
 
@@ -1165,13 +1201,15 @@ bool CAI::ShootAtClosestEnemy()
 				pClosestCharacter = pCharacter;
 				ClosestDistance = Distance;
 				
-				float t = m_DispersionTick*0.05f;
+				float t = m_DispersionTick*0.1f;
 				vec2 Dispersion = vec2( 11*cos(t)-6*cos(11.0f/6 * t),
 										11*sin(t)-6*sin(11.0f/6 * t));
 				
 				// range 64 - 0, power level range 20
 				Dispersion *= 3.765f - m_PowerLevel*0.188f;
 				Dispersion *= 2.0f;
+				
+				Dispersion *= Distance*0.005f;
 				
 				m_PlayerDirection = pCharacter->m_Pos - m_LastPos + Dispersion;
 				m_PlayerPos = pCharacter->m_Pos + Dispersion;
@@ -1212,7 +1250,7 @@ bool CAI::ShootAtClosestEnemy()
 
 bool CAI::ShootAtClosestMonster()
 {
-	CMonster *pClosestMonster = NULL;
+	CDroid *pClosestMonster = NULL;
 	int ClosestDistance = 0;
 	
 	vec2 MonsterDir;
@@ -1220,13 +1258,13 @@ bool CAI::ShootAtClosestMonster()
 	m_EnemyInLine = false;
 	
 	// FIRST_BOT_ID, fix
-	CMonster *apEnts[3];
-	int Num = GameServer()->m_World.FindEntities(m_LastPos, 600, (CEntity**)apEnts, 3, CGameWorld::ENTTYPE_MONSTER);
+	CDroid *apEnts[3];
+	int Num = GameServer()->m_World.FindEntities(m_LastPos, 600, (CEntity**)apEnts, 3, CGameWorld::ENTTYPE_DROID);
 
 	for (int i = 0; i < Num; ++i)
 	{
 		//pClosestMonster
-		CMonster *pMonster = apEnts[i];
+		CDroid *pMonster = apEnts[i];
 
 		if (pMonster->m_Health <= 0)
 			continue;
@@ -1844,9 +1882,7 @@ void CAI::Tick()
 		m_Attack = 0;
 	}
 	m_InputChanged = true;
-	
 
-	
 	m_DisplayDirection.x += (m_Direction.x - m_DisplayDirection.x) / max(1.0f, 14.0f - m_PowerLevel*0.75f);
 	m_DisplayDirection.y += (m_Direction.y - m_DisplayDirection.y) / max(1.0f, 14.0f - m_PowerLevel*0.75f);
 }
