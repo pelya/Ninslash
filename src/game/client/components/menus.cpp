@@ -1836,9 +1836,16 @@ void CMenus::RenderBackground()
 		Graphics()->ShaderEnd();
 		Graphics()->RenderToScreen();
 	}
-	else
+	else if(Client()->Loaded())
 	{
-		Graphics()->Clear(0.1f, 0.3f, 0.4);
+		Graphics()->ShaderBegin(SHADER_MENU, s_ShaderIntensity);
+		Graphics()->TextureSet(-1);
+		Graphics()->QuadsBegin();
+			Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+			IGraphics::CQuadItem QuadItem = IGraphics::CQuadItem(0, 0, s.x, s.y);
+			Graphics()->QuadsDrawTL(&QuadItem, 1);
+		Graphics()->QuadsEnd();
+		Graphics()->ShaderEnd();
 	}
 
 	// render background color
@@ -1872,7 +1879,6 @@ void CMenus::RenderBackground()
 			Graphics()->QuadsDrawTL(&QuadItem, 1);
 		Graphics()->QuadsEnd();
 	}
-	
 	// restore screen
 	{CUIRect Screen = *UI()->Screen();
 	Graphics()->MapScreen(Screen.x, Screen.y, Screen.w, Screen.h);}

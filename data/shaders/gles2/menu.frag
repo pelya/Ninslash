@@ -59,7 +59,9 @@ void main (void)
 {
 	// screenPos.w = 2.0f / screenheight // screenheight = 2.0f / screenPos.w
 	vec2 scale = vec2(35.0, 27.0);
-	vec3 c = color(vec2(frag_texCoord.x*4.0/scale.x-1.0/(scale.x*screenPos.z), frag_texCoord.y*4.0/scale.y-1.0/(scale.y*screenPos.w)), 2.0/(50.0*screenPos.z));
+	// SLOW!
+	//vec3 c = color(vec2(frag_texCoord.x*4.0/scale.x-1.0/(scale.x*screenPos.z), frag_texCoord.y*4.0/scale.y-1.0/(scale.y*screenPos.w)), 2.0/(50.0*screenPos.z));
+	vec3 c = vec3(frag_texCoord.x*4.0/scale.x-1.0/(scale.x*screenPos.z), frag_texCoord.y*4.0/scale.y-1.0/(scale.y*screenPos.w), 2.0/(50.0*screenPos.z));
 
 	float s = 1.0-c.b*1.0;
 	
