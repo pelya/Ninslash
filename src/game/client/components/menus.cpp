@@ -1836,6 +1836,10 @@ void CMenus::RenderBackground()
 		Graphics()->ShaderEnd();
 		Graphics()->RenderToScreen();
 	}
+	else
+	{
+		Graphics()->Clear(0.1f, 0.3f, 0.4);
+	}
 
 	// render background color
 	Graphics()->TextureSet(-1);
