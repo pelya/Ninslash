@@ -436,8 +436,10 @@ void CCommandProcessorFragment_OpenGL::Cmd_CreateTextureBuffer(const CCommandBuf
 		// attach texture to buffer
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture[i], 0);
 		
+#if !defined(GL_ES_VERSION_2_0)
 		GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
 		glDrawBuffers(1, DrawBuffers);
+#endif
 		
 		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 			dbg_msg("render", "framebuffer incomplete");
