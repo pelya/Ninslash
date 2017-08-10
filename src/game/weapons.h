@@ -82,7 +82,9 @@ struct CWeapon
 
 enum CustomWeapons // TODO: identical to weapon enum from protocol.h, remove one and leave another one
 {
-	W_TOOL,
+	WEAPON_NONE = -1,
+	W_NONE = -1,
+	W_TOOL = 0,
 	W_HAMMER,
 	W_SHOTGUN,
 	W_RIFLE,

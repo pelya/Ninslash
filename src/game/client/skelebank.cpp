@@ -57,6 +57,9 @@ void CSkelebank::Init(IStorage *pStorage)
 
 	AddSkeleton("data/anim/teslacoil.json", IStorage::STORAGETYPE_CLIENT);
 	AddAtlas("data/anim/teslacoil.atlas", IStorage::STORAGETYPE_CLIENT);
+	
+	AddSkeleton("data/anim/screen.json", IStorage::STORAGETYPE_CLIENT);
+	AddAtlas("data/anim/screen.atlas", IStorage::STORAGETYPE_CLIENT);
 
 	AddSkeleton("data/anim/stardroid.json", IStorage::STORAGETYPE_CLIENT);
 	AddAtlas("data/anim/stardroid.atlas", IStorage::STORAGETYPE_CLIENT);

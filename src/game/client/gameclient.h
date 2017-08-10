@@ -68,7 +68,7 @@ class CGameClient : public IGameClient
 	int m_LastNewPredictedTick;
 
 	int64 m_LastSendInfo;
-
+	
 	static void ConTeam(IConsole::IResult *pResult, void *pUserData);
 	static void ConKill(IConsole::IResult *pResult, void *pUserData);
 
@@ -108,7 +108,7 @@ public:
 	bool m_NewTick;
 	bool m_NewPredictedTick;
 	int m_FlagDropTick[2];
-
+	
 	// TODO: move this
 	CTuningParams m_Tuning;
 
@@ -130,6 +130,7 @@ public:
 	bool IsLocalUndead();
 	bool BuildingEnabled();
 	bool Survival();
+	bool SurvivalAcid();
 	bool IsCoop();
 	
 	void AddFluidForce(vec2 Pos, vec2 Vel);
@@ -262,7 +263,6 @@ public:
 	virtual const char *GetItemName(int Type);
 	virtual const char *Version();
 	virtual const char *NetVersion();
-
 
 	// actions
 	// TODO: move these

@@ -281,6 +281,7 @@ void CCommandProcessorFragment_OpenGL::Cmd_Init(const SCommand_Init *pCommand)
 	m_ScreenHeight = 480;
 	m_CameraX = 0;
 	m_CameraY = 0;
+	m_ShadersLoaded = false;
 }
 
 void CCommandProcessorFragment_OpenGL::Cmd_Texture_Update(const CCommandBuffer::SCommand_Texture_Update *pCommand)
@@ -387,7 +388,7 @@ void CCommandProcessorFragment_OpenGL::Cmd_CreateTextureBuffer(const CCommandBuf
 	int Height = pCommand->m_Height;
 	
 	// create texture buffers
-	for (int i = 0; i < NUM_RENDERBUFFERS; i++)
+	for (int i = 0; i < NUM_RENDERBUFFERS-1; i++)
 	{
 		textureBuffer[i] = 0;
 		glGenFramebuffers(1, &textureBuffer[i]);
@@ -409,6 +410,34 @@ void CCommandProcessorFragment_OpenGL::Cmd_CreateTextureBuffer(const CCommandBuf
 		GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
 		glDrawBuffers(1, DrawBuffers);
 #endif
+		
+		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			dbg_msg("render", "framebuffer incomplete");
+		
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+	
+	// menu buffer, smaller one
+	int i = NUM_RENDERBUFFERS-1;
+	{
+		textureBuffer[i] = 0;
+		glGenFramebuffers(1, &textureBuffer[i]);
+		glBindFramebuffer(GL_FRAMEBUFFER, textureBuffer[i]);
+
+		// create texture
+		glGenTextures(1, &renderedTexture[i]);
+		glBindTexture(GL_TEXTURE_2D, renderedTexture[i]);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Width/4, Height/4, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		
+		// attach texture to buffer
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture[i], 0);
+		
+		GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+		glDrawBuffers(1, DrawBuffers);
 		
 		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 			dbg_msg("render", "framebuffer incomplete");
@@ -439,6 +468,7 @@ void CCommandProcessorFragment_OpenGL::Cmd_LoadShaders(const CCommandBuffer::SCo
 	m_aShader[SHADER_BLOOD] = LoadShader("data/shaders/basic.vert", "data/shaders/blood.frag");
 	m_aShader[SHADER_ACID] = LoadShader("data/shaders/basic.vert", "data/shaders/acid.frag");
 	m_aShader[SHADER_GRAYSCALE] = LoadShader("data/shaders/basic.vert", "data/shaders/grayscale.frag");
+	m_aShader[SHADER_MENU] = LoadShader("data/shaders/basic.vert", "data/shaders/menu.frag");
 
 	// create 1x1 white texture for shaders
 	glGenTextures(1, &m_PixelTexture);
@@ -454,6 +484,8 @@ void CCommandProcessorFragment_OpenGL::Cmd_LoadShaders(const CCommandBuffer::SCo
 	defaultShader.m_Shader = SHADER_DEFAULT;
 	defaultShader.m_Intensity = 1.0f;
 	Cmd_ShaderBegin(&defaultShader);
+	
+	m_ShadersLoaded = true;
 }
 
 
@@ -469,6 +501,9 @@ void CCommandProcessorFragment_OpenGL::Cmd_CameraToShaders(const CCommandBuffer:
 	
 void CCommandProcessorFragment_OpenGL::Cmd_ShaderBegin(const CCommandBuffer::SCommand_ShaderBegin *pCommand)
 {
+	if (!m_ShadersLoaded)
+		return;
+	
 	CShader *pShader = &(m_aShader[pCommand->m_Shader]);
 	glUseProgramObjectARB(pShader->Handle());
 	
@@ -517,6 +552,9 @@ void CCommandProcessorFragment_OpenGL::Cmd_ShaderBegin(const CCommandBuffer::SCo
 
 void CCommandProcessorFragment_OpenGL::Cmd_ShaderEnd(const CCommandBuffer::SCommand_ShaderEnd *pCommand)
 {
+	if (!m_ShadersLoaded)
+		return;
+
 	//glUseProgramObjectARB(0);
 	CCommandBuffer::SCommand_ShaderBegin defaultShader;
 	defaultShader.m_Shader = SHADER_DEFAULT;
@@ -554,7 +592,7 @@ void CCommandProcessorFragment_OpenGL::Cmd_ClearBufferTexture(const CCommandBuff
 	if (!m_MultiBuffering)
 		return;
 	
-	for (int i = 0; i < NUM_RENDERBUFFERS; i++)
+	for (int i = 0; i < NUM_RENDERBUFFERS-1; i++)
 	{
 		if (i == RENDERBUFFER_LIGHT)
 		{
